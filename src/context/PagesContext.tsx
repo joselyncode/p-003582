@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Home, FileText, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { Database } from "@/integrations/supabase/types";
 
 // Define types for our pages
 export type PageSection = "favorite" | "workspace" | "notes" | "personal";
@@ -58,7 +59,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
   const [workspace, setWorkspace] = useState<Page[]>([]);
   const [personal, setPersonal] = useState<Page[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [pagesMap, setPagesMap] = useState<Map<string, string>>(new Map()); // path to id mapping
+  const [pagesMap, setPagesMap] = useState<Map<string, string>>(new Map());
   const { toast } = useToast();
 
   // Initialize by fetching pages from Supabase
@@ -90,7 +91,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
               section: page.section as PageSection
             };
 
-            // Add to the appropriate section array
+            // Add to appropriate section array
             if (page.section === 'favorite') {
               favs.push(pageObj);
             } else if (page.section === 'workspace' || page.section === 'notes') {
@@ -126,7 +127,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
   // Add a new page to the database and update state
   const addPage = async (page: Page): Promise<string | undefined> => {
     try {
-      // Insert into the database
       const { data, error } = await supabase
         .from('pages')
         .insert({
@@ -165,10 +165,10 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         name: data.name,
         icon: data.icon,
         path: data.path,
-        section: data.section
+        section: data.section as PageSection
       };
 
-      // Update the appropriate section
+      // Update appropriate section
       switch (page.section) {
         case "favorite":
           setFavorites(prev => [...prev, newPage]);
