@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Sidebar } from "../layout/Sidebar";
 import { Header } from "../layout/Header";
-import { Menu } from "lucide-react";
+import { MobileDrawer } from "../layout/MobileDrawer";
 
 interface WorkspaceLayoutProps {
   children: React.ReactNode;
@@ -25,25 +25,16 @@ export function WorkspaceLayout({
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-white">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Mobile drawer (replaces the overlay approach) */}
+      <MobileDrawer 
+        userName={userName} 
+        userAvatar={userAvatar} 
+        open={sidebarOpen}
+        onOpenChange={setSidebarOpen}
+      />
 
-      {/* Mobile sidebar */}
-      <div 
-        className={`fixed inset-y-0 left-0 z-30 transition-transform transform duration-300 ease-in-out md:hidden ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <Sidebar userName={userName} userAvatar={userAvatar} />
-      </div>
-
-      {/* Desktop sidebar */}
-      <div className="hidden md:block">
+      {/* Desktop sidebar - always visible on desktop */}
+      <div className="hidden md:block fixed h-full">
         <Sidebar userName={userName} userAvatar={userAvatar} />
       </div>
 

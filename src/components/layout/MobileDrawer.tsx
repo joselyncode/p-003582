@@ -18,7 +18,7 @@ export function MobileDrawer({
   onOpenChange 
 }: MobileDrawerProps) {
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
+    <Drawer open={open} onOpenChange={onOpenChange} className="md:hidden">
       <DrawerContent className="h-[90vh]">
         <div className="h-full overflow-y-auto">
           <Sidebar userName={userName} userAvatar={userAvatar} />
