@@ -6,7 +6,7 @@ import { useLocation } from "react-router-dom";
 export function WorkspaceContent() {
   const location = useLocation();
   
-  // Obtener información de la ruta actual para mostrar en la navegación
+  // Get information for the current route to display in navigation
   const getPageInfo = () => {
     const path = location.pathname;
     

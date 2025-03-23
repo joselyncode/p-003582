@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, Home, Star, Users } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { usePages, PageSection } from "@/context/PagesContext";
 
 interface NewPageModalProps {
@@ -18,11 +18,12 @@ interface NewPageModalProps {
 export function NewPageModal({ open, onOpenChange }: NewPageModalProps) {
   const [pageName, setPageName] = useState("");
   const [pageType, setPageType] = useState<PageSection>("notes");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { addPage } = usePages();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!pageName.trim()) {
@@ -34,43 +35,35 @@ export function NewPageModal({ open, onOpenChange }: NewPageModalProps) {
       return;
     }
 
-    // In a real application, this would create a page in the database
-    // For now, we'll just navigate to the appropriate section
-    let targetPath;
-    
-    switch(pageType) {
-      case "favorite":
-        targetPath = "/docs";
-        break;
-      case "workspace":
-        targetPath = "/workspace";
-        break;
-      case "notes":
-        targetPath = "/notes";
-        break;
-      case "personal":
-        targetPath = "/personal";
-        break;
-      default:
-        targetPath = "/notes";
+    setIsSubmitting(true);
+
+    try {
+      // Create path for the new page based on its name
+      const path = `/${pageType}/${pageName.toLowerCase().replace(/\s+/g, '-')}`;
+      
+      // Add the new page to our context (and database)
+      const newPageId = await addPage({
+        name: pageName,
+        icon: "FileText",
+        path,
+        section: pageType
+      });
+
+      if (newPageId) {
+        // Close modal and navigate
+        onOpenChange(false);
+        navigate(path);
+      }
+    } catch (error) {
+      console.error("Error creating page:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear la página",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Add the new page to our context
-    addPage({
-      name: pageName,
-      icon: "FileText",
-      path: targetPath,
-      section: pageType
-    });
-
-    toast({
-      title: "Página creada",
-      description: `Se ha creado la página "${pageName}"`,
-    });
-
-    // Close modal and navigate
-    onOpenChange(false);
-    navigate(targetPath);
   };
 
   return (
@@ -127,7 +120,9 @@ export function NewPageModal({ open, onOpenChange }: NewPageModalProps) {
             </Select>
           </div>
           <DialogFooter>
-            <Button type="submit">Crear página</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Creando..." : "Crear página"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

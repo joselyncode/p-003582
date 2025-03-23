@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { TextBlock } from "./blocks/TextBlock";
 import { BlockMenu } from "./BlockMenu";
@@ -20,7 +19,7 @@ import { DndContext, DragEndEvent, DragStartEvent, PointerSensor, useSensor, use
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { SortableBlock } from "./blocks/SortableBlock";
 import { useToast } from "@/components/ui/use-toast";
-import { useLocalStorage } from "@/hooks/use-local-storage";
+import { usePages, Block, PageContent } from "@/context/PagesContext";
 import { ShareModal } from "../editor/ShareModal";
 import { CommentsPanel } from "../editor/CommentsPanel";
 import { format, formatDistanceToNow } from "date-fns";
@@ -37,20 +36,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-type BlockType = "text" | "heading1" | "heading2" | "heading3" | "todo" | "bullet" | "numbered";
-
-export interface Block {
-  id: string;
-  type: BlockType;
-  content: string;
-}
-
-interface PageData {
-  blocks: Block[];
-  lastEdited: number; // timestamp
-  isFavorite: boolean;
-}
+import { useLocation } from "react-router-dom";
 
 interface PageEditorProps {
   workspaceName?: string;
@@ -62,60 +48,134 @@ export function PageEditor({ workspaceName = "Mi Workspace", pagePath = [] }: Pa
   const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null);
   const [showMenuAtIndex, setShowMenuAtIndex] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [currentPageId, setCurrentPageId] = useState("default-page");
+  const [currentPageId, setCurrentPageId] = useState<string | undefined>(undefined);
   const [lastEdited, setLastEdited] = useState<number>(Date.now());
   const [isFavorite, setIsFavorite] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isCommentsPanelOpen, setIsCommentsPanelOpen] = useState(false);
   const [pageStatus, setPageStatus] = useState<string>("En progreso");
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const location = useLocation();
   
-  // Use LocalStorage to persist blocks and metadata
-  const [savedPages, setSavedPages] = useLocalStorage<{[key: string]: PageData}>('notion-pages', {});
+  // Get context hooks
+  const { 
+    getPageContent, 
+    updatePageContent, 
+    toggleFavorite: toggleFavoriteStatus,
+    getPageIdByPath
+  } = usePages();
   
-  // Initialize blocks from localStorage or default blocks
+  // Track if we need to save changes
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const saveTimeoutRef = useRef<number | null>(null);
+  
+  // Set current page id based on current route
   useEffect(() => {
-    const pageData = savedPages[currentPageId];
-    if (pageData && pageData.blocks && pageData.blocks.length > 0) {
-      setBlocks(pageData.blocks);
-      setLastEdited(pageData.lastEdited || Date.now());
-      setIsFavorite(pageData.isFavorite || false);
-    } else {
-      // Default blocks for new pages
-      setBlocks([
-        { id: "1", type: "heading1", content: "Untitled" },
-        { id: "2", type: "text", content: "Start writing..." },
-      ]);
-      setLastEdited(Date.now());
+    const pageId = getPageIdByPath(location.pathname);
+    if (pageId) {
+      setCurrentPageId(pageId);
     }
-  }, [currentPageId, savedPages]);
+  }, [location.pathname, getPageIdByPath]);
 
-  // Auto-save effect
+  // Load content when page id changes
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (blocks.length > 0) {
-        const now = Date.now();
-        setLastEdited(now);
+    const loadPageContent = async () => {
+      if (!currentPageId) return;
+      
+      setIsLoading(true);
+      try {
+        const content = await getPageContent(currentPageId);
         
-        setSavedPages({
-          ...savedPages,
-          [currentPageId]: {
-            blocks,
-            lastEdited: now,
-            isFavorite
-          }
-        });
-        console.log("Auto-saved content");
+        if (content) {
+          setBlocks(content.blocks || []);
+          setLastEdited(content.last_edited || Date.now());
+          setIsFavorite(content.is_favorite || false);
+        } else {
+          // Default blocks for new pages
+          setBlocks([
+            { id: "1", type: "heading1", content: "Untitled" },
+            { id: "2", type: "text", content: "Start writing..." },
+          ]);
+          setLastEdited(Date.now());
+          setIsFavorite(false);
+        }
+      } catch (error) {
+        console.error("Error loading page content:", error);
+        // Fallback to default blocks
+        setBlocks([
+          { id: "1", type: "heading1", content: "Untitled" },
+          { id: "2", type: "text", content: "Start writing..." },
+        ]);
+      } finally {
+        setIsLoading(false);
       }
-    }, 2000);
+    };
+    
+    loadPageContent();
+  }, [currentPageId, getPageContent]);
 
-    return () => clearTimeout(timeoutId);
-  }, [blocks, currentPageId, savedPages, setSavedPages, isFavorite]);
+  // Auto-save effect with debounce
+  useEffect(() => {
+    if (!hasUnsavedChanges || !currentPageId || blocks.length === 0) return;
+    
+    // Clear any existing timeout
+    if (saveTimeoutRef.current) {
+      window.clearTimeout(saveTimeoutRef.current);
+    }
+    
+    // Set new timeout for saving
+    saveTimeoutRef.current = window.setTimeout(async () => {
+      const now = Date.now();
+      setLastEdited(now);
+      
+      await updatePageContent({
+        page_id: currentPageId,
+        blocks,
+        last_edited: now,
+        is_favorite: isFavorite
+      });
+      
+      setHasUnsavedChanges(false);
+      console.log("Auto-saved content");
+    }, 2000);
+    
+    // Cleanup on unmount
+    return () => {
+      if (saveTimeoutRef.current) {
+        window.clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [blocks, hasUnsavedChanges, currentPageId, isFavorite, updatePageContent]);
+
+  // Immediate save on page unload/nav away if changes exist
+  useEffect(() => {
+    const handleBeforeUnload = async (event: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges && currentPageId) {
+        // Save immediately
+        const now = Date.now();
+        await updatePageContent({
+          page_id: currentPageId,
+          blocks,
+          last_edited: now,
+          is_favorite: isFavorite
+        });
+        console.log("Saved content before unload");
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges, blocks, currentPageId, isFavorite, updatePageContent]);
 
   const handleBlockChange = (id: string, content: string) => {
     setBlocks(blocks.map(block => 
       block.id === id ? { ...block, content } : block
     ));
+    setHasUnsavedChanges(true);
   };
 
   const handleBlockFocus = (id: string) => {
@@ -126,7 +186,7 @@ export function PageEditor({ workspaceName = "Mi Workspace", pagePath = [] }: Pa
     setFocusedBlockId(null);
   };
 
-  const addBlock = (index: number, type: BlockType = "text") => {
+  const addBlock = (index: number, type: Block["type"] = "text") => {
     const newId = Date.now().toString();
     setBlocks([
       ...blocks.slice(0, index + 1),
@@ -134,6 +194,7 @@ export function PageEditor({ workspaceName = "Mi Workspace", pagePath = [] }: Pa
       ...blocks.slice(index + 1)
     ]);
     setShowMenuAtIndex(null);
+    setHasUnsavedChanges(true);
     
     // Focus the new block after render
     setTimeout(() => {
@@ -154,16 +215,18 @@ export function PageEditor({ workspaceName = "Mi Workspace", pagePath = [] }: Pa
     addBlock(index, "text");
   };
 
-  const changeBlockType = (id: string, newType: BlockType) => {
+  const changeBlockType = (id: string, newType: Block["type"]) => {
     setBlocks(blocks.map(block => 
       block.id === id ? { ...block, type: newType } : block
     ));
     setShowMenuAtIndex(null);
+    setHasUnsavedChanges(true);
   };
 
   const deleteBlock = (id: string) => {
     if (blocks.length > 1) {
       setBlocks(blocks.filter(block => block.id !== id));
+      setHasUnsavedChanges(true);
       toast({
         description: "Block deleted",
         duration: 1500,
@@ -172,19 +235,14 @@ export function PageEditor({ workspaceName = "Mi Workspace", pagePath = [] }: Pa
   };
   
   // Toggle favorite status
-  const toggleFavorite = () => {
+  const toggleFavorite = async () => {
+    if (!currentPageId) return;
+    
     const newState = !isFavorite;
     setIsFavorite(newState);
     
-    // Update in localStorage immediately
-    setSavedPages({
-      ...savedPages,
-      [currentPageId]: {
-        blocks,
-        lastEdited,
-        isFavorite: newState
-      }
-    });
+    // Update in database immediately
+    await toggleFavoriteStatus(currentPageId, newState);
     
     toast({
       description: newState ? "Añadido a favoritos" : "Eliminado de favoritos",
@@ -216,6 +274,8 @@ export function PageEditor({ workspaceName = "Mi Workspace", pagePath = [] }: Pa
         return arrayMove(items, oldIndex, newIndex);
       });
       
+      setHasUnsavedChanges(true);
+      
       toast({
         description: "Block moved",
         duration: 1500,
@@ -227,7 +287,7 @@ export function PageEditor({ workspaceName = "Mi Workspace", pagePath = [] }: Pa
 
   // Format the last edited time
   const formatLastEdited = () => {
-    if (Date.now() - lastEdited < 60000) { // menos de 1 minuto
+    if (Date.now() - lastEdited < 60000) { // less than 1 minute
       return "justo ahora";
     }
     return formatDistanceToNow(lastEdited, { addSuffix: true, locale: es });
@@ -235,43 +295,17 @@ export function PageEditor({ workspaceName = "Mi Workspace", pagePath = [] }: Pa
 
   // Page options menu actions
   const duplicatePage = () => {
-    const newPageId = `${currentPageId}-copy-${Date.now()}`;
-    setSavedPages({
-      ...savedPages,
-      [newPageId]: {
-        blocks: blocks,
-        lastEdited: Date.now(),
-        isFavorite: false
-      }
-    });
-    
+    // This would need to be implemented in the database
     toast({
-      description: "Página duplicada",
+      description: "Función de duplicar página por implementar",
       duration: 1500,
     });
   };
   
   const deletePage = () => {
-    // Don't delete the last page
-    if (Object.keys(savedPages).length <= 1) {
-      toast({
-        description: "No se puede eliminar la única página",
-        variant: "destructive",
-        duration: 1500,
-      });
-      return;
-    }
-    
-    const newPages = { ...savedPages };
-    delete newPages[currentPageId];
-    setSavedPages(newPages);
-    
-    // Set current page to the first available
-    const firstPageId = Object.keys(newPages)[0];
-    setCurrentPageId(firstPageId);
-    
+    // This would need to be implemented in the database
     toast({
-      description: "Página eliminada",
+      description: "Función de eliminar página por implementar",
       duration: 1500,
     });
   };
@@ -281,6 +315,10 @@ export function PageEditor({ workspaceName = "Mi Workspace", pagePath = [] }: Pa
     const titleBlock = blocks.find(block => block.type === "heading1");
     return titleBlock ? titleBlock.content : "Untitled";
   };
+
+  if (isLoading) {
+    return <div className="p-4">Cargando contenido...</div>;
+  }
 
   return (
     <div className="mb-20">
@@ -482,13 +520,13 @@ export function PageEditor({ workspaceName = "Mi Workspace", pagePath = [] }: Pa
       <ShareModal 
         open={isShareModalOpen} 
         onOpenChange={setIsShareModalOpen} 
-        pageId={currentPageId}
+        pageId={currentPageId || ""}
       />
       
       {/* Comments Panel */}
       {isCommentsPanelOpen && (
         <CommentsPanel
-          pageId={currentPageId}
+          pageId={currentPageId || ""}
           onClose={() => setIsCommentsPanelOpen(false)}
         />
       )}
