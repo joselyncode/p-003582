@@ -53,7 +53,7 @@ export function SettingsContent() {
                 <Label htmlFor="name">Nombre completo</Label>
                 <Input 
                   id="name" 
-                  defaultValue="Carlos Mendoza" 
+                  defaultValue="Joselyn Monge" 
                   className="max-w-md"
                 />
               </div>
@@ -63,7 +63,7 @@ export function SettingsContent() {
                 <Input 
                   id="email" 
                   type="email" 
-                  defaultValue="carlos@ejemplo.com" 
+                  defaultValue="joselyn@ejemplo.com" 
                   className="max-w-md"
                 />
               </div>
@@ -72,7 +72,7 @@ export function SettingsContent() {
                 <Label htmlFor="avatar">Foto de perfil</Label>
                 <div className="flex items-center gap-4">
                   <img 
-                    src="https://i.pravatar.cc/100" 
+                    src="/images/female-avatar.svg" 
                     alt="Avatar" 
                     className="w-12 h-12 rounded-full" 
                   />
