@@ -2,6 +2,7 @@
 import React from "react";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
 import { SettingsContent } from "@/components/settings/SettingsContent";
+import { PageEditor } from "@/components/editor/PageEditor";
 
 const Settings = () => {
   // En una aplicación real, esto vendría de una API o contexto de autenticación
@@ -15,7 +16,10 @@ const Settings = () => {
       userAvatar={userAvatar}
       currentPath={currentPath}
     >
-      <SettingsContent />
+      <div className="px-8 py-4 max-w-4xl mx-auto max-sm:px-4">
+        <PageEditor />
+        <SettingsContent />
+      </div>
     </WorkspaceLayout>
   );
 };

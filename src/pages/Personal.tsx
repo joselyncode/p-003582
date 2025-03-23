@@ -1,6 +1,7 @@
 
 import React from "react";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
+import { PageEditor } from "@/components/editor/PageEditor";
 
 const Personal = () => {
   const userName = "Joselyn Monge";
@@ -18,6 +19,7 @@ const Personal = () => {
         <p className="text-gray-600 mb-4">
           Administra tus proyectos personales en esta página.
         </p>
+        <PageEditor />
       </div>
     </WorkspaceLayout>
   );

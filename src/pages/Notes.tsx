@@ -1,6 +1,7 @@
 
 import React from "react";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
+import { PageEditor } from "@/components/editor/PageEditor";
 
 const Notes = () => {
   const userName = "Joselyn Monge";
@@ -18,6 +19,7 @@ const Notes = () => {
         <p className="text-gray-600 mb-4">
           Aquí puedes agregar y organizar tus notas personales.
         </p>
+        <PageEditor />
       </div>
     </WorkspaceLayout>
   );

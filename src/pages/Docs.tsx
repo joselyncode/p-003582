@@ -1,6 +1,7 @@
 
 import React from "react";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
+import { PageEditor } from "@/components/editor/PageEditor";
 
 const Docs = () => {
   // Using the same user data as other pages for consistency
@@ -19,6 +20,7 @@ const Docs = () => {
         <p className="text-gray-600 mb-4">
           Esta página contiene la documentación del proyecto.
         </p>
+        <PageEditor />
       </div>
     </WorkspaceLayout>
   );
