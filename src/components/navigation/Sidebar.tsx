@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { 
   ChevronDown, 
@@ -9,9 +10,12 @@ import {
   FileText, 
   Calendar, 
   Star, 
-  Settings 
+  Settings,
+  Home,
+  Users
 } from "lucide-react";
 import { NewPageModal } from "../layout/NewPageModal";
+import { usePages } from "@/context/PagesContext";
 
 interface SidebarProps {
   userName: string;
@@ -23,6 +27,41 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
   const [favoritesExpanded, setFavoritesExpanded] = useState(true);
   const [privateExpanded, setPrivateExpanded] = useState(true);
   const [newPageOpen, setNewPageOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const { favorites, workspace, personal } = usePages();
+
+  // Map icon strings to actual components
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case "Home":
+        return Home;
+      case "FileText":
+        return FileText;
+      case "Star":
+        return Star;
+      case "Settings":
+        return Settings;
+      case "Calendar":
+        return Calendar;
+      case "Users":
+        return Users;
+      default:
+        return FileText;
+    }
+  };
+
+  // Function to filter items based on search query
+  const filterItems = (items) => {
+    if (!searchQuery) return items;
+    return items.filter(item => 
+      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  };
+
+  const filteredFavorites = filterItems(favorites);
+  const filteredWorkspace = filterItems(workspace);
+  const filteredPersonal = filterItems(personal);
 
   return (
     <aside className="w-64 h-full flex flex-col border-r border-gray-200 bg-gray-50">
@@ -45,6 +84,8 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
           <Input 
             className="pl-8 py-1 h-8 text-sm bg-gray-100 border-0"
             placeholder="Buscar..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
@@ -64,80 +105,97 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
         </div>
 
         {/* Favorites */}
-        <div className="px-3 mb-1">
-          <button 
-            onClick={() => setFavoritesExpanded(!favoritesExpanded)}
-            className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
-          >
-            {favoritesExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-            <span>FAVORITOS</span>
-          </button>
-          
-          {favoritesExpanded && (
-            <div className="pl-2">
-              <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
-                <Star className="h-3.5 w-3.5 text-yellow-500" />
-                <span>Notas importantes</span>
-              </button>
-              <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
-                <Star className="h-3.5 w-3.5 text-yellow-500" />
-                <span>Planificador semanal</span>
-              </button>
-            </div>
-          )}
-        </div>
+        {filteredFavorites.length > 0 && (
+          <div className="px-3 mb-1">
+            <button 
+              onClick={() => setFavoritesExpanded(!favoritesExpanded)}
+              className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
+            >
+              {favoritesExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              <span>FAVORITOS</span>
+            </button>
+            
+            {favoritesExpanded && (
+              <div className="pl-2">
+                {filteredFavorites.map((item, index) => {
+                  const ItemIcon = getIconComponent(item.icon);
+                  return (
+                    <Link 
+                      key={`favorite-${index}`} 
+                      to={item.path}
+                      className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm"
+                    >
+                      <ItemIcon className="h-3.5 w-3.5 text-gray-500" />
+                      <span>{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Workspace */}
-        <div className="px-3 mb-1">
-          <button 
-            onClick={() => setWorkspacesExpanded(!workspacesExpanded)}
-            className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
-          >
-            {workspacesExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-            <span>WORKSPACE</span>
-          </button>
-          
-          {workspacesExpanded && (
-            <div className="pl-2">
-              <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
-                <FileText className="h-3.5 w-3.5" />
-                <span>Documentación</span>
-              </button>
-              <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
-                <FileText className="h-3.5 w-3.5" />
-                <span>Ideas de proyectos</span>
-              </button>
-              <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
-                <FileText className="h-3.5 w-3.5" />
-                <span>Recursos</span>
-              </button>
-            </div>
-          )}
-        </div>
+        {filteredWorkspace.length > 0 && (
+          <div className="px-3 mb-1">
+            <button 
+              onClick={() => setWorkspacesExpanded(!workspacesExpanded)}
+              className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
+            >
+              {workspacesExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              <span>WORKSPACE</span>
+            </button>
+            
+            {workspacesExpanded && (
+              <div className="pl-2">
+                {filteredWorkspace.map((item, index) => {
+                  const ItemIcon = getIconComponent(item.icon);
+                  return (
+                    <Link 
+                      key={`workspace-${index}`} 
+                      to={item.path}
+                      className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm"
+                    >
+                      <ItemIcon className="h-3.5 w-3.5 text-gray-500" />
+                      <span>{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Private */}
-        <div className="px-3 mb-1">
-          <button 
-            onClick={() => setPrivateExpanded(!privateExpanded)}
-            className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
-          >
-            {privateExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-            <span>PRIVADO</span>
-          </button>
-          
-          {privateExpanded && (
-            <div className="pl-2">
-              <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
-                <FileText className="h-3.5 w-3.5" />
-                <span>Diario personal</span>
-              </button>
-              <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
-                <FileText className="h-3.5 w-3.5" />
-                <span>Metas</span>
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Personal */}
+        {filteredPersonal.length > 0 && (
+          <div className="px-3 mb-1">
+            <button 
+              onClick={() => setPrivateExpanded(!privateExpanded)}
+              className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
+            >
+              {privateExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              <span>PRIVADO</span>
+            </button>
+            
+            {privateExpanded && (
+              <div className="pl-2">
+                {filteredPersonal.map((item, index) => {
+                  const ItemIcon = getIconComponent(item.icon);
+                  return (
+                    <Link 
+                      key={`personal-${index}`} 
+                      to={item.path}
+                      className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm"
+                    >
+                      <ItemIcon className="h-3.5 w-3.5 text-gray-500" />
+                      <span>{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Create new button */}

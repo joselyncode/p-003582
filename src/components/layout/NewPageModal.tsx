@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, Home, Star, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { usePages, PageSection } from "@/context/PagesContext";
 
 interface NewPageModalProps {
   open: boolean;
@@ -16,9 +17,10 @@ interface NewPageModalProps {
 
 export function NewPageModal({ open, onOpenChange }: NewPageModalProps) {
   const [pageName, setPageName] = useState("");
-  const [pageType, setPageType] = useState("notes");
+  const [pageType, setPageType] = useState<PageSection>("notes");
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { addPage } = usePages();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +55,14 @@ export function NewPageModal({ open, onOpenChange }: NewPageModalProps) {
         targetPath = "/notes";
     }
 
+    // Add the new page to our context
+    addPage({
+      name: pageName,
+      icon: "FileText",
+      path: targetPath,
+      section: pageType
+    });
+
     toast({
       title: "Página creada",
       description: `Se ha creado la página "${pageName}"`,
@@ -83,7 +93,7 @@ export function NewPageModal({ open, onOpenChange }: NewPageModalProps) {
             <Label htmlFor="page-type">Sección</Label>
             <Select
               value={pageType}
-              onValueChange={setPageType}
+              onValueChange={(value) => setPageType(value as PageSection)}
             >
               <SelectTrigger id="page-type">
                 <SelectValue placeholder="Selecciona una sección" />
