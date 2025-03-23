@@ -77,8 +77,6 @@ export function TextBlock({
     }
   };
 
-  const Tag = getTagForBlockType() as keyof JSX.IntrinsicElements;
-
   const renderBlockContent = () => {
     if (block.type === "todo") {
       return (
@@ -115,23 +113,23 @@ export function TextBlock({
       );
     }
 
-    return (
-      <Tag
-        ref={contentRef}
-        contentEditable
-        className={`outline-none ${getClassForBlockType()} empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400`}
-        onInput={(e) => onChange(e.currentTarget.innerHTML)}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        onKeyDown={handleKeyDown}
-        data-placeholder={
-          block.type === "heading1" ? "Título" :
-          block.type === "heading2" ? "Subtítulo" :
-          block.type === "heading3" ? "Encabezado pequeño" :
-          "Escribe algo..."
-        }
-      />
-    );
+    // For regular text and headings
+    const Tag = getTagForBlockType();
+    
+    return React.createElement(Tag, {
+      ref: contentRef,
+      contentEditable: true,
+      className: `outline-none ${getClassForBlockType()} empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400`,
+      onInput: (e: React.FormEvent<HTMLElement>) => onChange((e.target as HTMLElement).innerHTML),
+      onFocus,
+      onBlur,
+      onKeyDown: handleKeyDown,
+      "data-placeholder":
+        block.type === "heading1" ? "Título" :
+        block.type === "heading2" ? "Subtítulo" :
+        block.type === "heading3" ? "Encabezado pequeño" :
+        "Escribe algo..."
+    });
   };
 
   return (
