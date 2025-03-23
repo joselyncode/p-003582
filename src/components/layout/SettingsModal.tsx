@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { 
   Sheet, 
   SheetContent, 
@@ -13,15 +13,58 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Mail, Save } from "lucide-react";
+import { useSettings } from "@/hooks/use-settings";
+import { useToast } from "@/hooks/use-toast";
 
 interface SettingsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  userName: string;
+  userName?: string;
   userEmail?: string;
 }
 
-export function SettingsModal({ open, onOpenChange, userName, userEmail = "joselyn@ejemplo.com" }: SettingsModalProps) {
+export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
+  const { settings, updateSettings } = useSettings();
+  const { toast } = useToast();
+
+  const [formData, setFormData] = useState({
+    name: settings.userName,
+    email: settings.userEmail,
+    language: settings.language
+  });
+
+  // Update form data when settings change or modal opens
+  React.useEffect(() => {
+    if (open) {
+      setFormData({
+        name: settings.userName,
+        email: settings.userEmail,
+        language: settings.language
+      });
+    }
+  }, [open, settings]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  const handleSave = () => {
+    updateSettings({
+      userName: formData.name,
+      userEmail: formData.email,
+      language: formData.language
+    });
+    
+    toast({
+      title: "Cambios guardados",
+      description: "Tus preferencias han sido actualizadas.",
+    });
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-md">
@@ -41,7 +84,12 @@ export function SettingsModal({ open, onOpenChange, userName, userEmail = "josel
                   Nombre completo
                 </Label>
               </div>
-              <Input id="name" defaultValue={userName} className="w-full" />
+              <Input 
+                id="name" 
+                value={formData.name} 
+                onChange={handleChange}
+                className="w-full" 
+              />
             </div>
             
             <div className="space-y-2">
@@ -51,7 +99,13 @@ export function SettingsModal({ open, onOpenChange, userName, userEmail = "josel
                   Correo electrónico
                 </Label>
               </div>
-              <Input id="email" type="email" defaultValue={userEmail} className="w-full" />
+              <Input 
+                id="email" 
+                type="email" 
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full" 
+              />
             </div>
           </div>
 
@@ -64,7 +118,8 @@ export function SettingsModal({ open, onOpenChange, userName, userEmail = "josel
               <select 
                 id="language" 
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                defaultValue="es"
+                value={formData.language}
+                onChange={handleChange}
               >
                 <option value="es">Español</option>
                 <option value="en">Inglés</option>
@@ -75,7 +130,7 @@ export function SettingsModal({ open, onOpenChange, userName, userEmail = "josel
 
         <SheetFooter>
           <SheetClose asChild>
-            <Button type="submit" className="flex items-center">
+            <Button type="submit" className="flex items-center" onClick={handleSave}>
               <Save className="mr-2 h-4 w-4" />
               Guardar cambios
             </Button>

@@ -4,15 +4,17 @@ import { Link } from "react-router-dom";
 import { SearchBar } from "../ui/SearchBar";
 import { SettingsModal } from "./SettingsModal";
 import { Home, FileText, Star, Users, Settings } from "lucide-react";
+import { useSettings } from "@/hooks/use-settings";
 
 interface SidebarProps {
-  userName: string;
+  userName?: string;
   userAvatar?: string;
 }
 
-export function Sidebar({ userName, userAvatar }: SidebarProps) {
+export function Sidebar({ userAvatar }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { settings } = useSettings();
 
   // Lista de secciones y páginas
   const favorites = [
@@ -132,13 +134,13 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center">
           <img
-            src={userAvatar || "/placeholder.svg"}
+            src={userAvatar || "/images/female-avatar.svg"}
             alt="Avatar"
             className="h-8 w-8 rounded-full mr-2"
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">
-              {userName}
+              {settings.userName}
             </p>
           </div>
           <button 
@@ -155,7 +157,6 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
       <SettingsModal 
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
-        userName={userName}
       />
     </div>
   );

@@ -4,27 +4,27 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "./Sidebar";
 import { SettingsModal } from "./SettingsModal";
 import { Settings } from "lucide-react";
+import { useSettings } from "@/hooks/use-settings";
 
 interface MobileDrawerProps {
-  userName: string;
   userAvatar?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export function MobileDrawer({ 
-  userName, 
   userAvatar,
   open,
   onOpenChange
 }: MobileDrawerProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { settings } = useSettings();
   
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="left" className="p-0">
-          <Sidebar userName={userName} userAvatar={userAvatar} />
+          <Sidebar userName={settings.userName} userAvatar={userAvatar || "/images/female-avatar.svg"} />
         </SheetContent>
       </Sheet>
 
@@ -41,7 +41,6 @@ export function MobileDrawer({
       <SettingsModal 
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
-        userName={userName}
       />
     </>
   );
