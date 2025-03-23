@@ -27,8 +27,7 @@ export function WorkspaceLayout({
     <div className="flex flex-col h-screen overflow-hidden bg-white">
       {/* Mobile drawer */}
       <MobileDrawer 
-        userName={userName} 
-        userAvatar={userAvatar} 
+        userAvatar={userAvatar}
         open={sidebarOpen}
         onOpenChange={setSidebarOpen}
       />
