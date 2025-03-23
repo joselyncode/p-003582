@@ -23,6 +23,7 @@ interface TextBlockProps {
   onBlur: () => void;
   onDelete: () => void;
   changeType: (type: Block["type"]) => void;
+  onEnterPress?: () => void;
 }
 
 export function TextBlock({ 
@@ -31,7 +32,8 @@ export function TextBlock({
   onFocus, 
   onBlur,
   onDelete,
-  changeType
+  changeType,
+  onEnterPress
 }: TextBlockProps) {
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -67,7 +69,10 @@ export function TextBlock({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      // Este evento sería manejado por el editor para crear un nuevo bloque
+      // Call the onEnterPress callback to create a new block
+      if (onEnterPress) {
+        onEnterPress();
+      }
     } else if (e.key === "Backspace" && contentRef.current?.textContent === "") {
       e.preventDefault();
       onDelete();

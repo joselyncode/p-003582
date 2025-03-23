@@ -120,6 +120,11 @@ export function PageEditor() {
     });
   };
 
+  // Handle Enter key press in a block to create a new block below it
+  const handleEnterPress = (index: number) => {
+    addBlock(index, "text");
+  };
+
   const changeBlockType = (id: string, newType: BlockType) => {
     setBlocks(blocks.map(block => 
       block.id === id ? { ...block, type: newType } : block
@@ -339,6 +344,7 @@ export function PageEditor() {
                       onBlur={handleBlockBlur}
                       onDelete={() => deleteBlock(block.id)}
                       changeType={(type) => changeBlockType(block.id, type)}
+                      onEnterPress={() => handleEnterPress(index)}
                     />
                   </div>
                 </div>
