@@ -48,13 +48,13 @@ export function Header({ currentPath, onMenuClick }: HeaderProps) {
       </nav>
 
       <div className="flex items-center gap-2">
-        <button className="p-1.5 hover:bg-gray-100 rounded">
+        <button className="p-1.5 hover:bg-gray-100 rounded hidden sm:block">
           <Star className="h-4 w-4 text-gray-500" />
         </button>
-        <button className="p-1.5 hover:bg-gray-100 rounded">
+        <button className="p-1.5 hover:bg-gray-100 rounded hidden sm:block">
           <Share className="h-4 w-4 text-gray-500" />
         </button>
-        <button className="p-1.5 hover:bg-gray-100 rounded">
+        <button className="p-1.5 hover:bg-gray-100 rounded hidden sm:block">
           <Users className="h-4 w-4 text-gray-500" />
         </button>
         <button className="p-1.5 hover:bg-gray-100 rounded">
