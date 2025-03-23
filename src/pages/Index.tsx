@@ -1,13 +1,21 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React from "react";
+import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
+import { WorkspaceContent } from "@/components/workspace/WorkspaceContent";
 
 const Index = () => {
+  // In a real application, this would come from an API or auth context
+  const userName = "John Smith";
+  const userAvatar = "https://i.pravatar.cc/100"; // Placeholder avatar URL
+  const currentPath = ["Documentation", "Getting Started"];
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <WorkspaceLayout
+      userName={userName}
+      userAvatar={userAvatar}
+      currentPath={currentPath}
+    >
+      <WorkspaceContent />
+    </WorkspaceLayout>
   );
 };
 
