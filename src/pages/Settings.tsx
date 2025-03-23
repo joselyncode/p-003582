@@ -1,13 +1,13 @@
 
 import React from "react";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
-import { WorkspaceContent } from "@/components/workspace/WorkspaceContent";
+import { SettingsContent } from "@/components/settings/SettingsContent";
 
-const Index = () => {
+const Settings = () => {
   // En una aplicación real, esto vendría de una API o contexto de autenticación
   const userName = "Carlos Mendoza";
   const userAvatar = "https://i.pravatar.cc/100"; // URL de avatar de placeholder
-  const currentPath = ["Mi Workspace", "Documentación", "Página de notas"];
+  const currentPath = ["Configuración"];
 
   return (
     <WorkspaceLayout
@@ -15,9 +15,9 @@ const Index = () => {
       userAvatar={userAvatar}
       currentPath={currentPath}
     >
-      <WorkspaceContent />
+      <SettingsContent />
     </WorkspaceLayout>
   );
 };
 
-export default Index;
+export default Settings;

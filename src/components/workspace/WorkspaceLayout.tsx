@@ -1,6 +1,7 @@
+
 import React from "react";
-import { Sidebar } from "../layout/Sidebar";
-import { Header } from "../layout/Header";
+import { Sidebar } from "../navigation/Sidebar";
+import { Header } from "../navigation/Header";
 
 interface WorkspaceLayoutProps {
   children: React.ReactNode;
@@ -16,13 +17,13 @@ export function WorkspaceLayout({
   currentPath,
 }: WorkspaceLayoutProps) {
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="flex h-screen">
-        <Sidebar userName={userName} userAvatar={userAvatar} />
-        <div className="flex-1">
-          <Header currentPath={currentPath} />
+    <div className="flex h-screen overflow-hidden bg-white">
+      <Sidebar userName={userName} userAvatar={userAvatar} />
+      <div className="flex flex-col flex-1 h-full overflow-hidden">
+        <Header currentPath={currentPath} />
+        <main className="flex-1 overflow-auto">
           {children}
-        </div>
+        </main>
       </div>
     </div>
   );
