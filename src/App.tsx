@@ -13,28 +13,33 @@ import Notes from "./pages/Notes";
 import Personal from "./pages/Personal";
 import Todos from "./pages/Todos";
 
-const queryClient = new QueryClient();
+// Create QueryClient inside the component to avoid React hooks being called
+// at the module level which causes "dispatcher is null" errors
+const App = () => {
+  // Initialize QueryClient inside the component function
+  const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/docs" element={<Docs />} />
-          <Route path="/workspace" element={<Workspace />} />
-          <Route path="/notes" element={<Notes />} />
-          <Route path="/personal" element={<Personal />} />
-          <Route path="/todos" element={<Todos />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/docs" element={<Docs />} />
+            <Route path="/workspace" element={<Workspace />} />
+            <Route path="/notes" element={<Notes />} />
+            <Route path="/personal" element={<Personal />} />
+            <Route path="/todos" element={<Todos />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
