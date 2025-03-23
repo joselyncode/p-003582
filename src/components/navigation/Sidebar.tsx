@@ -11,6 +11,7 @@ import {
   Star, 
   Settings 
 } from "lucide-react";
+import { NewPageModal } from "../layout/NewPageModal";
 
 interface SidebarProps {
   userName: string;
@@ -21,6 +22,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
   const [workspacesExpanded, setWorkspacesExpanded] = useState(true);
   const [favoritesExpanded, setFavoritesExpanded] = useState(true);
   const [privateExpanded, setPrivateExpanded] = useState(true);
+  const [newPageOpen, setNewPageOpen] = useState(false);
 
   return (
     <aside className="w-64 h-full flex flex-col border-r border-gray-200 bg-gray-50">
@@ -140,7 +142,10 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
 
       {/* Create new button */}
       <div className="px-3 py-2">
-        <button className="flex items-center gap-1 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
+        <button 
+          className="flex items-center gap-1 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm"
+          onClick={() => setNewPageOpen(true)}
+        >
           <Plus className="h-4 w-4" />
           <span>Nueva página</span>
         </button>
@@ -168,6 +173,12 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
           </button>
         </div>
       </div>
+      
+      {/* New Page Modal */}
+      <NewPageModal
+        open={newPageOpen}
+        onOpenChange={setNewPageOpen}
+      />
     </aside>
   );
 }
