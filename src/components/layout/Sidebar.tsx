@@ -3,8 +3,9 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { SearchBar } from "../ui/SearchBar";
 import { SettingsModal } from "./SettingsModal";
-import { Home, FileText, Star, Users, Settings } from "lucide-react";
+import { Home, FileText, Star, Users, Settings, Plus } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
+import { useToast } from "@/hooks/use-toast";
 
 interface SidebarProps {
   userName?: string;
@@ -15,6 +16,7 @@ export function Sidebar({ userAvatar }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { settings } = useSettings();
+  const { toast } = useToast();
 
   // Lista de secciones y páginas
   const favorites = [
@@ -33,6 +35,15 @@ export function Sidebar({ userAvatar }: SidebarProps) {
     { name: "Proyectos personales", icon: FileText, path: "/personal" },
     { name: "Tareas pendientes", icon: FileText, path: "/todos" },
   ];
+
+  // Función para crear una nueva página
+  const handleCreatePage = () => {
+    toast({
+      title: "Nueva página",
+      description: "Se ha creado una nueva página",
+    });
+    // En una aplicación real, esto crearía una nueva página y redirigiría al usuario
+  };
 
   // Funciones para filtrar los elementos según la búsqueda
   const filterItems = (items) => {
@@ -128,6 +139,17 @@ export function Sidebar({ userAvatar }: SidebarProps) {
             </ul>
           </div>
         )}
+
+        {/* Botón para crear nueva página */}
+        <div className="px-3 mb-6">
+          <button
+            onClick={handleCreatePage}
+            className="flex items-center w-full rounded-md px-3 py-2 text-gray-700 hover:bg-gray-200 transition"
+          >
+            <Plus className="h-4 w-4 mr-3 text-gray-500" />
+            <span>Nueva página</span>
+          </button>
+        </div>
       </nav>
 
       {/* Perfil de usuario */}
