@@ -49,7 +49,9 @@ export function BlockMenu({ onSelect, onClose }: BlockMenuProps) {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        onClose();
+        if (typeof onClose === 'function') {
+          onClose();
+        }
       }
     };
 

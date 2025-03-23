@@ -13,9 +13,17 @@ import Notes from "./pages/Notes";
 import Personal from "./pages/Personal";
 import Todos from "./pages/Todos";
 import { PagesProvider } from "./context/PagesContext";
+import DynamicPage from "./pages/DynamicPage";
 
 // Create a client
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1
+    }
+  }
+});
 
 const App = () => {
   return (
@@ -33,6 +41,10 @@ const App = () => {
               <Route path="/notes" element={<Notes />} />
               <Route path="/personal" element={<Personal />} />
               <Route path="/todos" element={<Todos />} />
+              {/* Rutas dinámicas para páginas creadas por el usuario */}
+              <Route path="/notes/:pageId" element={<DynamicPage section="notes" />} />
+              <Route path="/workspace/:pageId" element={<DynamicPage section="workspace" />} />
+              <Route path="/personal/:pageId" element={<DynamicPage section="personal" />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </PagesProvider>
