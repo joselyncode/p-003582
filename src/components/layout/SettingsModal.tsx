@@ -63,6 +63,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
       title: "Cambios guardados",
       description: "Tus preferencias han sido actualizadas.",
     });
+    
+    // Cierra el modal después de guardar
+    onOpenChange(false);
   };
 
   return (
@@ -129,12 +132,10 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         </div>
 
         <SheetFooter>
-          <SheetClose asChild>
-            <Button type="submit" className="flex items-center" onClick={handleSave}>
-              <Save className="mr-2 h-4 w-4" />
-              Guardar cambios
-            </Button>
-          </SheetClose>
+          <Button type="submit" className="flex items-center" onClick={handleSave}>
+            <Save className="mr-2 h-4 w-4" />
+            Guardar cambios
+          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
