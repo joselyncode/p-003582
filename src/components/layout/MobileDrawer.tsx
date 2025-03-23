@@ -1,8 +1,9 @@
 
-import React from "react";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import { Menu } from "lucide-react";
+import React, { useState } from "react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "./Sidebar";
+import { SettingsModal } from "./SettingsModal";
+import { Settings } from "lucide-react";
 
 interface MobileDrawerProps {
   userName: string;
@@ -13,17 +14,35 @@ interface MobileDrawerProps {
 
 export function MobileDrawer({ 
   userName, 
-  userAvatar, 
-  open, 
-  onOpenChange 
+  userAvatar,
+  open,
+  onOpenChange
 }: MobileDrawerProps) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="h-[90vh] md:hidden">
-        <div className="h-full overflow-y-auto">
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="left" className="p-0">
           <Sidebar userName={userName} userAvatar={userAvatar} />
-        </div>
-      </DrawerContent>
-    </Drawer>
+        </SheetContent>
+      </Sheet>
+
+      {/* Mobile settings button (top-right corner on mobile) */}
+      <button 
+        className="fixed top-4 right-4 z-10 md:hidden p-2 bg-white rounded-full shadow"
+        onClick={() => setSettingsOpen(true)}
+        aria-label="Configuración"
+      >
+        <Settings className="h-5 w-5 text-gray-600" />
+      </button>
+      
+      {/* Settings modal */}
+      <SettingsModal 
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        userName={userName}
+      />
+    </>
   );
 }
