@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SearchBar } from "../ui/SearchBar";
 import { 
   ChevronDown, 
@@ -36,12 +36,47 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
   const [privateExpanded, setPrivateExpanded] = useState(true);
   const [newPageDialogOpen, setNewPageDialogOpen] = useState(false);
   const [newPageTitle, setNewPageTitle] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [pages, setPages] = useLocalStorage<Page[]>("notion-pages", [
-    { id: "doc-1", title: "Documentation", icon: "file" },
+    { id: "doc-1", title: "Documentación", icon: "file" },
     { id: "ideas", title: "Ideas de proyectos", icon: "file" },
     { id: "resources", title: "Recursos", icon: "file" },
   ]);
   const { toast } = useToast();
+
+  // Páginas favoritas para mostrar
+  const favoritePages = [
+    { id: "important", title: "Notas importantes", icon: "file" },
+    { id: "planner", title: "Planificador semanal", icon: "file" },
+  ];
+
+  // Páginas privadas para mostrar
+  const privatePages = [
+    { id: "diary", title: "Diario personal", icon: "file" },
+    { id: "goals", title: "Metas", icon: "file" },
+  ];
+
+  // Filtrar las páginas basadas en la búsqueda
+  const filteredWorkspacePages = pages.filter(page => 
+    page.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredFavoritePages = favoritePages.filter(page => 
+    page.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredPrivatePages = privatePages.filter(page => 
+    page.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Expandir automáticamente secciones si tienen resultados de búsqueda
+  useEffect(() => {
+    if (searchQuery) {
+      if (filteredWorkspacePages.length > 0) setWorkspacesExpanded(true);
+      if (filteredFavoritePages.length > 0) setFavoritesExpanded(true);
+      if (filteredPrivatePages.length > 0) setPrivateExpanded(true);
+    }
+  }, [searchQuery, filteredWorkspacePages.length, filteredFavoritePages.length, filteredPrivatePages.length]);
 
   const handleCreatePage = () => {
     if (newPageTitle.trim()) {
@@ -83,97 +118,114 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
           <Input 
             className="pl-8 py-1 h-8 text-sm bg-gray-100 border-0"
             placeholder="Buscar..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-2">
-        {/* Quick Links */}
-        <div className="px-3 mb-2">
-          <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
-            <FileText className="h-4 w-4" />
-            <span>Todas las páginas</span>
-          </button>
-          <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
-            <Calendar className="h-4 w-4" />
-            <span>Calendario</span>
-          </button>
-        </div>
+        {/* Quick Links - Only show if no search or if they match */}
+        {(!searchQuery || "todas las páginas".includes(searchQuery.toLowerCase()) || 
+          "calendario".includes(searchQuery.toLowerCase())) && (
+          <div className="px-3 mb-2">
+            {(!searchQuery || "todas las páginas".includes(searchQuery.toLowerCase())) && (
+              <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
+                <FileText className="h-4 w-4" />
+                <span>Todas las páginas</span>
+              </button>
+            )}
+            {(!searchQuery || "calendario".includes(searchQuery.toLowerCase())) && (
+              <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
+                <Calendar className="h-4 w-4" />
+                <span>Calendario</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Favorites */}
-        <div className="px-3 mb-1">
-          <button 
-            onClick={() => setFavoritesExpanded(!favoritesExpanded)}
-            className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
-          >
-            {favoritesExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-            <span>FAVORITOS</span>
-          </button>
-          
-          {favoritesExpanded && (
-            <div className="pl-2">
-              <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
-                <Star className="h-3.5 w-3.5 text-yellow-500" />
-                <span>Notas importantes</span>
-              </button>
-              <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
-                <Star className="h-3.5 w-3.5 text-yellow-500" />
-                <span>Planificador semanal</span>
-              </button>
-            </div>
-          )}
-        </div>
+        {(!searchQuery || filteredFavoritePages.length > 0) && (
+          <div className="px-3 mb-1">
+            <button 
+              onClick={() => setFavoritesExpanded(!favoritesExpanded)}
+              className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
+            >
+              {favoritesExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              <span>FAVORITOS</span>
+            </button>
+            
+            {favoritesExpanded && filteredFavoritePages.length > 0 && (
+              <div className="pl-2">
+                {filteredFavoritePages.map(page => (
+                  <button 
+                    key={page.id}
+                    className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm"
+                  >
+                    <Star className="h-3.5 w-3.5 text-yellow-500" />
+                    <span>{page.title}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Workspace */}
-        <div className="px-3 mb-1">
-          <button 
-            onClick={() => setWorkspacesExpanded(!workspacesExpanded)}
-            className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
-          >
-            {workspacesExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-            <span>WORKSPACE</span>
-          </button>
-          
-          {workspacesExpanded && (
-            <div className="pl-2">
-              {pages.map(page => (
-                <button 
-                  key={page.id}
-                  className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm group"
-                >
-                  <FileText className="h-3.5 w-3.5" />
-                  <span className="flex-1 truncate text-left">{page.title}</span>
-                  <MoreHorizontal className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        {(!searchQuery || filteredWorkspacePages.length > 0) && (
+          <div className="px-3 mb-1">
+            <button 
+              onClick={() => setWorkspacesExpanded(!workspacesExpanded)}
+              className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
+            >
+              {workspacesExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              <span>WORKSPACE</span>
+            </button>
+            
+            {workspacesExpanded && filteredWorkspacePages.length > 0 && (
+              <div className="pl-2">
+                {filteredWorkspacePages.map(page => (
+                  <button 
+                    key={page.id}
+                    className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm group"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    <span className="flex-1 truncate text-left">{page.title}</span>
+                    <MoreHorizontal className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Private */}
-        <div className="px-3 mb-1">
-          <button 
-            onClick={() => setPrivateExpanded(!privateExpanded)}
-            className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
-          >
-            {privateExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-            <span>PRIVADO</span>
-          </button>
-          
-          {privateExpanded && (
-            <div className="pl-2">
-              <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
-                <FileText className="h-3.5 w-3.5" />
-                <span>Diario personal</span>
-              </button>
-              <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
-                <FileText className="h-3.5 w-3.5" />
-                <span>Metas</span>
-              </button>
-            </div>
-          )}
-        </div>
+        {(!searchQuery || filteredPrivatePages.length > 0) && (
+          <div className="px-3 mb-1">
+            <button 
+              onClick={() => setPrivateExpanded(!privateExpanded)}
+              className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
+            >
+              {privateExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              <span>PRIVADO</span>
+            </button>
+            
+            {privateExpanded && filteredPrivatePages.length > 0 && (
+              <div className="pl-2">
+                {filteredPrivatePages.map(page => (
+                  <button 
+                    key={page.id}
+                    className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    <span>{page.title}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Create new button */}
