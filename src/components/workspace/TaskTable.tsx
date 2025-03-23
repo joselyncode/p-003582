@@ -1,3 +1,4 @@
+
 import React from "react";
 
 interface Task {
@@ -25,7 +26,7 @@ export function TaskTable({ tasks }: TaskTableProps) {
   };
 
   return (
-    <div className="border border overflow-hidden rounded-lg">
+    <div className="border border-gray-200 overflow-hidden rounded-lg w-full">
       <div className="bg-gray-50 grid grid-cols-[2fr_1fr_1fr] max-sm:hidden">
         <div className="text-sm text-gray-600 font-medium px-4 py-[9px]">
           Task
@@ -41,19 +42,19 @@ export function TaskTable({ tasks }: TaskTableProps) {
       {tasks.map((task, index) => (
         <div
           key={index}
-          className="border border grid grid-cols-[2fr_1fr_1fr] items-center max-sm:grid-cols-1"
+          className="border-t border-gray-200 grid grid-cols-[2fr_1fr_1fr] items-center max-sm:grid-cols-1 max-sm:gap-2 max-sm:py-3"
         >
-          <div className="text-sm text-gray-700 px-4 py-[9.5px]">
+          <div className="text-sm text-gray-700 px-4 py-[9.5px] max-sm:font-medium">
             {task.name}
           </div>
           <div className="px-4 py-[6.5px]">
             <span
-              className={`${getStatusClass(task.status)} text-xs px-2 py-1 rounded-full`}
+              className={`${getStatusClass(task.status)} text-xs px-2 py-1 rounded-full inline-block`}
             >
               {task.status}
             </span>
           </div>
-          <div className="text-sm text-gray-700 px-4 py-[9.5px]">
+          <div className="text-sm text-gray-700 px-4 py-[9.5px] max-sm:text-xs max-sm:text-gray-500">
             {task.dueDate}
           </div>
         </div>

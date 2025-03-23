@@ -1,3 +1,4 @@
+
 import React from "react";
 
 interface SearchBarProps {
@@ -11,16 +12,16 @@ export function SearchBar({
 }: SearchBarProps) {
   return (
     <div
-      className={`bg-gray-100 rounded flex items-center px-3 py-1.5 ${className}`}
+      className={`bg-gray-100 rounded flex items-center px-3 py-1.5 w-full ${className}`}
     >
-      <div>
+      <div className="flex-shrink-0">
         <svg
           width="14"
           height="14"
           viewBox="0 0 14 14"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-[14px] h-[14px] text-[#000]"
+          className="w-[14px] h-[14px] text-gray-500"
         >
           <g clipPath="url(#clip0_10_877)">
             <path
@@ -37,7 +38,7 @@ export function SearchBar({
       </div>
       <input
         placeholder={placeholder}
-        className="bg-transparent text-sm text-[#ADAEBC] w-full ml-2 border-none focus:outline-none"
+        className="bg-transparent text-sm text-gray-400 w-full ml-2 border-none focus:outline-none"
       />
     </div>
   );

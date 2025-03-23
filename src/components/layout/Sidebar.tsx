@@ -1,3 +1,4 @@
+
 import React from "react";
 import { SearchBar } from "../ui/SearchBar";
 
@@ -8,8 +9,8 @@ interface SidebarProps {
 
 export function Sidebar({ userName, userAvatar }: SidebarProps) {
   return (
-    <aside className="w-64 bg-gray-50 border border flex flex-col max-md:w-[200px] max-sm:hidden">
-      <div className="h-[57px] border border flex items-center px-4">
+    <aside className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col h-screen overflow-hidden">
+      <div className="h-[57px] border-b border-gray-200 flex items-center px-4">
         <div className="flex items-center gap-2 w-full">
           <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
             <svg
@@ -33,7 +34,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
               </defs>
             </svg>
           </div>
-          <div className="text-base font-semibold text-gray-800">
+          <div className="text-base font-semibold text-gray-800 truncate">
             Workspace Name
           </div>
           <div className="ml-auto">
@@ -59,7 +60,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
         <SearchBar />
       </div>
 
-      <nav>
+      <nav className="flex-1 overflow-y-auto">
         <div className="px-3 py-2">
           <h2 className="text-xs text-gray-500 mb-2 px-1">FAVORITES</h2>
           <ul className="flex flex-col gap-1">
@@ -74,7 +75,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
                   viewBox="0 0 18 16"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-[18px] h-[16px]"
+                  className="w-[18px] h-[16px] flex-shrink-0"
                 >
                   <g clipPath="url(#clip0_10_921)">
                     <path
@@ -88,7 +89,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
                     </clipPath>
                   </defs>
                 </svg>
-                <span className="text-sm text-gray-700">Getting Started</span>
+                <span className="text-sm text-gray-700 truncate">Getting Started</span>
               </a>
             </li>
             <li>
@@ -102,7 +103,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
                   viewBox="0 0 18 16"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-[18px] h-[16px]"
+                  className="w-[18px] h-[16px] flex-shrink-0"
                 >
                   <g clipPath="url(#clip0_10_926)">
                     <path
@@ -116,7 +117,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
                     </clipPath>
                   </defs>
                 </svg>
-                <span className="text-sm text-gray-700">Product Roadmap</span>
+                <span className="text-sm text-gray-700 truncate">Product Roadmap</span>
               </a>
             </li>
           </ul>
@@ -221,7 +222,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
         </div>
       </nav>
 
-      <div className="border border mt-auto px-4 py-[17px]">
+      <div className="border-t border-gray-200 mt-auto px-4 py-[17px]">
         <div className="flex items-center gap-2">
           {userAvatar ? (
             <img
@@ -236,7 +237,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
               </span>
             </div>
           )}
-          <span className="text-sm text-gray-700">{userName}</span>
+          <span className="text-sm text-gray-700 truncate">{userName}</span>
         </div>
       </div>
     </aside>
