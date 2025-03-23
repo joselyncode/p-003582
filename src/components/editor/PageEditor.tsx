@@ -2,7 +2,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import { TextBlock } from "./blocks/TextBlock";
 import { BlockMenu } from "./BlockMenu";
-import { Plus, Move, Share, MessageSquare, Star, MoreHorizontal, Clock } from "lucide-react";
+import { 
+  Plus, 
+  Move, 
+  Share, 
+  MessageSquare, 
+  Star, 
+  MoreHorizontal, 
+  Clock, 
+  CircleDot, 
+  Users, 
+  MessageCircle, 
+  Link2, 
+  Plus as PlusIcon 
+} from "lucide-react";
 import { DndContext, DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { SortableBlock } from "./blocks/SortableBlock";
@@ -14,6 +27,16 @@ import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { 
+  Breadcrumb, 
+  BreadcrumbItem, 
+  BreadcrumbLink, 
+  BreadcrumbList, 
+  BreadcrumbSeparator 
+} from "@/components/ui/breadcrumb";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type BlockType = "text" | "heading1" | "heading2" | "heading3" | "todo" | "bullet" | "numbered";
 
@@ -29,7 +52,12 @@ interface PageData {
   isFavorite: boolean;
 }
 
-export function PageEditor() {
+interface PageEditorProps {
+  workspaceName?: string;
+  pagePath?: string[];
+}
+
+export function PageEditor({ workspaceName = "Mi Workspace", pagePath = [] }: PageEditorProps) {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null);
   const [showMenuAtIndex, setShowMenuAtIndex] = useState<number | null>(null);
@@ -39,6 +67,7 @@ export function PageEditor() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isCommentsPanelOpen, setIsCommentsPanelOpen] = useState(false);
+  const [pageStatus, setPageStatus] = useState<string>("En progreso");
   const { toast } = useToast();
   
   // Use LocalStorage to persist blocks and metadata
@@ -198,6 +227,9 @@ export function PageEditor() {
 
   // Format the last edited time
   const formatLastEdited = () => {
+    if (Date.now() - lastEdited < 60000) { // menos de 1 minuto
+      return "justo ahora";
+    }
     return formatDistanceToNow(lastEdited, { addSuffix: true, locale: es });
   };
 
@@ -243,81 +275,152 @@ export function PageEditor() {
       duration: 1500,
     });
   };
+  
+  // Get the page title from the first heading1 block
+  const getPageTitle = () => {
+    const titleBlock = blocks.find(block => block.type === "heading1");
+    return titleBlock ? titleBlock.content : "Untitled";
+  };
 
   return (
     <div className="mb-20">
-      {/* Editor header with buttons */}
-      <div className="flex items-center justify-between mb-4 sticky top-0 bg-white z-10 py-2">
-        <div className="text-sm text-gray-500 flex items-center">
-          <Clock className="h-4 w-4 mr-1" />
-          <span>Editado {formatLastEdited()}</span>
+      {/* Notion-style header with breadcrumb */}
+      <div className="flex flex-col space-y-2">
+        {/* Top navigation bar - breadcrumb and actions */}
+        <div className="flex items-center justify-between py-2 border-b border-gray-200 sticky top-0 bg-white z-10">
+          <div className="flex items-center gap-2">
+            <Avatar className="h-6 w-6">
+              <AvatarImage src="/images/female-avatar.svg" alt="Avatar" />
+              <AvatarFallback>JM</AvatarFallback>
+            </Avatar>
+            
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="#">{workspaceName}</BreadcrumbLink>
+                </BreadcrumbItem>
+                {pagePath.map((path, index) => (
+                  <React.Fragment key={index}>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbLink href="#">{path}</BreadcrumbLink>
+                    </BreadcrumbItem>
+                  </React.Fragment>
+                ))}
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="#" className="font-medium">
+                    {getPageTitle()}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className="text-sm text-gray-500 mr-2">
+              Editado {formatLastEdited()}
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsShareModalOpen(true)}
+              className="text-gray-600"
+            >
+              <Share className="h-4 w-4 mr-1.5" />
+              <span className="hidden sm:inline">Compartir</span>
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsCommentsPanelOpen(!isCommentsPanelOpen)}
+              className="text-gray-600"
+            >
+              <MessageSquare className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleFavorite}
+              className="text-gray-600"
+            >
+              <Star 
+                className="h-4 w-4" 
+                fill={isFavorite ? "gold" : "none"} 
+                color={isFavorite ? "gold" : "currentColor"} 
+              />
+            </Button>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-gray-600">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-0">
+                <div className="py-1">
+                  <button 
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                    onClick={duplicatePage}
+                  >
+                    Duplicar página
+                  </button>
+                  <button 
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Mover a otra carpeta
+                  </button>
+                  <button 
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    onClick={deletePage}
+                  >
+                    Eliminar página
+                  </button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
         
-        <div className="flex items-center space-x-2">
-          {/* Share button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-600"
-            onClick={() => setIsShareModalOpen(true)}
-          >
-            <Share className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Compartir</span>
-          </Button>
-          
-          {/* Comments button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-600"
-            onClick={() => setIsCommentsPanelOpen(!isCommentsPanelOpen)}
-          >
-            <MessageSquare className="h-4 w-4" />
-          </Button>
-          
-          {/* Favorite button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-600"
-            onClick={toggleFavorite}
-          >
-            <Star 
-              className="h-4 w-4" 
-              fill={isFavorite ? "gold" : "none"} 
-              color={isFavorite ? "gold" : "currentColor"} 
-            />
-          </Button>
-          
-          {/* More options button */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-gray-600">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-0">
-              <div className="py-1">
-                <button 
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                  onClick={duplicatePage}
-                >
-                  Duplicar página
-                </button>
-                <button 
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                >
-                  Mover a otra carpeta
-                </button>
-                <button 
-                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                  onClick={deletePage}
-                >
-                  Eliminar página
-                </button>
+        {/* Property section (like in Notion) */}
+        <div className="mt-10 mb-8">
+          <div className="flex flex-col space-y-3">
+            <div className="flex items-center gap-2">
+              <CircleDot className="h-5 w-5 text-gray-400" />
+              <span className="text-sm font-medium text-gray-500">Status</span>
+              <div className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                {pageStatus}
               </div>
-            </PopoverContent>
-          </Popover>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-gray-400" />
+              <span className="text-sm font-medium text-gray-500">Assign</span>
+              <span className="text-sm text-gray-500">Empty</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-gray-400" />
+              <span className="text-sm font-medium text-gray-500">Comment</span>
+              <span className="text-sm text-gray-500">Empty</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Link2 className="h-5 w-5 text-gray-400" />
+              <span className="text-sm font-medium text-gray-500">Related Links</span>
+              <span className="text-sm text-gray-500">Empty</span>
+            </div>
+            
+            <Button variant="outline" size="sm" className="ml-7 w-fit">
+              <PlusIcon className="h-3.5 w-3.5 mr-1.5" />
+              Add a property
+            </Button>
+          </div>
+          
+          <Separator className="my-8" />
         </div>
       </div>
       

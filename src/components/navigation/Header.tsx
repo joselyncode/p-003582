@@ -1,12 +1,16 @@
 
 import React from "react";
 import { 
-  ChevronLeft, 
-  MoreHorizontal,
-  Share,
-  Star,
-  Users
+  ChevronLeft,
+  MoreHorizontal
 } from "lucide-react";
+import { 
+  Breadcrumb, 
+  BreadcrumbItem, 
+  BreadcrumbLink, 
+  BreadcrumbList, 
+  BreadcrumbSeparator 
+} from "@/components/ui/breadcrumb";
 
 interface HeaderProps {
   currentPath: string[];
@@ -19,33 +23,22 @@ export function Header({ currentPath }: HeaderProps) {
         <ChevronLeft className="h-5 w-5 text-gray-500" />
       </button>
 
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1 flex-1">
-        <ol className="flex items-center gap-1">
+      <Breadcrumb className="flex-1">
+        <BreadcrumbList>
           {currentPath.map((item, index) => (
             <React.Fragment key={index}>
-              {index > 0 && (
-                <li className="text-gray-400">/</li>
-              )}
-              <li>
-                <button className="text-sm text-gray-600 hover:bg-gray-100 px-1 py-0.5 rounded">
+              {index > 0 && <BreadcrumbSeparator />}
+              <BreadcrumbItem>
+                <BreadcrumbLink href="#" className="text-sm text-gray-600 hover:text-gray-900">
                   {item}
-                </button>
-              </li>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
             </React.Fragment>
           ))}
-        </ol>
-      </nav>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <div className="flex items-center gap-2">
-        <button className="p-1.5 hover:bg-gray-100 rounded">
-          <Star className="h-4 w-4 text-gray-500" />
-        </button>
-        <button className="p-1.5 hover:bg-gray-100 rounded">
-          <Share className="h-4 w-4 text-gray-500" />
-        </button>
-        <button className="p-1.5 hover:bg-gray-100 rounded">
-          <Users className="h-4 w-4 text-gray-500" />
-        </button>
         <button className="p-1.5 hover:bg-gray-100 rounded">
           <MoreHorizontal className="h-4 w-4 text-gray-500" />
         </button>
