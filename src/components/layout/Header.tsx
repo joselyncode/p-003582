@@ -4,7 +4,9 @@ import {
   ChevronLeft, 
   MoreHorizontal,
   Share,
-  Menu
+  Menu,
+  Star,
+  Users
 } from "lucide-react";
 
 interface HeaderProps {
@@ -47,7 +49,13 @@ export function Header({ currentPath, onMenuClick }: HeaderProps) {
 
       <div className="flex items-center gap-2">
         <button className="p-1.5 hover:bg-gray-100 rounded">
+          <Star className="h-4 w-4 text-gray-500" />
+        </button>
+        <button className="p-1.5 hover:bg-gray-100 rounded">
           <Share className="h-4 w-4 text-gray-500" />
+        </button>
+        <button className="p-1.5 hover:bg-gray-100 rounded">
+          <Users className="h-4 w-4 text-gray-500" />
         </button>
         <button className="p-1.5 hover:bg-gray-100 rounded">
           <MoreHorizontal className="h-4 w-4 text-gray-500" />

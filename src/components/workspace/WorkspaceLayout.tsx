@@ -25,7 +25,7 @@ export function WorkspaceLayout({
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-white">
-      {/* Mobile drawer (replaces the overlay approach) */}
+      {/* Mobile drawer */}
       <MobileDrawer 
         userName={userName} 
         userAvatar={userAvatar} 
