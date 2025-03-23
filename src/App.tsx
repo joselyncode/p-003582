@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,9 +14,10 @@ import Personal from "./pages/Personal";
 import Todos from "./pages/Todos";
 import { PagesProvider } from "./context/PagesContext";
 
-const App = () => {
-  const queryClient = new QueryClient();
+// Create a client
+const queryClient = new QueryClient();
 
+const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

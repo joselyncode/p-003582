@@ -7,18 +7,31 @@ import {
   Heading3, 
   List, 
   ListOrdered, 
-  CheckSquare, 
-  Image, 
-  FileText,
-  Code
+  CheckSquare
 } from "lucide-react";
+import { Block } from "@/context/PagesContext";
 
-type BlockType = "text" | "heading1" | "heading2" | "heading3" | "todo" | "bullet" | "numbered";
-
-interface BlockMenuProps {
-  onSelect: (type: BlockType) => void;
+export interface BlockMenuProps {
+  onSelect: (type: Block['type']) => void;
   onClose: () => void;
 }
+
+interface BlockMenuButtonProps {
+  type: Block['type'];
+  label: string;
+  icon: React.ElementType;
+  onSelect: (type: Block['type']) => void;
+}
+
+const BlockMenuButton = ({ type, label, icon: Icon, onSelect }: BlockMenuButtonProps) => (
+  <button
+    className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded w-full text-left text-sm"
+    onClick={() => onSelect(type)}
+  >
+    <Icon className="h-4 w-4 text-gray-500" />
+    <span>{label}</span>
+  </button>
+);
 
 export function BlockMenu({ onSelect, onClose }: BlockMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -53,14 +66,13 @@ export function BlockMenu({ onSelect, onClose }: BlockMenuProps) {
     >
       <div className="p-2">
         {blockTypes.map((blockType) => (
-          <button
+          <BlockMenuButton
             key={blockType.type}
-            className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded w-full text-left text-sm"
-            onClick={() => onSelect(blockType.type)}
-          >
-            <blockType.icon className="h-4 w-4 text-gray-500" />
-            <span>{blockType.label}</span>
-          </button>
+            type={blockType.type}
+            label={blockType.label}
+            icon={blockType.icon}
+            onSelect={onSelect}
+          />
         ))}
       </div>
     </div>

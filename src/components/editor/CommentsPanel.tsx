@@ -8,8 +8,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useSettings } from "@/hooks/use-settings";
-import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -25,7 +23,7 @@ interface CommentsData {
   [pageId: string]: Comment[];
 }
 
-interface CommentsPanelProps {
+export interface CommentsPanelProps {
   pageId: string;
   onClose: () => void;
 }
@@ -33,8 +31,7 @@ interface CommentsPanelProps {
 export function CommentsPanel({ pageId, onClose }: CommentsPanelProps) {
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState<Comment[]>([]);
-  const { settings } = useSettings();
-  const { toast } = useToast();
+  const userName = "Joselyn Monge"; // Default user name
   
   // Use LocalStorage to persist comments
   const [savedComments, setSavedComments] = useLocalStorage<CommentsData>("notion-comments", {});
@@ -47,19 +44,12 @@ export function CommentsPanel({ pageId, onClose }: CommentsPanelProps) {
   }, [pageId, savedComments]);
 
   const addComment = () => {
-    if (!newComment.trim()) {
-      toast({
-        description: "El comentario no puede estar vacío",
-        variant: "destructive",
-        duration: 1500,
-      });
-      return;
-    }
+    if (!newComment.trim()) return;
 
     const comment: Comment = {
       id: Date.now().toString(),
       text: newComment,
-      author: settings.userName,
+      author: userName,
       createdAt: Date.now(),
     };
 
@@ -73,11 +63,6 @@ export function CommentsPanel({ pageId, onClose }: CommentsPanelProps) {
     });
     
     setNewComment("");
-    
-    toast({
-      description: "Comentario añadido",
-      duration: 1500,
-    });
   };
 
   const formatCommentDate = (timestamp: number) => {

@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { SortableBlock } from './blocks/SortableBlock';
 import { v4 as uuidv4 } from 'uuid';
 import { DndContext, DragEndEvent, 
@@ -46,6 +46,16 @@ export function PageEditor({
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showBlockMenu, setShowBlockMenu] = useState(false);
+  const [blockMenuPosition, setBlockMenuPosition] = useState({ top: 0, left: 0 });
+  const [temporaryPageId, setTemporaryPageId] = useState<string>(uuidv4());
+
+  // Update blocks when initialBlocks change (e.g., when loading from DB)
+  useEffect(() => {
+    if (initialBlocks) {
+      setBlocks(initialBlocks);
+    }
+  }, [initialBlocks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -134,6 +144,9 @@ export function PageEditor({
     setTimeout(() => {
       setActiveBlockId(newBlockId);
     }, 100);
+    
+    // Hide the block menu
+    setShowBlockMenu(false);
   };
 
   const handleDeleteBlock = (id: string) => {
@@ -176,6 +189,20 @@ export function PageEditor({
     // Format as time
     return `Saved at ${saved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   }, [lastSaved]);
+  
+  const showBlockMenuAt = (afterId: string) => {
+    const blockElement = document.getElementById(`block-${afterId}`);
+    
+    if (blockElement) {
+      const rect = blockElement.getBoundingClientRect();
+      setBlockMenuPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + 20
+      });
+    }
+    
+    setShowBlockMenu(true);
+  };
 
   return (
     <div className="editor-container">
@@ -237,40 +264,64 @@ export function PageEditor({
             strategy={verticalListSortingStrategy}
           >
             {blocks.map((block, index) => (
-              <SortableBlock
-                key={block.id}
-                block={block}
-                index={index}
-                isActive={activeBlockId === block.id}
-                onSetActive={setActiveBlockId}
-                onUpdate={handleBlockUpdate}
-                onTypeChange={handleBlockTypeChange}
-                onAddBlock={handleAddBlock}
-                onDeleteBlock={handleDeleteBlock}
-              />
+              <div id={`block-${block.id}`} key={block.id}>
+                <SortableBlock
+                  id={block.id}
+                  block={block}
+                  index={index}
+                  isActive={activeBlockId === block.id}
+                  onSetActive={setActiveBlockId}
+                  onUpdate={handleBlockUpdate}
+                  onTypeChange={handleBlockTypeChange}
+                  onAddBlock={handleAddBlock}
+                  onDeleteBlock={handleDeleteBlock}
+                />
+              </div>
             ))}
           </SortableContext>
         </DndContext>
 
-        {/* Menu for adding new blocks */}
-        <BlockMenu 
-          onAddBlock={(type) => {
-            // Add to the end or after the active block
-            const targetId = activeBlockId || blocks[blocks.length - 1].id;
-            handleAddBlock(type, targetId);
-          }} 
-        />
+        {/* Block menu */}
+        {showBlockMenu && (
+          <div style={{ position: 'absolute', top: blockMenuPosition.top, left: blockMenuPosition.left }}>
+            <BlockMenu 
+              onSelect={(type) => {
+                const targetId = activeBlockId || blocks[blocks.length - 1].id;
+                handleAddBlock(type, targetId);
+              }}
+              onClose={() => setShowBlockMenu(false)} 
+            />
+          </div>
+        )}
+
+        {/* Add block button */}
+        <div className="mt-4 text-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const targetId = activeBlockId || blocks[blocks.length - 1].id;
+              showBlockMenuAt(targetId);
+            }}
+          >
+            + Add block
+          </Button>
+        </div>
       </div>
 
       {/* Comments panel */}
       {showComments && (
-        <CommentsPanel onClose={() => setShowComments(false)} />
+        <CommentsPanel 
+          pageId={temporaryPageId} 
+          onClose={() => setShowComments(false)} 
+        />
       )}
 
       {/* Share modal */}
       <ShareModal 
         open={showShareModal} 
-        onOpenChange={setShowShareModal} 
+        onOpenChange={setShowShareModal}
+        pageId={temporaryPageId}
       />
     </div>
   );

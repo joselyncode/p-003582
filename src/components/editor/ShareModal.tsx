@@ -14,9 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Share, Copy, Mail, Link as LinkIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useSettings } from "@/hooks/use-settings";
 
-interface ShareModalProps {
+export interface ShareModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   pageId: string;
@@ -26,7 +25,7 @@ export function ShareModal({ open, onOpenChange, pageId }: ShareModalProps) {
   const [shareLink, setShareLink] = useState(`notion-clone.com/share/${pageId}`);
   const [email, setEmail] = useState("");
   const { toast } = useToast();
-  const { settings } = useSettings();
+  const userName = "Joselyn Monge"; // Default user name
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareLink);
@@ -133,7 +132,7 @@ export function ShareModal({ open, onOpenChange, pageId }: ShareModalProps) {
         <DialogFooter className="sm:justify-between">
           <div className="flex items-center text-sm text-gray-500">
             <LinkIcon className="h-4 w-4 mr-1" />
-            <span>Compartido por {settings.userName}</span>
+            <span>Compartido por {userName}</span>
           </div>
           <DialogClose asChild>
             <Button type="button">Listo</Button>
