@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { SearchBar } from "../ui/SearchBar";
 import { SettingsModal } from "./SettingsModal";
+import { NewPageModal } from "./NewPageModal";
 import { Home, FileText, Star, Users, Settings, Plus } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +16,7 @@ interface SidebarProps {
 export function Sidebar({ userAvatar }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [newPageOpen, setNewPageOpen] = useState(false);
   const { settings } = useSettings();
   const { toast } = useToast();
 
@@ -38,11 +40,7 @@ export function Sidebar({ userAvatar }: SidebarProps) {
 
   // Función para crear una nueva página
   const handleCreatePage = () => {
-    toast({
-      title: "Nueva página",
-      description: "Se ha creado una nueva página",
-    });
-    // En una aplicación real, esto crearía una nueva página y redirigiría al usuario
+    setNewPageOpen(true);
   };
 
   // Funciones para filtrar los elementos según la búsqueda
@@ -179,6 +177,12 @@ export function Sidebar({ userAvatar }: SidebarProps) {
       <SettingsModal 
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
+      />
+
+      {/* Modal de nueva página */}
+      <NewPageModal
+        open={newPageOpen}
+        onOpenChange={setNewPageOpen}
       />
     </div>
   );
