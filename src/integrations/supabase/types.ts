@@ -9,7 +9,68 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      page_content: {
+        Row: {
+          blocks: Json
+          id: string
+          is_favorite: boolean
+          last_edited: number
+          page_id: string | null
+        }
+        Insert: {
+          blocks?: Json
+          id?: string
+          is_favorite?: boolean
+          last_edited?: number
+          page_id?: string | null
+        }
+        Update: {
+          blocks?: Json
+          id?: string
+          is_favorite?: boolean
+          last_edited?: number
+          page_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_content_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pages: {
+        Row: {
+          created_at: string | null
+          icon: string
+          id: string
+          name: string
+          path: string
+          section: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          icon?: string
+          id?: string
+          name: string
+          path: string
+          section: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          icon?: string
+          id?: string
+          name?: string
+          path?: string
+          section?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -80,27 +80,29 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         const pers: Page[] = [];
         const pathToIdMap = new Map<string, string>();
 
-        data.forEach((page) => {
-          const pageObj: Page = {
-            id: page.id,
-            name: page.name,
-            icon: page.icon,
-            path: page.path,
-            section: page.section as PageSection
-          };
+        if (data) {
+          data.forEach((page) => {
+            const pageObj: Page = {
+              id: page.id,
+              name: page.name,
+              icon: page.icon,
+              path: page.path,
+              section: page.section as PageSection
+            };
 
-          // Add to the appropriate section array
-          if (page.section === 'favorite') {
-            favs.push(pageObj);
-          } else if (page.section === 'workspace' || page.section === 'notes') {
-            work.push(pageObj);
-          } else if (page.section === 'personal') {
-            pers.push(pageObj);
-          }
+            // Add to the appropriate section array
+            if (page.section === 'favorite') {
+              favs.push(pageObj);
+            } else if (page.section === 'workspace' || page.section === 'notes') {
+              work.push(pageObj);
+            } else if (page.section === 'personal') {
+              pers.push(pageObj);
+            }
 
-          // Add to path mapping
-          pathToIdMap.set(page.path, page.id);
-        });
+            // Add to path mapping
+            pathToIdMap.set(page.path, page.id);
+          });
+        }
 
         setFavorites(favs);
         setWorkspace(work);
@@ -133,10 +135,14 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
           path: page.path,
           section: page.section
         })
-        .select('*')
+        .select()
         .single();
 
       if (error) throw error;
+      
+      if (!data) {
+        throw new Error("No data returned after page creation");
+      }
 
       // Create empty content for the page
       const { error: contentError } = await supabase
@@ -169,7 +175,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
           break;
         case "workspace":
         case "notes":
-          setWorkspace(prev => [...prev, { ...newPage, section: "workspace" }]);
+          setWorkspace(prev => [...prev, { ...newPage, section: "workspace" as PageSection }]);
           break;
         case "personal":
           setPersonal(prev => [...prev, newPage]);
