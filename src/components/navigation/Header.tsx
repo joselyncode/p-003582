@@ -2,7 +2,8 @@
 import React from "react";
 import { 
   ChevronLeft,
-  MoreHorizontal
+  MoreHorizontal,
+  Menu
 } from "lucide-react";
 import { 
   Breadcrumb, 
@@ -14,11 +15,20 @@ import {
 
 interface HeaderProps {
   currentPath: string[];
+  onMenuClick?: () => void;
 }
 
-export function Header({ currentPath }: HeaderProps) {
+export function Header({ currentPath, onMenuClick }: HeaderProps) {
   return (
     <header className="flex items-center border-b border-gray-200 h-12 px-4">
+      {/* Mobile menu button */}
+      <button 
+        className="md:hidden mr-2 hover:bg-gray-100 p-1 rounded"
+        onClick={onMenuClick}
+      >
+        <Menu className="h-5 w-5 text-gray-500" />
+      </button>
+      
       <button className="mr-2 hover:bg-gray-100 p-1 rounded">
         <ChevronLeft className="h-5 w-5 text-gray-500" />
       </button>

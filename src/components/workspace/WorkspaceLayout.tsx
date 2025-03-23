@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
-import { Sidebar } from "../layout/Sidebar";
-import { Header } from "../layout/Header";
+import { Sidebar } from "../navigation/Sidebar";
+import { Header } from "../navigation/Header";
 import { MobileDrawer } from "../layout/MobileDrawer";
 
 interface WorkspaceLayoutProps {
