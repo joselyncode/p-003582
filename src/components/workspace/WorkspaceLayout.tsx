@@ -32,20 +32,22 @@ export function WorkspaceLayout({
         onOpenChange={setSidebarOpen}
       />
 
-      {/* Desktop sidebar - always visible on desktop */}
-      <div className="hidden md:block fixed h-full">
-        <Sidebar userName={userName} userAvatar={userAvatar} />
-      </div>
+      <div className="flex h-full">
+        {/* Desktop sidebar - always visible on desktop */}
+        <div className="hidden md:block h-full">
+          <Sidebar userName={userName} userAvatar={userAvatar} />
+        </div>
 
-      {/* Main content */}
-      <div className="flex flex-col w-full md:ml-64">
-        <Header 
-          currentPath={currentPath} 
-          onMenuClick={toggleSidebar}
-        />
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
+        {/* Main content */}
+        <div className="flex flex-col w-full">
+          <Header 
+            currentPath={currentPath} 
+            onMenuClick={toggleSidebar}
+          />
+          <main className="flex-1 overflow-auto">
+            {children}
+          </main>
+        </div>
       </div>
     </div>
   );

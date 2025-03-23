@@ -51,7 +51,7 @@ export function WorkspaceContent() {
   const { workspaceName, pagePath } = getPageInfo();
   
   return (
-    <main className="px-8 py-4 max-w-4xl mx-auto max-sm:px-4">
+    <main className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-4">
       <PageEditor workspaceName={workspaceName} pagePath={pagePath} />
     </main>
   );
