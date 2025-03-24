@@ -195,7 +195,7 @@ const SortableRow = ({
     <TableRow 
       ref={setNodeRef}
       style={style}
-      className={`${rowColor} hover:bg-opacity-80`}
+      className={`${rowColor} group`}
     >
       <TableCell className="w-10 p-0 relative border border-gray-200">
         <DropdownMenu>
@@ -683,3 +683,4 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     </div>
   );
 };
+
