@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
@@ -77,7 +78,7 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     }
   };
   
-  const getSectionName = () => {
+  const getSectionName = (): string => {
     switch (section) {
       case "notes":
         return "Notas";
@@ -89,6 +90,22 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
         return "Favoritos";
       default:
         return "Página";
+    }
+  };
+  
+  // Genera un array de breadcrumb con rutas reales
+  const getBreadcrumbPaths = (): string[] => {
+    const sectionName = getSectionName();
+    
+    // Si estamos en una subsección, incluir la jerarquía completa
+    if (section === "notes" || section === "workspace") {
+      return ["Mi Workspace", sectionName, pageTitle];
+    } else if (section === "personal") {
+      return ["Personal", pageTitle];
+    } else if (section === "favorite") {
+      return ["Favoritos", pageTitle];
+    } else {
+      return [sectionName, pageTitle];
     }
   };
   
@@ -121,14 +138,14 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
   return (
     <WorkspaceLayout
       userName={settings.userName}
-      currentPath={[getSectionName(), pageTitle]}
+      currentPath={getBreadcrumbPaths()}
       pageId={currentPage?.id}
     >
       <div className="max-w-4xl w-full mx-auto px-4 sm:px-6 py-4">
         {blocks ? (
           <PageEditor
             workspaceName={getWorkspaceName()}
-            pagePath={[getSectionName(), pageTitle]}
+            pagePath={getBreadcrumbPaths()}
             blocks={blocks}
             onBlocksChange={handleBlocksChange}
             lastSaved={lastSaved}

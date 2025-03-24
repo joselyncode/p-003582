@@ -16,10 +16,11 @@ import {
   BreadcrumbList, 
   BreadcrumbSeparator 
 } from "@/components/ui/breadcrumb";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { ShareModal } from "@/components/editor/ShareModal";
+import { usePages } from "@/context/PagesContext";
 
 interface HeaderProps {
   currentPath: string[];
@@ -32,17 +33,26 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
   const [showShareModal, setShowShareModal] = useState(false);
   const [favorites, setFavorites] = useLocalStorage<string[]>("notion-favorites", []);
   const isFavorite = pageId ? favorites.includes(pageId) : false;
+  const { toggleFavorite } = usePages();
 
   const handleGoBack = () => {
     // Navegar hacia atrás en el historial
     navigate(-1);
   };
 
-  const toggleFavorite = () => {
-    if (isFavorite) {
-      setFavorites(favorites.filter(id => id !== pageId));
-    } else {
-      setFavorites([...favorites, pageId]);
+  const handleFavoriteToggle = async () => {
+    if (pageId && pageId !== 'default-page') {
+      try {
+        await toggleFavorite(pageId, !isFavorite);
+        // Actualizar el estado local después de la operación exitosa
+        if (isFavorite) {
+          setFavorites(favorites.filter(id => id !== pageId));
+        } else {
+          setFavorites([...favorites, pageId]);
+        }
+      } catch (error) {
+        console.error("Error al cambiar estado de favorito:", error);
+      }
     }
   };
 
@@ -52,6 +62,38 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
     const commentPanelToggle = document.querySelector('[data-comments-toggle]');
     if (commentPanelToggle && commentPanelToggle instanceof HTMLElement) {
       commentPanelToggle.click();
+    }
+  };
+
+  // Función para determinar la ruta basada en el elemento del breadcrumb
+  const getBreadcrumbPath = (item: string, index: number): string => {
+    // Primer elemento suele ser el workspace, enviar a la raíz
+    if (index === 0) {
+      if (item.toLowerCase().includes("workspace")) {
+        return "/workspace";
+      } else if (item.toLowerCase().includes("personal")) {
+        return "/personal";
+      } else if (item.toLowerCase().includes("notas")) {
+        return "/notes";
+      } else {
+        return "/";
+      }
+    }
+    
+    // Para elementos intermedios, identificar la sección
+    if (item.toLowerCase() === "workspace") {
+      return "/workspace";
+    } else if (item.toLowerCase() === "notas" || item.toLowerCase() === "notes") {
+      return "/notes";
+    } else if (item.toLowerCase() === "personal") {
+      return "/personal";
+    } else if (item.toLowerCase() === "documentación" || item.toLowerCase() === "documentation" || item.toLowerCase() === "docs") {
+      return "/docs";
+    } else if (item.toLowerCase() === "tareas" || item.toLowerCase() === "todos") {
+      return "/todos";
+    } else {
+      // Si no coincide con ninguna sección conocida, no navegar
+      return "#";
     }
   };
 
@@ -79,8 +121,13 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
             <React.Fragment key={index}>
               {index > 0 && <BreadcrumbSeparator />}
               <BreadcrumbItem>
-                <BreadcrumbLink href="#" className="text-sm text-gray-600 hover:text-gray-900">
-                  {item}
+                <BreadcrumbLink asChild>
+                  <Link 
+                    to={getBreadcrumbPath(item, index)} 
+                    className="text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    {item}
+                  </Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
             </React.Fragment>
@@ -101,7 +148,7 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
         <Button 
           variant="ghost" 
           size="icon" 
-          onClick={toggleFavorite}
+          onClick={handleFavoriteToggle}
           className="h-8 w-8"
         >
           {isFavorite ? (

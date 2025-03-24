@@ -7,7 +7,9 @@ import { useSettings } from "@/hooks/use-settings";
 const Index = () => {
   const { settings } = useSettings();
   const userAvatar = "/images/female-avatar.svg";
-  const currentPath = ["Mi Workspace", "Documentación", "Página de notas"];
+  
+  // Definir una estructura de breadcrumb más significativa
+  const currentPath = ["Mi Workspace", "Inicio"];
 
   return (
     <WorkspaceLayout
@@ -18,7 +20,7 @@ const Index = () => {
       <div className="px-8 py-4 max-w-4xl mx-auto max-sm:px-4">
         <PageEditor 
           workspaceName="Mi Workspace"
-          pagePath={["Inicio"]}
+          pagePath={currentPath}
           allowTitleEdit={true}
         />
       </div>
