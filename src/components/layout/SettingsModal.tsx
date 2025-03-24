@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Sheet, 
   SheetContent, 
@@ -7,7 +7,6 @@ import {
   SheetTitle, 
   SheetDescription,
   SheetFooter,
-  SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +33,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   });
 
   // Update form data when settings change or modal opens
-  React.useEffect(() => {
+  useEffect(() => {
     if (open) {
       setFormData({
         name: settings.userName,
@@ -53,6 +52,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   };
 
   const handleSave = () => {
+    // Update settings in localStorage through the hook
     updateSettings({
       userName: formData.name,
       userEmail: formData.email,
@@ -64,7 +64,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
       description: "Tus preferencias han sido actualizadas.",
     });
     
-    // Cierra el modal después de guardar
+    // Close the modal after saving
     onOpenChange(false);
   };
 
