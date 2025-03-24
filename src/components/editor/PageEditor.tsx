@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { SortableBlock } from './blocks/SortableBlock';
 import { v4 as uuidv4 } from 'uuid';
@@ -32,13 +33,8 @@ export function PageEditor({
   lastSaved,
   allowTitleEdit = false
 }: PageEditorProps) {
-  const [blocks, setBlocks] = useState<Block[]>(initialBlocks || [
-    {
-      id: "1",
-      type: "heading1",
-      content: ""
-    }
-  ]);
+  // Inicializar con un array vacío en lugar de un bloque por defecto
+  const [blocks, setBlocks] = useState<Block[]>(initialBlocks || []);
   
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const [showComments, setShowComments] = useState(false);
@@ -47,7 +43,7 @@ export function PageEditor({
   const [blockMenuPosition, setBlockMenuPosition] = useState({ top: 0, left: 0 });
   const [temporaryPageId, setTemporaryPageId] = useState<string>(uuidv4());
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [titleText, setTitleText] = useState("");
+  const [titleText, setTitleText] = useState("Untitled");
 
   useEffect(() => {
     if (initialBlocks) {
@@ -125,20 +121,31 @@ export function PageEditor({
       content: ""
     };
     
-    setBlocks(prev => {
-      const index = prev.findIndex(block => block.id === afterId);
-      const newBlocks = [
-        ...prev.slice(0, index + 1),
-        newBlock,
-        ...prev.slice(index + 1)
-      ];
+    // Si no hay bloques, simplemente añade el nuevo bloque
+    if (blocks.length === 0) {
+      const newBlocks = [newBlock];
+      setBlocks(newBlocks);
       
       if (onBlocksChange) {
         onBlocksChange(newBlocks);
       }
-      
-      return newBlocks;
-    });
+    } else {
+      // Añadir bloque después del bloque especificado
+      setBlocks(prev => {
+        const index = prev.findIndex(block => block.id === afterId);
+        const newBlocks = [
+          ...prev.slice(0, index + 1),
+          newBlock,
+          ...prev.slice(index + 1)
+        ];
+        
+        if (onBlocksChange) {
+          onBlocksChange(newBlocks);
+        }
+        
+        return newBlocks;
+      });
+    }
     
     setTimeout(() => {
       setActiveBlockId(newBlockId);
@@ -233,32 +240,9 @@ export function PageEditor({
   const handleTitleChange = (newTitle: string) => {
     setTitleText(newTitle);
     
-    const updatedBlocks = [...blocks];
-    const titleBlockIndex = updatedBlocks.findIndex(b => b.type === "heading1");
-    
-    if (titleBlockIndex >= 0) {
-      updatedBlocks[titleBlockIndex] = {
-        ...updatedBlocks[titleBlockIndex],
-        content: newTitle
-      };
-    } else if (updatedBlocks.length > 0) {
-      updatedBlocks[0] = {
-        ...updatedBlocks[0],
-        type: "heading1",
-        content: newTitle
-      };
-    } else {
-      updatedBlocks.push({
-        id: uuidv4(),
-        type: "heading1",
-        content: newTitle
-      });
-    }
-    
-    setBlocks(updatedBlocks);
-    
-    if (onBlocksChange) {
-      onBlocksChange(updatedBlocks);
+    // No modificar los bloques existentes al cambiar el título
+    if (onBlocksChange && blocks.length > 0) {
+      onBlocksChange(blocks);
     }
   };
 
@@ -335,40 +319,50 @@ export function PageEditor({
       </div>
 
       <div className="editor-blocks relative min-h-[70vh]">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={blocks.map(block => block.id)}
-            strategy={verticalListSortingStrategy}
+        {blocks.length > 0 ? (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
           >
-            {blocks.map((block, index) => (
-              <div id={`block-${block.id}`} key={block.id}>
-                <SortableBlock
-                  id={block.id}
-                  block={block}
-                  index={index}
-                  isActive={activeBlockId === block.id}
-                  onSetActive={setActiveBlockId}
-                  onUpdate={handleBlockUpdate}
-                  onTypeChange={handleBlockTypeChange}
-                  onAddBlock={handleAddBlock}
-                  onDeleteBlock={handleDeleteBlock}
-                  onDuplicate={handleDuplicateBlock}
-                />
-              </div>
-            ))}
-          </SortableContext>
-        </DndContext>
+            <SortableContext
+              items={blocks.map(block => block.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {blocks.map((block, index) => (
+                <div id={`block-${block.id}`} key={block.id}>
+                  <SortableBlock
+                    id={block.id}
+                    block={block}
+                    index={index}
+                    isActive={activeBlockId === block.id}
+                    onSetActive={setActiveBlockId}
+                    onUpdate={handleBlockUpdate}
+                    onTypeChange={handleBlockTypeChange}
+                    onAddBlock={handleAddBlock}
+                    onDeleteBlock={handleDeleteBlock}
+                    onDuplicate={handleDuplicateBlock}
+                  />
+                </div>
+              ))}
+            </SortableContext>
+          </DndContext>
+        ) : (
+          <div className="text-center py-10 text-gray-400">
+            No hay contenido todavía
+          </div>
+        )}
 
         {showBlockMenu && (
           <div style={{ position: 'absolute', top: blockMenuPosition.top, left: blockMenuPosition.left }}>
             <BlockMenu 
               onSelect={(type) => {
-                const targetId = activeBlockId || blocks[blocks.length - 1].id;
-                handleAddBlock(type, targetId);
+                if (blocks.length === 0) {
+                  handleAddBlock(type, "");
+                } else {
+                  const targetId = activeBlockId || blocks[blocks.length - 1].id;
+                  handleAddBlock(type, targetId);
+                }
               }}
               onClose={() => setShowBlockMenu(false)} 
             />
@@ -380,8 +374,17 @@ export function PageEditor({
             variant="outline"
             size="sm"
             onClick={() => {
-              const targetId = activeBlockId || blocks[blocks.length - 1].id;
-              showBlockMenuAt(targetId);
+              if (blocks.length === 0) {
+                // Si no hay bloques, mostrar el menú en una posición predeterminada
+                setBlockMenuPosition({
+                  top: 200,
+                  left: window.innerWidth / 2 - 100
+                });
+                setShowBlockMenu(true);
+              } else {
+                const targetId = activeBlockId || blocks[blocks.length - 1].id;
+                showBlockMenuAt(targetId);
+              }
             }}
           >
             + Add block

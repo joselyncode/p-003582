@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { PageEditor } from "../editor/PageEditor";
 import { useLocation } from "react-router-dom";
@@ -65,9 +64,7 @@ export function WorkspaceContent() {
           setPageBlocks(content.blocks);
           setLastSaved(content.last_edited);
         } else {
-          setPageBlocks([
-            { id: "1", type: "heading1", content: "Untitled" }
-          ]);
+          setPageBlocks([]);
         }
       }
     };

@@ -142,9 +142,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         .from('page_content')
         .insert({
           page_id: data.id,
-          blocks: [
-            { id: "1", type: "heading1", content: page.name }
-          ],
+          blocks: [],
           last_edited: Date.now(),
           is_favorite: false
         });
@@ -276,4 +274,3 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const usePages = () => useContext(PagesContext);
-
