@@ -12,7 +12,8 @@ import {
   Star, 
   Settings,
   Home,
-  Users
+  Users,
+  Layout
 } from "lucide-react";
 import { NewPageModal } from "../layout/NewPageModal";
 import { usePages } from "@/context/PagesContext";
@@ -94,14 +95,20 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
       <div className="flex-1 overflow-y-auto py-2">
         {/* Quick Links */}
         <div className="px-3 mb-2">
-          <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
-            <FileText className="h-4 w-4" />
+          <Link 
+            to="/all-pages"
+            className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm"
+          >
+            <Layout className="h-4 w-4" />
             <span>Todas las páginas</span>
-          </button>
-          <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm">
+          </Link>
+          <Link 
+            to="/calendar"
+            className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm"
+          >
             <Calendar className="h-4 w-4" />
             <span>Calendario</span>
-          </button>
+          </Link>
         </div>
 
         {/* Favorites */}

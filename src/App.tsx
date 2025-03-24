@@ -12,6 +12,8 @@ import Workspace from "./pages/Workspace";
 import Notes from "./pages/Notes";
 import Personal from "./pages/Personal";
 import Todos from "./pages/Todos";
+import AllPages from "./pages/AllPages";
+import CalendarPage from "./pages/CalendarPage";
 import { PagesProvider } from "./context/PagesContext";
 import DynamicPage from "./pages/DynamicPage";
 
@@ -41,6 +43,8 @@ const App = () => {
               <Route path="/notes" element={<Notes />} />
               <Route path="/personal" element={<Personal />} />
               <Route path="/todos" element={<Todos />} />
+              <Route path="/all-pages" element={<AllPages />} />
+              <Route path="/calendar" element={<CalendarPage />} />
               {/* Rutas dinámicas para páginas creadas por el usuario */}
               <Route path="/notes/:pageId" element={<DynamicPage section="notes" />} />
               <Route path="/workspace/:pageId" element={<DynamicPage section="workspace" />} />
