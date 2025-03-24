@@ -145,6 +145,43 @@ export function PageEditor({
     
     // Hide the block menu
     setShowBlockMenu(false);
+
+    return newBlockId;
+  };
+
+  const handleDuplicateBlock = (id: string) => {
+    // Find the block to duplicate
+    const blockToDuplicate = blocks.find(block => block.id === id);
+    if (!blockToDuplicate) return;
+    
+    // Create a new block with the same type and content
+    const newBlockId = uuidv4();
+    const newBlock: Block = {
+      id: newBlockId,
+      type: blockToDuplicate.type,
+      content: blockToDuplicate.content
+    };
+    
+    setBlocks(prev => {
+      const index = prev.findIndex(block => block.id === id);
+      const newBlocks = [
+        ...prev.slice(0, index + 1),
+        newBlock,
+        ...prev.slice(index + 1)
+      ];
+      
+      // Notify parent of the change
+      if (onBlocksChange) {
+        onBlocksChange(newBlocks);
+      }
+      
+      return newBlocks;
+    });
+    
+    // Focus the new block
+    setTimeout(() => {
+      setActiveBlockId(newBlockId);
+    }, 100);
   };
 
   const handleDeleteBlock = (id: string) => {
@@ -265,6 +302,7 @@ export function PageEditor({
                   onTypeChange={handleBlockTypeChange}
                   onAddBlock={handleAddBlock}
                   onDeleteBlock={handleDeleteBlock}
+                  onDuplicate={handleDuplicateBlock}
                 />
               </div>
             ))}

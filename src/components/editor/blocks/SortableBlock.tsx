@@ -22,6 +22,7 @@ export interface SortableBlockProps {
   onTypeChange: (id: string, newType: Block['type']) => void;
   onAddBlock: (type: Block['type'], afterId: string) => void;
   onDeleteBlock: (id: string) => void;
+  onDuplicate?: (id: string) => void;
 }
 
 export function SortableBlock({ 
@@ -31,7 +32,8 @@ export function SortableBlock({
   onUpdate,
   onTypeChange,
   onAddBlock,
-  onDeleteBlock
+  onDeleteBlock,
+  onDuplicate
 }: SortableBlockProps) {
   const {
     attributes,
@@ -49,17 +51,16 @@ export function SortableBlock({
   };
 
   const handleDuplicate = () => {
-    // Create a duplicate block and add it after this one
-    onAddBlock(block.type, block.id);
-    // Get the newly created block (it's the one after this one in the DOM)
-    const blocks = document.querySelectorAll("[data-block-id]");
-    const currentBlockIndex = Array.from(blocks).findIndex(el => el.getAttribute("data-block-id") === block.id);
-    if (currentBlockIndex !== -1 && blocks[currentBlockIndex + 1]) {
-      const newBlockId = blocks[currentBlockIndex + 1].getAttribute("data-block-id");
-      if (newBlockId) {
-        // Update the content of the new block to match this one
-        onUpdate(newBlockId, block.content);
-      }
+    if (onDuplicate) {
+      // Use the dedicated duplicate handler if provided
+      onDuplicate(block.id);
+    } else {
+      // Create a duplicate block and add it after this one
+      onAddBlock(block.type, block.id);
+      
+      // Since we can't directly access the newly created block's ID,
+      // we need the parent component to handle the content duplication
+      // This is a fallback mechanism if onDuplicate is not provided
     }
   };
 
