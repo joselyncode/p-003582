@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { 
   Bold, 
@@ -67,14 +66,22 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
     if (!position) return;
     
     const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
     const menuHeight = 40; // Approximate height of the menu
-    const buffer = 10; // Small buffer space
+    const menuWidth = 225; // Approximate width of the menu
+    const buffer = 5; // Small buffer space (reduced from 10)
     
     // Check if there's enough space above
     const direction = position.y - menuHeight - buffer < 0 ? "bottom" : "top";
     
+    // Center horizontally over the selection
+    let xPos = position.x - (menuWidth / 2);
+    
+    // Keep menu within viewport horizontally
+    xPos = Math.max(10, Math.min(xPos, viewportWidth - menuWidth - 10));
+    
     setMenuPosition({
-      x: Math.max(10, Math.min(position.x - 100, window.innerWidth - 220)), // Center menu and keep in viewport
+      x: xPos,
       y: direction === "top" ? position.y - buffer : position.y + buffer,
       direction
     });
@@ -87,7 +94,7 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
     position: 'absolute',
     zIndex: 100,
     opacity: 0,
-    transform: menuPosition.direction === "top" ? "translateY(10px)" : "translateY(-10px)",
+    transform: menuPosition.direction === "top" ? "translateY(5px)" : "translateY(-5px)", // Reduced from 10px to 5px
     animation: "formatMenuFadeIn 0.15s ease-out forwards",
   } as React.CSSProperties : { display: 'none' };
 
@@ -118,7 +125,7 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
           @keyframes formatMenuFadeIn {
             from {
               opacity: 0;
-              transform: ${menuPosition.direction === "top" ? "translateY(10px)" : "translateY(-10px)"};
+              transform: ${menuPosition.direction === "top" ? "translateY(5px)" : "translateY(-5px)"};
             }
             to {
               opacity: 1;
@@ -130,7 +137,7 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
       <div 
         ref={menuRef} 
         style={menuStyle} 
-        className="rounded-md bg-white shadow-lg border border-gray-200 py-1 px-1 flex items-center gap-1"
+        className="rounded-md bg-white shadow-md border border-gray-200 py-1 px-1 flex items-center gap-1"
       >
         <TooltipProvider>
           <Tooltip>
