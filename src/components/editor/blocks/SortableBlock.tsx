@@ -3,15 +3,38 @@ import React, { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Block } from "@/context/PagesContext";
-import { MoreVertical, Copy, Trash2 } from "lucide-react";
+import { 
+  MoreVertical, 
+  GripVertical, 
+  Copy, 
+  Trash2, 
+  Plus, 
+  PaintBucket, 
+  Eraser,
+  ChevronRight
+} from "lucide-react";
 import { 
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuTrigger
+  ContextMenuTrigger,
+  ContextMenuSub,
+  ContextMenuSubTrigger,
+  ContextMenuSubContent,
+  ContextMenuSeparator
 } from "@/components/ui/context-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { TableBlock } from "./TableBlock";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+} from "@/components/ui/dropdown-menu";
 
 export interface SortableBlockProps {
   id: string;
@@ -25,6 +48,18 @@ export interface SortableBlockProps {
   onDeleteBlock: (id: string) => void;
   onDuplicate?: (id: string) => void;
 }
+
+// Background color options
+const bgColorOptions = [
+  { label: "Default", value: "bg-transparent" },
+  { label: "Gray", value: "bg-gray-100" },
+  { label: "Red", value: "bg-red-100" },
+  { label: "Yellow", value: "bg-yellow-100" },
+  { label: "Green", value: "bg-green-100" },
+  { label: "Blue", value: "bg-blue-100" },
+  { label: "Purple", value: "bg-purple-100" },
+  { label: "Pink", value: "bg-pink-100" },
+];
 
 export function SortableBlock({ 
   block, 
@@ -45,6 +80,7 @@ export function SortableBlock({
   } = useSortable({ id: block.id });
 
   const [showBlockMenu, setShowBlockMenu] = useState(false);
+  const [bgColor, setBgColor] = useState("bg-transparent");
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -53,16 +89,28 @@ export function SortableBlock({
 
   const handleDuplicate = () => {
     if (onDuplicate) {
-      // Use the dedicated duplicate handler if provided
       onDuplicate(block.id);
     } else {
-      // Create a duplicate block and add it after this one
+      // Fallback mechanism
       onAddBlock(block.type, block.id);
-      
-      // Since we can't directly access the newly created block's ID,
-      // we need the parent component to handle the content duplication
-      // This is a fallback mechanism if onDuplicate is not provided
     }
+  };
+
+  const handleClearContents = () => {
+    onUpdate(block.id, "");
+  };
+
+  const handleInsertAbove = () => {
+    // Find previous block and add a new block there
+    onAddBlock(block.type, block.id);
+  };
+
+  const handleInsertBelow = () => {
+    onAddBlock(block.type, block.id);
+  };
+
+  const handleChangeBgColor = (colorClass: string) => {
+    setBgColor(colorClass);
   };
 
   return (
@@ -70,12 +118,69 @@ export function SortableBlock({
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
-      className="group relative py-1 px-1 rounded hover:bg-gray-50"
+      className={`group relative py-1 px-1 rounded hover:bg-gray-50 ${bgColor}`}
       data-block-id={block.id}
-      onMouseEnter={() => setShowBlockMenu(true)}
-      onMouseLeave={() => setShowBlockMenu(false)}
     >
+      {/* Block handle and menu trigger */}
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-6 opacity-0 group-hover:opacity-100 transition-opacity">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="p-1 text-gray-400 hover:text-gray-800" {...listeners}>
+              <GripVertical className="h-4 w-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="right" align="start" className="w-56">
+            <DropdownMenuItem onClick={handleDuplicate}>
+              <Copy className="mr-2 h-4 w-4" />
+              <span>Duplicate</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem onClick={handleClearContents}>
+              <Eraser className="mr-2 h-4 w-4" />
+              <span>Clear contents</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem onClick={() => onDeleteBlock(block.id)}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              <span>Delete</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem onClick={handleInsertAbove}>
+              <Plus className="mr-2 h-4 w-4" />
+              <span>Insert above</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuItem onClick={handleInsertBelow}>
+              <Plus className="mr-2 h-4 w-4" />
+              <span>Insert below</span>
+            </DropdownMenuItem>
+            
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <PaintBucket className="mr-2 h-4 w-4" />
+                <span>Color</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="w-40">
+                {bgColorOptions.map((color) => (
+                  <DropdownMenuItem 
+                    key={color.value} 
+                    onClick={() => handleChangeBgColor(color.value)}
+                    className="flex items-center"
+                  >
+                    <div className={`w-4 h-4 mr-2 rounded ${color.value !== 'bg-transparent' ? color.value : 'border border-gray-200'}`}></div>
+                    <span>{color.label}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
       <ContextMenu>
         <ContextMenuTrigger>
           <div
@@ -149,10 +254,49 @@ export function SortableBlock({
             <Copy className="mr-2 h-4 w-4" />
             <span>Duplicate</span>
           </ContextMenuItem>
+          
+          <ContextMenuItem onClick={handleClearContents}>
+            <Eraser className="mr-2 h-4 w-4" />
+            <span>Clear contents</span>
+          </ContextMenuItem>
+          
           <ContextMenuItem onClick={() => onDeleteBlock(block.id)}>
             <Trash2 className="mr-2 h-4 w-4" />
             <span>Delete</span>
           </ContextMenuItem>
+          
+          <ContextMenuSeparator />
+          
+          <ContextMenuItem onClick={handleInsertAbove}>
+            <Plus className="mr-2 h-4 w-4" />
+            <span>Insert above</span>
+          </ContextMenuItem>
+          
+          <ContextMenuItem onClick={handleInsertBelow}>
+            <Plus className="mr-2 h-4 w-4" />
+            <span>Insert below</span>
+          </ContextMenuItem>
+          
+          <ContextMenuSeparator />
+          
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>
+              <PaintBucket className="mr-2 h-4 w-4" />
+              <span>Color</span>
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent className="w-40">
+              {bgColorOptions.map((color) => (
+                <ContextMenuItem 
+                  key={color.value} 
+                  onClick={() => handleChangeBgColor(color.value)}
+                  className="flex items-center"
+                >
+                  <div className={`w-4 h-4 mr-2 rounded ${color.value !== 'bg-transparent' ? color.value : 'border border-gray-200'}`}></div>
+                  <span>{color.label}</span>
+                </ContextMenuItem>
+              ))}
+            </ContextMenuSubContent>
+          </ContextMenuSub>
         </ContextMenuContent>
       </ContextMenu>
 
