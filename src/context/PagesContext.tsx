@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Home, FileText, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,7 +61,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
   const [pagesMap, setPagesMap] = useState<Map<string, string>>(new Map());
   const { toast } = useToast();
 
-  // Initialize by fetching pages from Supabase
   useEffect(() => {
     const fetchPages = async () => {
       try {
@@ -75,7 +73,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
           throw error;
         }
 
-        // Process data and update state
         const favs: Page[] = [];
         const work: Page[] = [];
         const pers: Page[] = [];
@@ -91,7 +88,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
               section: page.section as PageSection
             };
 
-            // Add to appropriate section array
             if (page.section === 'favorite') {
               favs.push(pageObj);
             } else if (page.section === 'workspace' || page.section === 'notes') {
@@ -100,7 +96,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
               pers.push(pageObj);
             }
 
-            // Add to path mapping
             pathToIdMap.set(page.path, page.id);
           });
         }
@@ -124,7 +119,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     fetchPages();
   }, [toast]);
 
-  // Add a new page to the database and update state
   const addPage = async (page: Page): Promise<string | undefined> => {
     try {
       const { data, error } = await supabase
@@ -144,7 +138,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("No data returned after page creation");
       }
 
-      // Create empty content for the page
       const { error: contentError } = await supabase
         .from('page_content')
         .insert({
@@ -158,7 +151,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
 
       if (contentError) throw contentError;
 
-      // Add to local state
       const newPage: Page = {
         id: data.id,
         name: data.name,
@@ -167,7 +159,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         section: data.section as PageSection
       };
 
-      // Update appropriate section
       switch (page.section) {
         case "favorite":
           setFavorites(prev => [...prev, newPage]);
@@ -181,7 +172,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
           break;
       }
 
-      // Update path to id mapping
       setPagesMap(prev => new Map(prev.set(data.path, data.id)));
 
       toast({
@@ -200,7 +190,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Get content for a specific page
   const getPageContent = async (pageId: string): Promise<PageContent | null> => {
     try {
       const { data, error } = await supabase
@@ -211,7 +200,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // No rows found
           return null;
         }
         throw error;
@@ -224,7 +212,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Update content of a page
   const updatePageContent = async (content: PageContent): Promise<void> => {
     try {
       const { error } = await supabase
@@ -247,7 +234,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Toggle favorite status
   const toggleFavorite = async (pageId: string, isFavorite: boolean): Promise<void> => {
     try {
       const { error } = await supabase
@@ -266,7 +252,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Get page ID from path
   const getPageIdByPath = (path: string): string | undefined => {
     return pagesMap.get(path);
   };
@@ -291,3 +276,4 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const usePages = () => useContext(PagesContext);
+

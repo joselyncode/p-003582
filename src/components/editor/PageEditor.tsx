@@ -33,7 +33,7 @@ export function PageEditor({
     {
       id: "1",
       type: "heading1",
-      content: "Untitled"
+      content: ""
     }
   ]);
   
@@ -252,7 +252,7 @@ export function PageEditor({
           <div>
             {/* This is just a placeholder - in a real app, the first h1 block would be the title */}
             <h1 className="text-3xl font-bold">
-              {blocks.find(b => b.type === "heading1")?.content || "Untitled"}
+              {blocks.find(b => b.type === "heading1")?.content || ""}
             </h1>
             <div className="flex gap-2 items-center mt-1 text-xs text-muted-foreground">
               <span>{formatLastSaved()}</span>
