@@ -1,7 +1,8 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, ChevronDown, GripVertical, Move, Copy, Eraser } from "lucide-react";
+import { Plus, Trash2, ChevronDown, GripVertical, Move, Copy, Eraser, Paintbrush } from "lucide-react";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +25,8 @@ import { CSS } from '@dnd-kit/utilities';
 export interface TableData {
   headers: string[];
   rows: string[][];
+  rowColors: string[];
+  columnColors: string[];
 }
 
 interface TableBlockProps {
@@ -31,15 +34,40 @@ interface TableBlockProps {
   onUpdate: (content: string) => void;
 }
 
+// Define available colors
+const COLORS = [
+  { name: "Default", value: "" },
+  { name: "Gray", value: "bg-gray-100" },
+  { name: "Red", value: "bg-red-100" },
+  { name: "Orange", value: "bg-orange-100" },
+  { name: "Yellow", value: "bg-yellow-100" },
+  { name: "Green", value: "bg-green-100" },
+  { name: "Blue", value: "bg-blue-100" },
+  { name: "Purple", value: "bg-purple-100" },
+  { name: "Pink", value: "bg-pink-100" },
+];
+
 // SortableColumnHeader component
-const SortableColumnHeader = ({ header, index, onHeaderChange, onRemoveColumn, onInsertColumn, onDuplicateColumn, onClearColumn }: { 
+const SortableColumnHeader = ({ 
+  header, 
+  index, 
+  onHeaderChange, 
+  onRemoveColumn, 
+  onInsertColumn, 
+  onDuplicateColumn, 
+  onClearColumn,
+  onSetColumnColor,
+  columnColor
+}: { 
   header: string, 
   index: number, 
   onHeaderChange: (index: number, value: string) => void,
   onRemoveColumn: (index: number) => void,
   onInsertColumn: (index: number, position: 'before' | 'after') => void,
   onDuplicateColumn: (index: number) => void,
-  onClearColumn: (index: number) => void
+  onClearColumn: (index: number) => void,
+  onSetColumnColor: (index: number, color: string) => void,
+  columnColor: string
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: `col-${index}`,
@@ -54,7 +82,7 @@ const SortableColumnHeader = ({ header, index, onHeaderChange, onRemoveColumn, o
     <TableHead 
       ref={setNodeRef}
       style={style}
-      className="relative border border-gray-200 bg-gray-50"
+      className={`relative border border-gray-200 ${columnColor || 'bg-gray-50'}`}
     >
       <div className="flex items-center">
         <div className="w-full">
@@ -78,6 +106,25 @@ const SortableColumnHeader = ({ header, index, onHeaderChange, onRemoveColumn, o
                   <Eraser className="mr-2 h-4 w-4" />
                   <span>Clear contents</span>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Paintbrush className="mr-2 h-4 w-4" />
+                    <span>Set column color</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {COLORS.map((color) => (
+                      <DropdownMenuItem 
+                        key={color.name} 
+                        onClick={() => onSetColumnColor(index, color.value)}
+                        className="flex items-center"
+                      >
+                        <div className={`w-4 h-4 mr-2 rounded border ${color.value || 'bg-white'}`}></div>
+                        <span>{color.name}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onInsertColumn(index, 'before')}>
                   <Plus className="mr-2 h-4 w-4" />
@@ -119,7 +166,10 @@ const SortableRow = ({
   onRemoveRow,
   onInsertRow,
   onDuplicateRow,
-  onClearRow
+  onClearRow,
+  onSetRowColor,
+  rowColor,
+  columnColors
 }: { 
   row: string[], 
   rowIndex: number, 
@@ -128,7 +178,10 @@ const SortableRow = ({
   onRemoveRow: (index: number) => void,
   onInsertRow: (index: number, position: 'before' | 'after') => void,
   onDuplicateRow: (index: number) => void,
-  onClearRow: (index: number) => void
+  onClearRow: (index: number) => void,
+  onSetRowColor: (index: number, color: string) => void,
+  rowColor: string,
+  columnColors: string[]
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: `row-${rowIndex}`,
@@ -143,7 +196,7 @@ const SortableRow = ({
     <TableRow 
       ref={setNodeRef}
       style={style}
-      className="hover:bg-gray-50"
+      className={`hover:bg-gray-50 ${rowColor}`}
     >
       <TableCell className="w-10 p-0 relative border border-gray-200">
         <DropdownMenu>
@@ -165,6 +218,24 @@ const SortableRow = ({
               <Eraser className="mr-2 h-4 w-4" />
               <span>Clear contents</span>
             </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <Paintbrush className="mr-2 h-4 w-4" />
+                <span>Set row color</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                {COLORS.map((color) => (
+                  <DropdownMenuItem 
+                    key={color.name} 
+                    onClick={() => onSetRowColor(rowIndex, color.value)}
+                    className="flex items-center"
+                  >
+                    <div className={`w-4 h-4 mr-2 rounded border ${color.value || 'bg-white'}`}></div>
+                    <span>{color.name}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => onInsertRow(rowIndex, 'before')}>
               <Plus className="mr-2 h-4 w-4" />
@@ -186,7 +257,7 @@ const SortableRow = ({
       {row.map((cell, colIndex) => (
         <TableCell 
           key={colIndex} 
-          className="border border-gray-200 p-0"
+          className={`border border-gray-200 p-0 ${columnColors[colIndex] || ''}`}
         >
           <div 
             contentEditable
@@ -207,11 +278,19 @@ const SortableRow = ({
 export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate }) => {
   const parseTableData = (): TableData => {
     try {
-      return JSON.parse(initialContent) as TableData;
+      const parsed = JSON.parse(initialContent);
+      return {
+        headers: parsed.headers || ["Column 1", "Column 2", "Column 3"],
+        rows: parsed.rows || [["", "", ""], ["", "", ""]],
+        rowColors: parsed.rowColors || Array(parsed.rows?.length || 2).fill(""),
+        columnColors: parsed.columnColors || Array(parsed.headers?.length || 3).fill(""),
+      };
     } catch (e) {
       return {
         headers: ["Column 1", "Column 2", "Column 3"],
-        rows: [["", "", ""], ["", "", ""]]
+        rows: [["", "", ""], ["", "", ""]],
+        rowColors: ["", ""],
+        columnColors: ["", "", ""]
       };
     }
   };
@@ -254,10 +333,13 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
   const addColumn = () => {
     const newHeaders = [...tableData.headers, `Column ${tableData.headers.length + 1}`];
     const newRows = tableData.rows.map(row => [...row, ""]);
+    const newColumnColors = [...tableData.columnColors, ""];
     
     setTableData({
+      ...tableData,
       headers: newHeaders,
-      rows: newRows
+      rows: newRows,
+      columnColors: newColumnColors
     });
   };
   
@@ -268,10 +350,13 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     const newRows = tableData.rows.map(row => 
       row.filter((_, index) => index !== colIndex)
     );
+    const newColumnColors = tableData.columnColors.filter((_, index) => index !== colIndex);
     
     setTableData({
+      ...tableData,
       headers: newHeaders,
-      rows: newRows
+      rows: newRows,
+      columnColors: newColumnColors
     });
   };
   
@@ -288,9 +373,14 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
       return newRow;
     });
     
+    const newColumnColors = [...tableData.columnColors];
+    newColumnColors.splice(insertIndex, 0, "");
+    
     setTableData({
+      ...tableData,
       headers: newHeaders,
-      rows: newRows
+      rows: newRows,
+      columnColors: newColumnColors
     });
   };
   
@@ -307,9 +397,14 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
       return newRow;
     });
     
+    const newColumnColors = [...tableData.columnColors];
+    newColumnColors.splice(colIndex + 1, 0, tableData.columnColors[colIndex]);
+    
     setTableData({
+      ...tableData,
       headers: newHeaders,
-      rows: newRows
+      rows: newRows,
+      columnColors: newColumnColors
     });
   };
   
@@ -326,12 +421,24 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     });
   };
   
-  const addRow = () => {
-    const newRow = Array(tableData.headers.length).fill("");
+  const setColumnColor = (colIndex: number, color: string) => {
+    const newColumnColors = [...tableData.columnColors];
+    newColumnColors[colIndex] = color;
     
     setTableData({
       ...tableData,
-      rows: [...tableData.rows, newRow]
+      columnColors: newColumnColors
+    });
+  };
+  
+  const addRow = () => {
+    const newRow = Array(tableData.headers.length).fill("");
+    const newRowColors = [...tableData.rowColors, ""];
+    
+    setTableData({
+      ...tableData,
+      rows: [...tableData.rows, newRow],
+      rowColors: newRowColors
     });
   };
   
@@ -339,10 +446,12 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     if (tableData.rows.length <= 1) return;
     
     const newRows = tableData.rows.filter((_, index) => index !== rowIndex);
+    const newRowColors = tableData.rowColors.filter((_, index) => index !== rowIndex);
     
     setTableData({
       ...tableData,
-      rows: newRows
+      rows: newRows,
+      rowColors: newRowColors
     });
   };
   
@@ -353,9 +462,13 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     const newRows = [...tableData.rows];
     newRows.splice(insertIndex, 0, newRow);
     
+    const newRowColors = [...tableData.rowColors];
+    newRowColors.splice(insertIndex, 0, "");
+    
     setTableData({
       ...tableData,
-      rows: newRows
+      rows: newRows,
+      rowColors: newRowColors
     });
   };
   
@@ -365,9 +478,13 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     const newRows = [...tableData.rows];
     newRows.splice(rowIndex + 1, 0, [...rowToDuplicate]);
     
+    const newRowColors = [...tableData.rowColors];
+    newRowColors.splice(rowIndex + 1, 0, tableData.rowColors[rowIndex]);
+    
     setTableData({
       ...tableData,
-      rows: newRows
+      rows: newRows,
+      rowColors: newRowColors
     });
   };
   
@@ -378,6 +495,16 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     setTableData({
       ...tableData,
       rows: newRows
+    });
+  };
+  
+  const setRowColor = (rowIndex: number, color: string) => {
+    const newRowColors = [...tableData.rowColors];
+    newRowColors[rowIndex] = color;
+    
+    setTableData({
+      ...tableData,
+      rowColors: newRowColors
     });
   };
   
@@ -402,9 +529,15 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
         return newRow;
       });
       
+      const newColumnColors = [...tableData.columnColors];
+      const [movedColor] = newColumnColors.splice(activeIndex, 1);
+      newColumnColors.splice(overIndex, 0, movedColor);
+      
       setTableData({
+        ...tableData,
         headers: newHeaders,
-        rows: newRows
+        rows: newRows,
+        columnColors: newColumnColors
       });
     }
   };
@@ -423,9 +556,14 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
       const [movedRow] = newRows.splice(activeIndex, 1);
       newRows.splice(overIndex, 0, movedRow);
       
+      const newRowColors = [...tableData.rowColors];
+      const [movedColor] = newRowColors.splice(activeIndex, 1);
+      newRowColors.splice(overIndex, 0, movedColor);
+      
       setTableData({
         ...tableData,
-        rows: newRows
+        rows: newRows,
+        rowColors: newRowColors
       });
     }
   };
@@ -478,6 +616,8 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
                     onInsertColumn={insertColumn}
                     onDuplicateColumn={duplicateColumn}
                     onClearColumn={clearColumn}
+                    onSetColumnColor={setColumnColor}
+                    columnColor={tableData.columnColors[colIndex]}
                   />
                 ))}
               </SortableContext>
@@ -517,6 +657,9 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
                   onInsertRow={insertRow}
                   onDuplicateRow={duplicateRow}
                   onClearRow={clearRow}
+                  onSetRowColor={setRowColor}
+                  rowColor={tableData.rowColors[rowIndex]}
+                  columnColors={tableData.columnColors}
                 />
               ))}
             </SortableContext>
