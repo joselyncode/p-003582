@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { SearchBar } from "../ui/SearchBar";
@@ -16,7 +17,8 @@ import {
   Calendar,
   Database,
   Folder,
-  LayoutDashboard
+  LayoutDashboard,
+  Users
 } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
 import { useToast } from "@/hooks/use-toast";
@@ -39,6 +41,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [newPageOpen, setNewPageOpen] = useState(false);
+  const [newPageSection, setNewPageSection] = useState<"workspace" | "notes" | "personal">("workspace");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pageToDelete, setPageToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -54,16 +57,23 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
     { name: "Configuración", icon: Settings, path: "/settings" },
   ];
 
+  // Separar páginas de workspace y notas
+  const workspacePages = workspace.filter(page => page.section === "workspace" || page.path.includes("/workspace/"));
+  const notesPages = workspace.filter(page => page.section === "notes" || page.path.includes("/notes/"));
+  const personalPages = personal.filter(page => page.section === "personal" || page.path.includes("/personal/"));
+
   // Función para crear una nueva página
-  const handleCreatePage = async (name) => {
+  const handleCreatePage = async (name: string) => {
     try {
-      const section = "workspace";
-      await createPage(name, section);
+      console.log("Creando página en sección:", newPageSection);
+      const pageId = await createPage(name, newPageSection);
       setNewPageOpen(false);
       
-      toast({
-        description: `Se ha creado la página "${name}"`,
-      });
+      if (pageId) {
+        toast({
+          description: `Se ha creado la página "${name}" en la sección ${newPageSection}`,
+        });
+      }
     } catch (error) {
       console.error("Error creating page:", error);
       toast({
@@ -114,21 +124,23 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
     );
   };
 
-  // Eliminar páginas duplicadas - Asegúrate de que no hay elementos repetidos
+  // Eliminar páginas duplicadas
   const uniqueFavorites = favorites.filter(fav => 
     !defaultFavorites.some(def => def.path === fav.path)
   );
   
-  // Filtrar favortios pero manteniendo los tipos separados
+  // Filtrar favoritos pero manteniendo los tipos separados
   const filteredDefaultFavorites = filterItems(defaultFavorites);
   const filteredCustomFavorites = filterItems(uniqueFavorites);
-  const filteredWorkspace = filterItems(workspace);
-  const filteredPersonal = filterItems(personal);
+  const filteredWorkspacePages = filterItems(workspacePages);
+  const filteredNotesPages = filterItems(notesPages);
+  const filteredPersonalPages = filterItems(personalPages);
 
   // Determinar si una sección debe mostrarse (si hay elementos filtrados)
   const showFavorites = filteredDefaultFavorites.length > 0 || filteredCustomFavorites.length > 0;
-  const showWorkspace = filteredWorkspace.length > 0;
-  const showPersonal = filteredPersonal.length > 0;
+  const showWorkspace = filteredWorkspacePages.length > 0;
+  const showNotes = filteredNotesPages.length > 0;
+  const showPersonal = filteredPersonalPages.length > 0;
 
   // Iconos para elementos del workspace
   const getWorkspaceIcon = (name) => {
@@ -195,9 +207,15 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  // Función para abrir el modal de nueva página con sección específica
+  const openNewPageModal = (section: "workspace" | "notes" | "personal") => {
+    setNewPageSection(section);
+    setNewPageOpen(true);
+  };
+
   return (
     <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} h-full bg-gray-100 border-r border-gray-200 flex flex-col transition-all duration-300 relative`}>
-      {/* Botón para colapsar/expandir el sidebar - hacemos que sea más visible */}
+      {/* Botón para colapsar/expandir el sidebar */}
       <button
         onClick={toggleSidebar}
         className="absolute right-0 top-16 transform translate-x-1/2 bg-white p-1.5 rounded-full shadow-md text-gray-500 hover:text-gray-800 z-10 border border-gray-200 flex items-center justify-center"
@@ -214,7 +232,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
       <div className={`p-4 ${sidebarCollapsed ? 'flex flex-col items-center' : ''}`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
-            {/* Notion-like icon: Square with a simple N-like structure */}
+            {/* Notion-like icon */}
             <div className="h-5 w-5 bg-blue-600 text-white rounded flex items-center justify-center mr-2 flex-shrink-0">
               <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor">
                 <path d="M4 4h8v1.5H4V4zm0 3h8v1.5H4V7zm0 3h5v1.5H4V10z" />
@@ -277,64 +295,65 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
                 Workspace
               </h2>
               <button
-                onClick={() => setNewPageOpen(true)}
+                onClick={() => openNewPageModal("workspace")}
                 className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
-                aria-label="Agregar página"
+                aria-label="Agregar página al workspace"
               >
                 <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
             <ul>
-              {filteredWorkspace.map((item, index) => {
+              {filteredWorkspacePages.map((item, index) => {
                 const Icon = getWorkspaceIcon(item.name);
-                return (
-                  <li key={index} className="group relative">
-                    <Link
-                      to={item.path}
-                      className="flex items-center rounded-md px-3 py-2 text-gray-700 hover:bg-gray-200"
-                    >
-                      <Icon className="h-4 w-4 mr-3 text-gray-500" />
-                      <span className="truncate">{item.name}</span>
-                    </Link>
-                    
-                    {item.id && (
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleDeleteClick(item);
-                        }}
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-md text-gray-400 hover:text-red-500 hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity"
-                        aria-label={`Eliminar ${item.name}`}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </li>
-                );
+                return renderPageItem({...item, icon: Icon}, index);
               })}
             </ul>
           </div>
         )}
 
-        {/* Versión colapsada - solo iconos de workspace */}
-        {sidebarCollapsed && showWorkspace && (
-          <div className="flex flex-col items-center space-y-4 mb-6">
-            <div className="w-full flex justify-center mb-1">
+        {/* Sección Notas */}
+        {showNotes && !sidebarCollapsed && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between px-3 mb-2">
+              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Notas
+              </h2>
               <button
-                onClick={() => setNewPageOpen(true)}
+                onClick={() => openNewPageModal("notes")}
                 className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
-                aria-label="Agregar página"
-                title="Nueva página"
+                aria-label="Agregar nota"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
-            {filteredWorkspace.map((item, index) => {
+            <ul>
+              {filteredNotesPages.map((item, index) => 
+                renderPageItem(item, index)
+              )}
+            </ul>
+          </div>
+        )}
+
+        {/* Versión colapsada - iconos de workspace y notas */}
+        {sidebarCollapsed && (showWorkspace || showNotes) && (
+          <div className="flex flex-col items-center space-y-4 mb-6">
+            {showWorkspace && (
+              <div className="w-full flex justify-center mb-1">
+                <button
+                  onClick={() => openNewPageModal("workspace")}
+                  className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                  aria-label="Agregar página al workspace"
+                  title="Nueva página de workspace"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+            {filteredWorkspacePages.slice(0, 5).map((item, index) => {
               const Icon = getWorkspaceIcon(item.name);
               return (
                 <Link
-                  key={index}
+                  key={`workspace-${index}`}
                   to={item.path}
                   className="p-2 rounded-md text-gray-700 hover:bg-gray-200 tooltip-wrapper"
                   title={item.name}
@@ -343,34 +362,76 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
                 </Link>
               );
             })}
+            
+            {showNotes && (
+              <div className="w-full flex justify-center mb-1 mt-2">
+                <button
+                  onClick={() => openNewPageModal("notes")}
+                  className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                  aria-label="Agregar nota"
+                  title="Nueva nota"
+                >
+                  <FileText className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+            {filteredNotesPages.slice(0, 5).map((item, index) => (
+              <Link
+                key={`notes-${index}`}
+                to={item.path}
+                className="p-2 rounded-md text-gray-700 hover:bg-gray-200 tooltip-wrapper"
+                title={item.name}
+              >
+                <FileText className="h-5 w-5 text-gray-600" />
+              </Link>
+            ))}
           </div>
         )}
 
         {/* Sección Personal */}
         {showPersonal && !sidebarCollapsed && (
           <div className="mb-6">
-            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">
-              Personal
-            </h2>
+            <div className="flex items-center justify-between px-3 mb-2">
+              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Personal
+              </h2>
+              <button
+                onClick={() => openNewPageModal("personal")}
+                className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                aria-label="Agregar página personal"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+            </div>
             <ul>
-              {filteredPersonal.map((item, index) => 
+              {filteredPersonalPages.map((item, index) => 
                 renderPageItem(item, index)
               )}
             </ul>
           </div>
         )}
 
-        {/* Versión colapsada - solo iconos personal */}
+        {/* Versión colapsada - iconos personal */}
         {sidebarCollapsed && showPersonal && (
           <div className="flex flex-col items-center space-y-4 mb-6">
-            {filteredPersonal.map((item, index) => (
+            <div className="w-full flex justify-center mb-1">
+              <button
+                onClick={() => openNewPageModal("personal")}
+                className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                aria-label="Agregar página personal"
+                title="Nueva página personal"
+              >
+                <Users className="h-4 w-4" />
+              </button>
+            </div>
+            {filteredPersonalPages.slice(0, 5).map((item, index) => (
               <Link
-                key={index}
+                key={`personal-${index}`}
                 to={item.path}
                 className="p-2 rounded-md text-gray-700 hover:bg-gray-200 tooltip-wrapper"
                 title={item.name}
               >
-                <FileText className="h-5 w-5 text-gray-600" />
+                <Users className="h-5 w-5 text-gray-600" />
               </Link>
             ))}
           </div>
@@ -440,7 +501,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
         open={newPageOpen}
         onOpenChange={setNewPageOpen}
         onCreate={handleCreatePage}
-        defaultSection="workspace"
+        defaultSection={newPageSection}
       />
 
       {/* Diálogo de confirmación para eliminar página */}

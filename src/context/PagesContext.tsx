@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Home, FileText, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -134,6 +135,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     try {
       const path = `/${section}/${name.toLowerCase().replace(/\s+/g, '-')}`;
       
+      // Pasar explícitamente la sección
       return await addPage({
         name,
         icon: 'FileText',
@@ -154,6 +156,12 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
   const addPage = async (page: Page): Promise<string | undefined> => {
     try {
       console.log("Adding page with section:", page.section);
+      
+      // Validar que la sección sea válida
+      if (!page.section || !["favorite", "workspace", "notes", "personal"].includes(page.section)) {
+        console.error("Sección no válida:", page.section);
+        throw new Error("Sección no válida");
+      }
       
       const { data, error } = await supabase
         .from('pages')
@@ -196,7 +204,8 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         section: data.section as PageSection
       };
 
-      switch (page.section) {
+      // Agregar la página a la sección correcta
+      switch (newPage.section) {
         case "favorite":
           setFavorites(prev => [...prev, newPage]);
           break;
@@ -207,12 +216,14 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         case "personal":
           setPersonal(prev => [...prev, newPage]);
           break;
+        default:
+          console.warn("Sección desconocida:", newPage.section);
       }
 
       setPagesMap(prev => new Map(prev.set(data.path, data.id)));
 
       toast({
-        description: `Se ha creado la página "${page.name}"`,
+        description: `Se ha creado la página "${page.name}" en la sección ${page.section}`,
       });
 
       return data.id;

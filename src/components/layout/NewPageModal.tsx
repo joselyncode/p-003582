@@ -46,7 +46,9 @@ export function NewPageModal({ open, onOpenChange, onCreate, defaultSection = "n
         // Generar el path correcto para la sección seleccionada
         const path = `/${pageType}/${pageName.toLowerCase().replace(/\s+/g, '-')}`;
         
-        // Asegurarse de pasar correctamente la sección seleccionada
+        console.log("Creando página en la sección:", pageType);
+        
+        // Pasar explícitamente la sección seleccionada
         const newPageId = await addPage({
           name: pageName,
           icon: "FileText",
