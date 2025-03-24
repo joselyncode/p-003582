@@ -113,18 +113,20 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
 
   return (
     <>
-      <style jsx global>{`
-        @keyframes formatMenuFadeIn {
-          from {
-            opacity: 0;
-            transform: ${menuPosition.direction === "top" ? "translateY(10px)" : "translateY(-10px)"};
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes formatMenuFadeIn {
+            from {
+              opacity: 0;
+              transform: ${menuPosition.direction === "top" ? "translateY(10px)" : "translateY(-10px)"};
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
           }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
+        `
+      }} />
       <div 
         ref={menuRef} 
         style={menuStyle} 
