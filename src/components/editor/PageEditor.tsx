@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { SortableBlock } from './blocks/SortableBlock';
 import { v4 as uuidv4 } from 'uuid';
@@ -23,6 +22,7 @@ interface PageEditorProps {
   onBlocksChange?: (blocks: Block[]) => void;
   lastSaved?: number;
   allowTitleEdit?: boolean;
+  initialTitle?: string;
 }
 
 export function PageEditor({ 
@@ -31,7 +31,8 @@ export function PageEditor({
   blocks: initialBlocks,
   onBlocksChange,
   lastSaved,
-  allowTitleEdit = false
+  allowTitleEdit = false,
+  initialTitle = "Untitled"
 }: PageEditorProps) {
   // Inicializar con un array vacío en lugar de un bloque por defecto
   const [blocks, setBlocks] = useState<Block[]>(initialBlocks || []);
@@ -43,19 +44,21 @@ export function PageEditor({
   const [blockMenuPosition, setBlockMenuPosition] = useState({ top: 0, left: 0 });
   const [temporaryPageId, setTemporaryPageId] = useState<string>(uuidv4());
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [titleText, setTitleText] = useState("Untitled");
+  const [titleText, setTitleText] = useState(initialTitle);
 
   useEffect(() => {
     if (initialBlocks) {
       setBlocks(initialBlocks);
       const titleBlock = initialBlocks.find(b => b.type === "heading1");
       if (titleBlock) {
-        setTitleText(titleBlock.content || "Untitled");
+        setTitleText(titleBlock.content || initialTitle);
       } else {
-        setTitleText("Untitled");
+        setTitleText(initialTitle);
       }
+    } else {
+      setTitleText(initialTitle);
     }
-  }, [initialBlocks]);
+  }, [initialBlocks, initialTitle]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
