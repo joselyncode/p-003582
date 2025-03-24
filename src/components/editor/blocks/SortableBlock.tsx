@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -35,6 +36,7 @@ import {
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FormatMenu } from "../FormatMenu";
 
 export interface SortableBlockProps {
   id: string;
@@ -84,6 +86,7 @@ export function SortableBlock({
   const contentEditableRef = useRef<HTMLDivElement>(null);
   const [isNewBlock, setIsNewBlock] = useState(!block.content);
   const [isChecked, setIsChecked] = useState(false);
+  const [formatMenuPosition, setFormatMenuPosition] = useState<{ x: number, y: number } | null>(null);
 
   useEffect(() => {
     if (block.type === "todo" && block.content) {
@@ -125,14 +128,6 @@ export function SortableBlock({
     onUpdate(block.id, "");
   };
 
-  const handleInsertAbove = () => {
-    onAddBlock(block.type, block.id);
-  };
-
-  const handleInsertBelow = () => {
-    onAddBlock(block.type, block.id);
-  };
-
   const handleChangeBgColor = (colorClass: string) => {
     setBgColor(colorClass);
   };
@@ -162,6 +157,95 @@ export function SortableBlock({
       
       onUpdate(block.id, checked ? `[x]${cleanText}` : `${cleanText}`);
     }
+  };
+
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    
+    if (selection && !selection.isCollapsed && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      
+      // Set position for format menu
+      setFormatMenuPosition({
+        x: rect.left + (rect.width / 2) - 100, // Center the menu
+        y: rect.top - 40 // Position above the selection
+      });
+    } else {
+      setFormatMenuPosition(null);
+    }
+  };
+
+  const applyFormatting = (format: string, value?: string) => {
+    const selection = window.getSelection();
+    
+    if (!selection || selection.isCollapsed || !selection.rangeCount || !contentEditableRef.current) {
+      return;
+    }
+    
+    // Get the selected range
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+    
+    if (!selectedText) {
+      return;
+    }
+    
+    let formattedText = '';
+    
+    // Format the text based on the selected option
+    switch (format) {
+      case 'bold':
+        formattedText = `<strong>${selectedText}</strong>`;
+        break;
+      case 'italic':
+        formattedText = `<em>${selectedText}</em>`;
+        break;
+      case 'underline':
+        formattedText = `<u>${selectedText}</u>`;
+        break;
+      case 'strikethrough':
+        formattedText = `<s>${selectedText}</s>`;
+        break;
+      case 'link':
+        if (value) {
+          formattedText = `<a href="${value}" target="_blank">${selectedText}</a>`;
+        }
+        break;
+      case 'textColor':
+        if (value) {
+          formattedText = `<span class="${value}">${selectedText}</span>`;
+        }
+        break;
+      case 'backgroundColor':
+        if (value) {
+          formattedText = `<span class="${value}">${selectedText}</span>`;
+        }
+        break;
+      default:
+        return;
+    }
+    
+    // Create a document fragment with the formatted HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = formattedText;
+    const fragment = document.createDocumentFragment();
+    
+    while (tempDiv.firstChild) {
+      fragment.appendChild(tempDiv.firstChild);
+    }
+    
+    // Replace the selected text with our formatted fragment
+    range.deleteContents();
+    range.insertNode(fragment);
+    
+    // Update content in state
+    if (contentEditableRef.current) {
+      onUpdate(block.id, contentEditableRef.current.innerHTML);
+    }
+    
+    // Close the format menu
+    setFormatMenuPosition(null);
   };
 
   return (
@@ -234,10 +318,11 @@ export function SortableBlock({
                   contentEditable={true} 
                   suppressContentEditableWarning={true}
                   ref={contentEditableRef}
-                  onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}
-                >
-                  {block.content}
-                </h1>
+                  onBlur={(e) => onUpdate(block.id, e.currentTarget.innerHTML)}
+                  onKeyUp={handleTextSelection}
+                  onMouseUp={handleTextSelection}
+                  dangerouslySetInnerHTML={{ __html: block.content || "" }}
+                ></h1>
               )}
               {block.type === "heading2" && (
                 <h2 
@@ -245,10 +330,11 @@ export function SortableBlock({
                   contentEditable={true} 
                   suppressContentEditableWarning={true}
                   ref={contentEditableRef}
-                  onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}
-                >
-                  {block.content}
-                </h2>
+                  onBlur={(e) => onUpdate(block.id, e.currentTarget.innerHTML)}
+                  onKeyUp={handleTextSelection}
+                  onMouseUp={handleTextSelection}
+                  dangerouslySetInnerHTML={{ __html: block.content || "" }}
+                ></h2>
               )}
               {block.type === "heading3" && (
                 <h3 
@@ -256,10 +342,11 @@ export function SortableBlock({
                   contentEditable={true} 
                   suppressContentEditableWarning={true}
                   ref={contentEditableRef}
-                  onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}
-                >
-                  {block.content}
-                </h3>
+                  onBlur={(e) => onUpdate(block.id, e.currentTarget.innerHTML)}
+                  onKeyUp={handleTextSelection}
+                  onMouseUp={handleTextSelection}
+                  dangerouslySetInnerHTML={{ __html: block.content || "" }}
+                ></h3>
               )}
               {block.type === "text" && (
                 <p 
@@ -267,10 +354,11 @@ export function SortableBlock({
                   contentEditable={true} 
                   suppressContentEditableWarning={true}
                   ref={contentEditableRef}
-                  onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}
-                >
-                  {block.content}
-                </p>
+                  onBlur={(e) => onUpdate(block.id, e.currentTarget.innerHTML)}
+                  onKeyUp={handleTextSelection}
+                  onMouseUp={handleTextSelection}
+                  dangerouslySetInnerHTML={{ __html: block.content || "" }}
+                ></p>
               )}
               {block.type === "todo" && (
                 <div className="flex items-start gap-2">
@@ -285,14 +373,15 @@ export function SortableBlock({
                     suppressContentEditableWarning={true}
                     ref={contentEditableRef}
                     onBlur={(e) => {
-                      const cleanText = e.currentTarget.textContent || '';
+                      const cleanText = e.currentTarget.innerHTML || '';
                       onUpdate(block.id, isChecked ? `[x]${cleanText}` : cleanText);
                     }}
                     onKeyDown={handleKeyDown}
+                    onKeyUp={handleTextSelection}
+                    onMouseUp={handleTextSelection}
                     className={isChecked ? "line-through underline text-gray-500" : ""}
-                  >
-                    {block.content ? block.content.replace(/^\[x\]/, '').trim() : ''}
-                  </div>
+                    dangerouslySetInnerHTML={{ __html: block.content ? block.content.replace(/^\[x\]/, '').trim() : '' }}
+                  ></div>
                 </div>
               )}
               {block.type === "bullet" && (
@@ -302,11 +391,12 @@ export function SortableBlock({
                     contentEditable={true} 
                     suppressContentEditableWarning={true}
                     ref={contentEditableRef}
-                    onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}
+                    onBlur={(e) => onUpdate(block.id, e.currentTarget.innerHTML)}
                     onKeyDown={handleKeyDown}
-                  >
-                    {block.content}
-                  </div>
+                    onKeyUp={handleTextSelection}
+                    onMouseUp={handleTextSelection}
+                    dangerouslySetInnerHTML={{ __html: block.content || "" }}
+                  ></div>
                 </div>
               )}
               {block.type === "numbered" && (
@@ -316,11 +406,12 @@ export function SortableBlock({
                     contentEditable={true} 
                     suppressContentEditableWarning={true}
                     ref={contentEditableRef}
-                    onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}
+                    onBlur={(e) => onUpdate(block.id, e.currentTarget.innerHTML)}
                     onKeyDown={handleKeyDown}
-                  >
-                    {block.content}
-                  </div>
+                    onKeyUp={handleTextSelection}
+                    onMouseUp={handleTextSelection}
+                    dangerouslySetInnerHTML={{ __html: block.content || "" }}
+                  ></div>
                 </div>
               )}
               {block.type === "table" && (
@@ -400,6 +491,13 @@ export function SortableBlock({
           </Popover>
         </div>
       )}
+
+      {/* Format Menu for text selection */}
+      <FormatMenu 
+        position={formatMenuPosition} 
+        onClose={() => setFormatMenuPosition(null)}
+        onFormatText={applyFormatting}
+      />
     </div>
   );
 }
