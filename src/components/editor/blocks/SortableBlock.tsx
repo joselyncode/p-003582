@@ -166,10 +166,10 @@ export function SortableBlock({
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
       
-      // Set position for format menu
+      // Set position for format menu more precisely
       setFormatMenuPosition({
-        x: rect.left + (rect.width / 2) - 100, // Center the menu
-        y: rect.top - 40 // Position above the selection
+        x: rect.left + (rect.width / 2), // Center point of selection
+        y: rect.top // Top of selection
       });
     } else {
       setFormatMenuPosition(null);
