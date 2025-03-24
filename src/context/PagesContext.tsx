@@ -37,6 +37,7 @@ type PagesContextType = {
   loading: boolean;
   createPage: (name: string, section: "workspace" | "personal" | "notes") => Promise<string | undefined>;
   addPage: (page: Page) => Promise<string | undefined>;
+  deletePage: (pageId: string) => Promise<boolean>;
   getPageContent: (pageId: string) => Promise<PageContent | null>;
   updatePageContent: (content: PageContent) => Promise<void>;
   toggleFavorite: (pageId: string, isFavorite: boolean) => Promise<void>;
@@ -51,6 +52,7 @@ const PagesContext = createContext<PagesContextType>({
   loading: true,
   createPage: async () => undefined,
   addPage: async () => undefined,
+  deletePage: async () => false,
   getPageContent: async () => null,
   updatePageContent: async () => {},
   toggleFavorite: async () => {},
@@ -216,6 +218,67 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const deletePage = async (pageId: string): Promise<boolean> => {
+    try {
+      const { error: contentError } = await supabase
+        .from('page_content')
+        .delete()
+        .eq('page_id', pageId);
+
+      if (contentError) throw contentError;
+
+      const { data, error } = await supabase
+        .from('pages')
+        .delete()
+        .eq('id', pageId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        switch (data.section) {
+          case "favorite":
+            setFavorites(prev => prev.filter(page => page.id !== pageId));
+            break;
+          case "workspace":
+          case "notes":
+            setWorkspace(prev => prev.filter(page => page.id !== pageId));
+            break;
+          case "personal":
+            setPersonal(prev => prev.filter(page => page.id !== pageId));
+            break;
+        }
+
+        setPagesMap(prev => {
+          const newMap = new Map(prev);
+          for (const [path, id] of newMap.entries()) {
+            if (id === pageId) {
+              newMap.delete(path);
+              break;
+            }
+          }
+          return newMap;
+        });
+
+        toast({
+          description: `Se ha eliminado la página "${data.name}"`,
+        });
+
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error deleting page:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar la página",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   const getPageContent = async (pageId: string): Promise<PageContent | null> => {
     try {
       const { data, error } = await supabase
@@ -291,7 +354,8 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         isLoading,
         loading,
         createPage,
-        addPage, 
+        addPage,
+        deletePage,
         getPageContent, 
         updatePageContent,
         toggleFavorite,

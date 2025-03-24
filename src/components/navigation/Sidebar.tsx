@@ -15,7 +15,9 @@ import {
   CalendarClock,
   PlusSquare, 
   Home,
-  PanelLeft
+  PanelLeft,
+  Trash2,
+  MoreVertical
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
@@ -30,6 +32,7 @@ import { Separator } from "@/components/ui/separator";
 import { usePages } from "@/context/PagesContext";
 import { useState } from "react";
 import { NewPageModal } from "../layout/NewPageModal";
+import { DeletePageDialog } from "../layout/DeletePageDialog";
 import { useToast } from "@/components/ui/use-toast";
 
 interface SidebarProps {
@@ -40,9 +43,12 @@ interface SidebarProps {
 export function Sidebar({ userName, userAvatar }: SidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { workspace, personal, favorites, loading, createPage } = usePages();
+  const { workspace, personal, favorites, loading, createPage, deletePage } = usePages();
   const [showNewPageModal, setShowNewPageModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [selectedSection, setSelectedSection] = useState<"workspace" | "personal" | "notes">("workspace");
+  const [pageToDelete, setPageToDelete] = useState<{ id: string, name: string } | null>(null);
   
   const handleNewPage = () => {
     setShowNewPageModal(true);
@@ -70,6 +76,41 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
     
     setShowNewPageModal(false);
   };
+
+  const handleDeleteClick = (e: React.MouseEvent, id: string, name: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPageToDelete({ id, name });
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!pageToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const success = await deletePage(pageToDelete.id);
+      if (success) {
+        setShowDeleteDialog(false);
+        toast({
+          description: `Página "${pageToDelete.name}" eliminada con éxito`,
+        });
+      }
+    } catch (error) {
+      console.error("Error al eliminar la página:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar la página",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setPageToDelete(null);
+    }
+  };
+  
+  // CSS for the delete button that appears on hover
+  const deleteButtonClass = "opacity-0 group-hover:opacity-100 absolute right-0 flex items-center justify-center p-1 rounded-md hover:bg-gray-200 transition-opacity";
   
   return (
     <div className="w-64 h-full bg-sidebar border-r border-gray-200 flex flex-col">
@@ -131,14 +172,34 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
             <div className="px-2 py-1 text-sm text-gray-500">Cargando...</div>
           ) : (
             workspace.map((page) => (
-              <Link
-                key={page.id}
-                to={page.path}
-                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700 w-full"
-              >
-                <Folder className="h-4 w-4 text-gray-500" />
-                <span className="truncate">{page.name}</span>
-              </Link>
+              <div key={page.id} className="group relative">
+                <Link
+                  to={page.path}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700 w-full pr-8"
+                >
+                  <Folder className="h-4 w-4 text-gray-500" />
+                  <span className="truncate">{page.name}</span>
+                </Link>
+                {page.id && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={deleteButtonClass}
+                          onClick={(e) => handleDeleteClick(e, page.id!, page.name)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-gray-500" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Eliminar página</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
             ))
           )}
         </div>
@@ -172,14 +233,34 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
             <div className="px-2 py-1 text-sm text-gray-500">Cargando...</div>
           ) : (
             personal.map((page) => (
-              <Link
-                key={page.id}
-                to={page.path}
-                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700 w-full"
-              >
-                <FileText className="h-4 w-4 text-gray-500" />
-                <span className="truncate">{page.name}</span>
-              </Link>
+              <div key={page.id} className="group relative">
+                <Link
+                  to={page.path}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700 w-full pr-8"
+                >
+                  <FileText className="h-4 w-4 text-gray-500" />
+                  <span className="truncate">{page.name}</span>
+                </Link>
+                {page.id && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={deleteButtonClass}
+                          onClick={(e) => handleDeleteClick(e, page.id!, page.name)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-gray-500" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Eliminar página</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
             ))
           )}
         </div>
@@ -213,14 +294,34 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
             <div className="px-2 py-1 text-sm text-gray-500">Cargando...</div>
           ) : (
             favorites.map((page) => (
-              <Link
-                key={page.id}
-                to={page.path}
-                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700 w-full"
-              >
-                <FileText className="h-4 w-4 text-gray-500" />
-                <span className="truncate">{page.name}</span>
-              </Link>
+              <div key={page.id} className="group relative">
+                <Link
+                  to={page.path}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700 w-full pr-8"
+                >
+                  <FileText className="h-4 w-4 text-gray-500" />
+                  <span className="truncate">{page.name}</span>
+                </Link>
+                {page.id && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={deleteButtonClass}
+                          onClick={(e) => handleDeleteClick(e, page.id!, page.name)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-gray-500" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Eliminar página</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
             ))
           )}
         </div>
@@ -250,6 +351,16 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
         onCreate={(name) => handleCreatePage(name, selectedSection)}
         defaultSection={selectedSection}
       />
+
+      {pageToDelete && (
+        <DeletePageDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          onDelete={handleDeleteConfirm}
+          pageName={pageToDelete.name}
+          isDeleting={isDeleting}
+        />
+      )}
     </div>
   );
 }
