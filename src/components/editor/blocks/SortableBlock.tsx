@@ -209,7 +209,7 @@ export function SortableBlock({
         break;
       case 'link':
         if (value) {
-          formattedText = `<a href="${value}" target="_blank">${selectedText}</a>`;
+          formattedText = `<a href="${value}" target="_blank" rel="noopener noreferrer">${selectedText}</a>`;
         }
         break;
       case 'textColor':
