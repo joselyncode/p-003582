@@ -113,6 +113,9 @@ export function SortableBlock({
     setBgColor(colorClass);
   };
 
+  // Determinar si el bloque es de tipo tabla
+  const isTableBlock = block.type === "table";
+
   return (
     <div
       ref={setNodeRef}
@@ -135,27 +138,33 @@ export function SortableBlock({
               <span>Duplicate</span>
             </DropdownMenuItem>
             
-            <DropdownMenuItem onClick={handleClearContents}>
-              <Eraser className="mr-2 h-4 w-4" />
-              <span>Clear contents</span>
-            </DropdownMenuItem>
+            {isTableBlock && (
+              <DropdownMenuItem onClick={handleClearContents}>
+                <Eraser className="mr-2 h-4 w-4" />
+                <span>Clear contents</span>
+              </DropdownMenuItem>
+            )}
             
             <DropdownMenuItem onClick={() => onDeleteBlock(block.id)}>
               <Trash2 className="mr-2 h-4 w-4" />
               <span>Delete</span>
             </DropdownMenuItem>
             
-            <DropdownMenuSeparator />
-            
-            <DropdownMenuItem onClick={handleInsertAbove}>
-              <Plus className="mr-2 h-4 w-4" />
-              <span>Insert above</span>
-            </DropdownMenuItem>
-            
-            <DropdownMenuItem onClick={handleInsertBelow}>
-              <Plus className="mr-2 h-4 w-4" />
-              <span>Insert below</span>
-            </DropdownMenuItem>
+            {isTableBlock && (
+              <>
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem onClick={handleInsertAbove}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  <span>Insert above</span>
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem onClick={handleInsertBelow}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  <span>Insert below</span>
+                </DropdownMenuItem>
+              </>
+            )}
             
             <DropdownMenuSeparator />
             
@@ -255,27 +264,33 @@ export function SortableBlock({
             <span>Duplicate</span>
           </ContextMenuItem>
           
-          <ContextMenuItem onClick={handleClearContents}>
-            <Eraser className="mr-2 h-4 w-4" />
-            <span>Clear contents</span>
-          </ContextMenuItem>
+          {isTableBlock && (
+            <ContextMenuItem onClick={handleClearContents}>
+              <Eraser className="mr-2 h-4 w-4" />
+              <span>Clear contents</span>
+            </ContextMenuItem>
+          )}
           
           <ContextMenuItem onClick={() => onDeleteBlock(block.id)}>
             <Trash2 className="mr-2 h-4 w-4" />
             <span>Delete</span>
           </ContextMenuItem>
           
-          <ContextMenuSeparator />
-          
-          <ContextMenuItem onClick={handleInsertAbove}>
-            <Plus className="mr-2 h-4 w-4" />
-            <span>Insert above</span>
-          </ContextMenuItem>
-          
-          <ContextMenuItem onClick={handleInsertBelow}>
-            <Plus className="mr-2 h-4 w-4" />
-            <span>Insert below</span>
-          </ContextMenuItem>
+          {isTableBlock && (
+            <>
+              <ContextMenuSeparator />
+              
+              <ContextMenuItem onClick={handleInsertAbove}>
+                <Plus className="mr-2 h-4 w-4" />
+                <span>Insert above</span>
+              </ContextMenuItem>
+              
+              <ContextMenuItem onClick={handleInsertBelow}>
+                <Plus className="mr-2 h-4 w-4" />
+                <span>Insert below</span>
+              </ContextMenuItem>
+            </>
+          )}
           
           <ContextMenuSeparator />
           
