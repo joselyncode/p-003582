@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
@@ -24,12 +23,9 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
   const [lastSaved, setLastSaved] = useState<number | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState<any>(null);
   
-  // Buscar la página en las diferentes secciones
   useEffect(() => {
-    // Combinar todas las páginas para buscar
     const allPages = [...workspace, ...personal, ...favorites];
     
-    // Buscar la página actual por URL
     const currentPath = `/${section}/${pageId}`;
     const foundPage = allPages.find(page => page.path === currentPath);
     
@@ -46,7 +42,6 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     setPageTitle(foundPage.name);
     setCurrentPage(foundPage);
     
-    // Buscar el contenido de la página
     if (foundPage.id) {
       const fetchPageContent = async () => {
         const content = await getPageContent(foundPage.id!);
@@ -82,7 +77,6 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     }
   };
   
-  // Determinar el nombre correcto para la migas de pan
   const getSectionName = () => {
     switch (section) {
       case "notes":
@@ -98,7 +92,6 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     }
   };
   
-  // Determinar el nombre del espacio de trabajo basado en la sección
   const getWorkspaceName = () => {
     switch (section) {
       case "notes":
@@ -116,11 +109,9 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     if (newTitle && newTitle !== pageTitle && currentPage?.id) {
       setPageTitle(newTitle);
       
-      // Actualizar el título en la base de datos
       const success = await updatePageTitle(currentPage.id, newTitle);
       
       if (success) {
-        // Redirigir a la nueva URL basada en el nuevo título
         const newPath = `/${section}/${newTitle.toLowerCase().replace(/\s+/g, '-')}`;
         navigate(newPath);
       }
@@ -144,6 +135,7 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
             allowTitleEdit={true}
             initialTitle={pageTitle}
             onTitleChange={handleTitleChange}
+            pageId={currentPage?.id}
           />
         ) : (
           <div className="flex items-center justify-center h-64">

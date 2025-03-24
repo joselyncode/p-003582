@@ -14,6 +14,7 @@ import { CommentsPanel } from './CommentsPanel';
 import { ChevronRight, MessageSquare, Edit } from 'lucide-react';
 import { Block } from '@/context/PagesContext';
 import { Input } from '@/components/ui/input';
+import { FavoriteButton } from './FavoriteButton';
 
 interface PageEditorProps {
   workspaceName: string;
@@ -24,6 +25,7 @@ interface PageEditorProps {
   allowTitleEdit?: boolean;
   initialTitle?: string;
   onTitleChange?: (newTitle: string) => void;
+  pageId?: string;
 }
 
 export function PageEditor({ 
@@ -34,7 +36,8 @@ export function PageEditor({
   lastSaved,
   allowTitleEdit = false,
   initialTitle = "Untitled",
-  onTitleChange
+  onTitleChange,
+  pageId
 }: PageEditorProps) {
   const [blocks, setBlocks] = useState<Block[]>(initialBlocks || []);
   
@@ -315,11 +318,14 @@ export function PageEditor({
             </div>
           </div>
           
-          <div className="flex gap-2 md:hidden">
+          <div className="flex gap-2 items-center">
+            {pageId && <FavoriteButton pageId={pageId} />}
+            
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => setShowComments(!showComments)}
+              className="md:flex hidden"
               data-comments-toggle
             >
               <MessageSquare className="h-4 w-4 mr-1" />

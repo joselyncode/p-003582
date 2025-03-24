@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Home, FileText, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +43,7 @@ type PagesContextType = {
   toggleFavorite: (pageId: string, isFavorite: boolean) => Promise<void>;
   getPageIdByPath: (path: string) => string | undefined;
   updatePageTitle: (pageId: string, newTitle: string) => Promise<boolean>;
+  movePageToSection: (pageId: string, newSection: PageSection) => Promise<boolean>;
 };
 
 const PagesContext = createContext<PagesContextType>({
@@ -60,6 +60,7 @@ const PagesContext = createContext<PagesContextType>({
   toggleFavorite: async () => {},
   getPageIdByPath: () => undefined,
   updatePageTitle: async () => false,
+  movePageToSection: async () => false,
 });
 
 export const PagesProvider = ({ children }: { children: ReactNode }) => {
@@ -135,7 +136,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     try {
       const path = `/${section}/${name.toLowerCase().replace(/\s+/g, '-')}`;
       
-      // Pasar explícitamente la sección
       return await addPage({
         name,
         icon: 'FileText',
@@ -157,7 +157,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log("Adding page with section:", page.section);
       
-      // Validar que la sección sea válida
       if (!page.section || !["favorite", "workspace", "notes", "personal"].includes(page.section)) {
         console.error("Sección no válida:", page.section);
         throw new Error("Sección no válida");
@@ -204,7 +203,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         section: data.section as PageSection
       };
 
-      // Agregar la página a la sección correcta
       switch (newPage.section) {
         case "favorite":
           setFavorites(prev => [...prev, newPage]);
@@ -351,6 +349,66 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         .eq('page_id', pageId);
 
       if (error) throw error;
+
+      const allPages = [...workspace, ...personal, ...favorites];
+      const page = allPages.find(p => p.id === pageId);
+      
+      if (page) {
+        const originalSection = page.section === 'favorite' 
+          ? (page.path.includes('/workspace/') ? 'workspace' : 
+             page.path.includes('/notes/') ? 'notes' : 'personal')
+          : page.section;
+          
+        const targetSection = isFavorite ? 'favorite' : originalSection;
+        
+        if (page.section !== targetSection) {
+          await movePageToSection(pageId, targetSection);
+        }
+      }
+
+      const { data, error: fetchError } = await supabase
+        .from('pages')
+        .select('*');
+
+      if (fetchError) throw fetchError;
+
+      if (data) {
+        const favs: Page[] = [];
+        const work: Page[] = [];
+        const pers: Page[] = [];
+        const pathToIdMap = new Map<string, string>();
+
+        data.forEach((page) => {
+          const pageObj: Page = {
+            id: page.id,
+            name: page.name,
+            icon: page.icon,
+            path: page.path,
+            section: page.section as PageSection
+          };
+
+          if (page.section === 'favorite') {
+            favs.push(pageObj);
+          } else if (page.section === 'workspace' || page.section === 'notes') {
+            work.push(pageObj);
+          } else if (page.section === 'personal') {
+            pers.push(pageObj);
+          }
+
+          pathToIdMap.set(page.path, page.id);
+        });
+
+        setFavorites(favs);
+        setWorkspace(work);
+        setPersonal(pers);
+        setPagesMap(pathToIdMap);
+      }
+
+      toast({
+        description: isFavorite 
+          ? "Página añadida a favoritos" 
+          : "Página eliminada de favoritos",
+      });
     } catch (error) {
       console.error("Error toggling favorite:", error);
       toast({
@@ -358,6 +416,78 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         description: "No se pudo actualizar el estado de favorito",
         variant: "destructive",
       });
+    }
+  };
+
+  const movePageToSection = async (pageId: string, newSection: PageSection): Promise<boolean> => {
+    try {
+      const allPages = [...workspace, ...personal, ...favorites];
+      const existingPage = allPages.find(page => page.id === pageId);
+      
+      if (!existingPage) {
+        toast({
+          title: "Error",
+          description: "No se encontró la página para actualizar",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      const pathParts = existingPage.path.split('/');
+      const pageName = pathParts[pathParts.length - 1];
+      const newPath = `/${newSection}/${pageName}`;
+      
+      const { data, error } = await supabase
+        .from('pages')
+        .update({
+          section: newSection,
+          path: newPath
+        })
+        .eq('id', pageId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      if (data) {
+        const updatedPage = { ...existingPage, section: newSection as PageSection, path: newPath };
+        
+        setFavorites(prev => prev.filter(page => page.id !== pageId));
+        setWorkspace(prev => prev.filter(page => page.id !== pageId));
+        setPersonal(prev => prev.filter(page => page.id !== pageId));
+        
+        switch (newSection) {
+          case "favorite":
+            setFavorites(prev => [...prev, updatedPage]);
+            break;
+          case "workspace":
+          case "notes":
+            setWorkspace(prev => [...prev, updatedPage]);
+            break;
+          case "personal":
+            setPersonal(prev => [...prev, updatedPage]);
+            break;
+        }
+        
+        setPagesMap(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(existingPage.path);
+          newMap.set(newPath, pageId);
+          return newMap;
+        });
+        
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error("Error moving page to section:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo mover la página a la nueva sección",
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
@@ -452,7 +582,8 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         updatePageContent,
         toggleFavorite,
         getPageIdByPath,
-        updatePageTitle
+        updatePageTitle,
+        movePageToSection
       }}
     >
       {children}
