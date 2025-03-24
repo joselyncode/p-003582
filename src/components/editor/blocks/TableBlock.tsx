@@ -2,12 +2,16 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, ChevronDown, GripVertical, Move } from "lucide-react";
+import { Plus, Trash2, ChevronDown, GripVertical, Move, Copy, Eraser } from "lucide-react";
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { DndContext, DragEndEvent, 
   PointerSensor, useSensor, useSensors, 
@@ -29,10 +33,14 @@ interface TableBlockProps {
 }
 
 // SortableColumnHeader component
-const SortableColumnHeader = ({ header, index, onHeaderChange }: { 
+const SortableColumnHeader = ({ header, index, onHeaderChange, onRemoveColumn, onInsertColumn, onDuplicateColumn, onClearColumn }: { 
   header: string, 
   index: number, 
-  onHeaderChange: (index: number, value: string) => void 
+  onHeaderChange: (index: number, value: string) => void,
+  onRemoveColumn: (index: number) => void,
+  onInsertColumn: (index: number, position: 'before' | 'after') => void,
+  onDuplicateColumn: (index: number) => void,
+  onClearColumn: (index: number) => void
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: `col-${index}`,
@@ -50,21 +58,54 @@ const SortableColumnHeader = ({ header, index, onHeaderChange }: {
       className="relative border border-gray-200 bg-gray-50"
     >
       <div className="flex items-center">
-        <div 
-          className="absolute -top-7 left-1/2 transform -translate-x-1/2 w-6 h-6 flex items-center justify-center cursor-grab opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-sm border rounded"
-          {...attributes}
-          {...listeners}
-        >
-          <Move className="h-4 w-4 text-gray-400" />
-        </div>
-        
-        <div 
-          contentEditable
-          suppressContentEditableWarning
-          className="outline-none p-2 min-w-20 w-full"
-          onBlur={(e) => onHeaderChange(index, e.currentTarget.textContent || "")}
-        >
-          {header}
+        <div className="w-full">
+          <div className="relative group">
+            {/* Column context menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div 
+                  className="absolute top-1 left-1/2 transform -translate-x-1/2 w-6 h-6 flex items-center justify-center cursor-grab opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-sm border rounded"
+                  {...attributes}
+                  {...listeners}
+                >
+                  <GripVertical className="h-4 w-4 text-gray-400" />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => onDuplicateColumn(index)}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  <span>Duplicate column</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onClearColumn(index)}>
+                  <Eraser className="mr-2 h-4 w-4" />
+                  <span>Clear contents</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onInsertColumn(index, 'before')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  <span>Insert left</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onInsertColumn(index, 'after')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  <span>Insert right</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onRemoveColumn(index)} className="text-red-600">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  <span>Delete column</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          
+          <div 
+            contentEditable
+            suppressContentEditableWarning
+            className="outline-none p-2 min-w-20 w-full"
+            onBlur={(e) => onHeaderChange(index, e.currentTarget.textContent || "")}
+          >
+            {header}
+          </div>
         </div>
       </div>
     </TableHead>
@@ -76,12 +117,20 @@ const SortableRow = ({
   row, 
   rowIndex, 
   headers, 
-  onCellChange 
+  onCellChange,
+  onRemoveRow,
+  onInsertRow,
+  onDuplicateRow,
+  onClearRow
 }: { 
   row: string[], 
   rowIndex: number, 
   headers: string[],
-  onCellChange: (rowIndex: number, colIndex: number, value: string) => void 
+  onCellChange: (rowIndex: number, colIndex: number, value: string) => void,
+  onRemoveRow: (index: number) => void,
+  onInsertRow: (index: number, position: 'before' | 'after') => void,
+  onDuplicateRow: (index: number) => void,
+  onClearRow: (index: number) => void
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: `row-${rowIndex}`,
@@ -98,15 +147,43 @@ const SortableRow = ({
       style={style}
       className="hover:bg-gray-50"
     >
-      {/* Row handle for drag and drop */}
+      {/* Row handle with context menu */}
       <TableCell className="w-10 p-0 relative border border-gray-200">
-        <div 
-          className="flex justify-center items-center h-full cursor-grab"
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical className="h-4 w-4 text-gray-400" />
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div 
+              className="flex justify-center items-center h-full cursor-grab"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className="h-4 w-4 text-gray-400" />
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => onDuplicateRow(rowIndex)}>
+              <Copy className="mr-2 h-4 w-4" />
+              <span>Duplicate row</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onClearRow(rowIndex)}>
+              <Eraser className="mr-2 h-4 w-4" />
+              <span>Clear contents</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onInsertRow(rowIndex, 'before')}>
+              <Plus className="mr-2 h-4 w-4" />
+              <span>Insert above</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onInsertRow(rowIndex, 'after')}>
+              <Plus className="mr-2 h-4 w-4" />
+              <span>Insert below</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onRemoveRow(rowIndex)} className="text-red-600">
+              <Trash2 className="mr-2 h-4 w-4" />
+              <span>Delete row</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </TableCell>
       
       {/* Row cells */}
@@ -146,9 +223,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
   };
   
   const [tableData, setTableData] = useState<TableData>(parseTableData);
-  const [showColumnControls, setShowColumnControls] = useState<number | null>(null);
-  const [showRowControls, setShowRowControls] = useState<number | null>(null);
-  const [selectedCell, setSelectedCell] = useState<{row: number, col: number} | null>(null);
   
   // Set up DnD sensors
   const sensors = useSensors(
@@ -211,8 +285,60 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
       headers: newHeaders,
       rows: newRows
     });
+  };
+  
+  // Insert a column before or after a specific column
+  const insertColumn = (colIndex: number, position: 'before' | 'after') => {
+    const insertIndex = position === 'before' ? colIndex : colIndex + 1;
+    const newColumnName = `Column ${tableData.headers.length + 1}`;
     
-    setShowColumnControls(null);
+    const newHeaders = [...tableData.headers];
+    newHeaders.splice(insertIndex, 0, newColumnName);
+    
+    const newRows = tableData.rows.map(row => {
+      const newRow = [...row];
+      newRow.splice(insertIndex, 0, "");
+      return newRow;
+    });
+    
+    setTableData({
+      headers: newHeaders,
+      rows: newRows
+    });
+  };
+  
+  // Duplicate a column
+  const duplicateColumn = (colIndex: number) => {
+    const columnHeader = tableData.headers[colIndex];
+    const newColumnName = `${columnHeader} (copy)`;
+    
+    const newHeaders = [...tableData.headers];
+    newHeaders.splice(colIndex + 1, 0, newColumnName);
+    
+    const newRows = tableData.rows.map(row => {
+      const newRow = [...row];
+      newRow.splice(colIndex + 1, 0, row[colIndex]);
+      return newRow;
+    });
+    
+    setTableData({
+      headers: newHeaders,
+      rows: newRows
+    });
+  };
+  
+  // Clear a column's contents
+  const clearColumn = (colIndex: number) => {
+    const newRows = tableData.rows.map(row => {
+      const newRow = [...row];
+      newRow[colIndex] = "";
+      return newRow;
+    });
+    
+    setTableData({
+      ...tableData,
+      rows: newRows
+    });
   };
   
   // Add a new row
@@ -235,8 +361,44 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
       ...tableData,
       rows: newRows
     });
+  };
+  
+  // Insert a row before or after a specific row
+  const insertRow = (rowIndex: number, position: 'before' | 'after') => {
+    const insertIndex = position === 'before' ? rowIndex : rowIndex + 1;
+    const newRow = Array(tableData.headers.length).fill("");
     
-    setShowRowControls(null);
+    const newRows = [...tableData.rows];
+    newRows.splice(insertIndex, 0, newRow);
+    
+    setTableData({
+      ...tableData,
+      rows: newRows
+    });
+  };
+  
+  // Duplicate a row
+  const duplicateRow = (rowIndex: number) => {
+    const rowToDuplicate = tableData.rows[rowIndex];
+    
+    const newRows = [...tableData.rows];
+    newRows.splice(rowIndex + 1, 0, [...rowToDuplicate]);
+    
+    setTableData({
+      ...tableData,
+      rows: newRows
+    });
+  };
+  
+  // Clear a row's contents
+  const clearRow = (rowIndex: number) => {
+    const newRows = [...tableData.rows];
+    newRows[rowIndex] = Array(tableData.headers.length).fill("");
+    
+    setTableData({
+      ...tableData,
+      rows: newRows
+    });
   };
   
   // Handle column drag end
@@ -307,10 +469,12 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={addRow}>
-              Add row
+              <Plus className="mr-2 h-4 w-4" />
+              <span>Add row</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={addColumn}>
-              Add column
+              <Plus className="mr-2 h-4 w-4" />
+              <span>Add column</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -340,6 +504,10 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
                     header={header}
                     index={colIndex}
                     onHeaderChange={handleHeaderChange}
+                    onRemoveColumn={removeColumn}
+                    onInsertColumn={insertColumn}
+                    onDuplicateColumn={duplicateColumn}
+                    onClearColumn={clearColumn}
                   />
                 ))}
               </SortableContext>
@@ -377,6 +545,10 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
                   rowIndex={rowIndex}
                   headers={tableData.headers}
                   onCellChange={handleCellChange}
+                  onRemoveRow={removeRow}
+                  onInsertRow={insertRow}
+                  onDuplicateRow={duplicateRow}
+                  onClearRow={clearRow}
                 />
               ))}
             </SortableContext>
@@ -402,4 +574,3 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     </div>
   );
 };
-
