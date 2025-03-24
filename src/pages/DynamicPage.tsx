@@ -5,6 +5,7 @@ import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
 import { PageEditor } from "@/components/editor/PageEditor";
 import { usePages, PageSection, PageContent, Block } from "@/context/PagesContext";
 import { useToast } from "@/components/ui/use-toast";
+import { useSettings } from "@/hooks/use-settings";
 
 interface DynamicPageProps {
   section: PageSection;
@@ -14,7 +15,8 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { workspace, personal, favorites, getPageContent, updatePageContent } = usePages();
+  const { settings } = useSettings();
+  const { workspace, personal, favorites, getPageContent, updatePageContent, updatePageTitle } = usePages();
   
   const [pageTitle, setPageTitle] = useState("Cargando...");
   const [pageContent, setPageContent] = useState<PageContent | null>(null);
@@ -89,6 +91,8 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
         return "Workspace";
       case "personal":
         return "Personal";
+      case "favorite":
+        return "Favoritos";
       default:
         return "Página";
     }
@@ -99,6 +103,7 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     switch (section) {
       case "notes":
       case "personal":
+      case "favorite":
         return "Mi Workspace";
       case "workspace":
         return "Workspace";
@@ -107,17 +112,24 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     }
   };
   
-  const handleTitleChange = (newTitle: string) => {
-    if (newTitle && newTitle !== pageTitle) {
+  const handleTitleChange = async (newTitle: string) => {
+    if (newTitle && newTitle !== pageTitle && currentPage?.id) {
       setPageTitle(newTitle);
-      // Aquí se podría implementar la actualización del título en la base de datos
-      // por ahora solo actualizamos el estado local
+      
+      // Actualizar el título en la base de datos
+      const success = await updatePageTitle(currentPage.id, newTitle);
+      
+      if (success) {
+        // Redirigir a la nueva URL basada en el nuevo título
+        const newPath = `/${section}/${newTitle.toLowerCase().replace(/\s+/g, '-')}`;
+        navigate(newPath);
+      }
     }
   };
   
   return (
     <WorkspaceLayout
-      userName="Usuario"
+      userName={settings.userName}
       currentPath={[getSectionName(), pageTitle]}
       pageId={currentPage?.id}
     >

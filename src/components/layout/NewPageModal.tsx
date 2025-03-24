@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -42,8 +43,10 @@ export function NewPageModal({ open, onOpenChange, onCreate, defaultSection = "n
       if (onCreate) {
         await onCreate(pageName);
       } else {
+        // Generar el path correcto para la sección seleccionada
         const path = `/${pageType}/${pageName.toLowerCase().replace(/\s+/g, '-')}`;
         
+        // Asegurarse de pasar correctamente la sección seleccionada
         const newPageId = await addPage({
           name: pageName,
           icon: "FileText",
@@ -52,6 +55,9 @@ export function NewPageModal({ open, onOpenChange, onCreate, defaultSection = "n
         });
 
         if (newPageId) {
+          toast({
+            description: `Se ha creado la página "${pageName}" en la sección ${pageType}`,
+          });
           onOpenChange(false);
           navigate(path);
         }

@@ -42,6 +42,7 @@ type PagesContextType = {
   updatePageContent: (content: PageContent) => Promise<void>;
   toggleFavorite: (pageId: string, isFavorite: boolean) => Promise<void>;
   getPageIdByPath: (path: string) => string | undefined;
+  updatePageTitle: (pageId: string, newTitle: string) => Promise<boolean>;
 };
 
 const PagesContext = createContext<PagesContextType>({
@@ -57,6 +58,7 @@ const PagesContext = createContext<PagesContextType>({
   updatePageContent: async () => {},
   toggleFavorite: async () => {},
   getPageIdByPath: () => undefined,
+  updatePageTitle: async () => false,
 });
 
 export const PagesProvider = ({ children }: { children: ReactNode }) => {
@@ -151,6 +153,8 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
 
   const addPage = async (page: Page): Promise<string | undefined> => {
     try {
+      console.log("Adding page with section:", page.section);
+      
       const { data, error } = await supabase
         .from('pages')
         .insert({
@@ -162,11 +166,16 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
       
       if (!data) {
         throw new Error("No data returned after page creation");
       }
+
+      console.log("Page created in DB:", data);
 
       const { error: contentError } = await supabase
         .from('page_content')
@@ -193,7 +202,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
           break;
         case "workspace":
         case "notes":
-          setWorkspace(prev => [...prev, { ...newPage, section: "workspace" as PageSection }]);
+          setWorkspace(prev => [...prev, newPage]);
           break;
         case "personal":
           setPersonal(prev => [...prev, newPage]);
@@ -345,6 +354,78 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     return pagesMap.get(path);
   };
 
+  const updatePageTitle = async (pageId: string, newTitle: string): Promise<boolean> => {
+    try {
+      const allPages = [...workspace, ...personal, ...favorites];
+      const existingPage = allPages.find(page => page.id === pageId);
+      
+      if (!existingPage) {
+        toast({
+          title: "Error",
+          description: "No se encontró la página para actualizar",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      const pathParts = existingPage.path.split('/');
+      const section = pathParts[1];
+      const newPath = `/${section}/${newTitle.toLowerCase().replace(/\s+/g, '-')}`;
+      
+      const { data, error } = await supabase
+        .from('pages')
+        .update({
+          name: newTitle,
+          path: newPath
+        })
+        .eq('id', pageId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      if (data) {
+        const updatedPage = { ...existingPage, name: newTitle, path: newPath };
+        
+        switch (data.section) {
+          case "favorite":
+            setFavorites(prev => prev.map(page => page.id === pageId ? updatedPage : page));
+            break;
+          case "workspace":
+          case "notes":
+            setWorkspace(prev => prev.map(page => page.id === pageId ? updatedPage : page));
+            break;
+          case "personal":
+            setPersonal(prev => prev.map(page => page.id === pageId ? updatedPage : page));
+            break;
+        }
+        
+        setPagesMap(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(existingPage.path);
+          newMap.set(newPath, pageId);
+          return newMap;
+        });
+        
+        toast({
+          description: `Se ha actualizado el título de la página a "${newTitle}"`,
+        });
+        
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error("Error updating page title:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el título de la página",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   return (
     <PagesContext.Provider 
       value={{ 
@@ -359,7 +440,8 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         getPageContent, 
         updatePageContent,
         toggleFavorite,
-        getPageIdByPath
+        getPageIdByPath,
+        updatePageTitle
       }}
     >
       {children}
