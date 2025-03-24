@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Home, FileText, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -149,8 +150,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         .insert({
           page_id: data.id,
           blocks: [
-            { id: "1", type: "heading1", content: page.name },
-            { id: "2", type: "text", content: "Start writing..." }
+            { id: "1", type: "heading1", content: page.name }
           ],
           last_edited: Date.now(),
           is_favorite: false

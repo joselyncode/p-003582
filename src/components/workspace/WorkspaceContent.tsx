@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { PageEditor } from "../editor/PageEditor";
 import { useLocation } from "react-router-dom";
@@ -13,7 +12,6 @@ export function WorkspaceContent() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   
-  // Get information for the current route to display in navigation
   const getPageInfo = () => {
     const path = location.pathname;
     
@@ -55,7 +53,6 @@ export function WorkspaceContent() {
     }
   };
   
-  // Load page content when route changes
   useEffect(() => {
     const loadPageContent = async () => {
       const id = getPageIdByPath(location.pathname);
@@ -67,10 +64,8 @@ export function WorkspaceContent() {
           setPageBlocks(content.blocks);
           setLastSaved(content.last_edited);
         } else {
-          // Default content if none exists
           setPageBlocks([
-            { id: "1", type: "heading1", content: "Untitled" },
-            { id: "2", type: "text", content: "Start writing..." }
+            { id: "1", type: "heading1", content: "Untitled" }
           ]);
         }
       }
@@ -79,7 +74,6 @@ export function WorkspaceContent() {
     loadPageContent();
   }, [location.pathname, getPageIdByPath, getPageContent]);
   
-  // Auto-save function
   const saveContent = async () => {
     if (pageId && hasUnsavedChanges) {
       const now = Date.now();
@@ -87,7 +81,7 @@ export function WorkspaceContent() {
         page_id: pageId,
         blocks: pageBlocks,
         last_edited: now,
-        is_favorite: false // This should be properly handled in a real app
+        is_favorite: false
       });
       
       setLastSaved(now);
@@ -96,7 +90,6 @@ export function WorkspaceContent() {
     }
   };
   
-  // Set up auto-save every 2 seconds when content changes
   useEffect(() => {
     if (hasUnsavedChanges) {
       if (autoSaveTimeout) {
@@ -114,7 +107,6 @@ export function WorkspaceContent() {
     };
   }, [pageBlocks, hasUnsavedChanges]);
   
-  // Save on page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (hasUnsavedChanges) {
@@ -125,14 +117,12 @@ export function WorkspaceContent() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      // Final save when component unmounts
       if (hasUnsavedChanges) {
         saveContent();
       }
     };
   }, [hasUnsavedChanges]);
   
-  // Handle content changes
   const handleContentChange = (newBlocks: Block[]) => {
     setPageBlocks(newBlocks);
     setHasUnsavedChanges(true);

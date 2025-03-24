@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { SortableBlock } from './blocks/SortableBlock';
 import { v4 as uuidv4 } from 'uuid';
@@ -35,11 +34,6 @@ export function PageEditor({
       id: "1",
       type: "heading1",
       content: "Untitled"
-    },
-    {
-      id: "2",
-      type: "text",
-      content: "Start writing..."
     }
   ]);
   
@@ -348,3 +342,4 @@ export function PageEditor({
     </div>
   );
 }
+
