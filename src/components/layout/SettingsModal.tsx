@@ -11,11 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Mail, Save, Upload, Moon, Sun, Monitor } from "lucide-react";
+import { User, Mail, Save, Upload } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface SettingsModalProps {
   open: boolean;
@@ -33,7 +32,6 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     name: settings.userName,
     email: settings.userEmail,
     language: settings.language,
-    theme: settings.theme,
     avatar: settings.userAvatar
   });
 
@@ -44,7 +42,6 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         name: settings.userName,
         email: settings.userEmail,
         language: settings.language,
-        theme: settings.theme || 'light',
         avatar: settings.userAvatar
       });
     }
@@ -55,13 +52,6 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     setFormData(prev => ({
       ...prev,
       [id]: value
-    }));
-  };
-
-  const handleThemeChange = (value: 'light' | 'dark' | 'system') => {
-    setFormData(prev => ({
-      ...prev,
-      theme: value
     }));
   };
 
@@ -111,7 +101,6 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
       userName: formData.name,
       userEmail: formData.email,
       language: formData.language,
-      theme: formData.theme as 'light' | 'dark' | 'system',
       userAvatar: formData.avatar
     });
     
@@ -205,46 +194,13 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               </Label>
               <select 
                 id="language" 
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring dark:bg-gray-800 dark:border-gray-700"
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 value={formData.language}
                 onChange={handleChange}
               >
                 <option value="es">Español</option>
                 <option value="en">Inglés</option>
               </select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm">
-                Tema
-              </Label>
-              <RadioGroup 
-                value={formData.theme} 
-                onValueChange={handleThemeChange as any}
-                className="flex flex-col space-y-1"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="light" id="theme-light" />
-                  <Label htmlFor="theme-light" className="flex items-center">
-                    <Sun className="h-4 w-4 mr-2" />
-                    Claro
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="dark" id="theme-dark" />
-                  <Label htmlFor="theme-dark" className="flex items-center">
-                    <Moon className="h-4 w-4 mr-2" />
-                    Oscuro
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="system" id="theme-system" />
-                  <Label htmlFor="theme-system" className="flex items-center">
-                    <Monitor className="h-4 w-4 mr-2" />
-                    Sistema
-                  </Label>
-                </div>
-              </RadioGroup>
             </div>
           </div>
         </div>

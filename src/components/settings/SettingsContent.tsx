@@ -3,7 +3,6 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   User, 
   Mail, 
@@ -12,9 +11,6 @@ import {
   Palette, 
   Users, 
   Globe,
-  Moon,
-  Sun,
-  Monitor,
   Upload
 } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
@@ -66,18 +62,6 @@ export function SettingsContent() {
       });
     };
     reader.readAsDataURL(file);
-  };
-
-  const handleThemeChange = (theme: 'light' | 'dark' | 'system') => {
-    updateSettings({ theme });
-    toast({
-      title: "Tema actualizado",
-      description: `El tema ha sido cambiado a: ${
-        theme === 'light' ? 'Claro' : 
-        theme === 'dark' ? 'Oscuro' : 
-        'Sistema'
-      }`,
-    });
   };
 
   return (
@@ -179,40 +163,6 @@ export function SettingsContent() {
             <h2 className="text-lg font-medium mb-4">Preferencias</h2>
             
             <div className="space-y-4">
-              {/* Tema */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">
-                  Tema
-                </Label>
-                <RadioGroup 
-                  value={settings.theme} 
-                  onValueChange={handleThemeChange}
-                  className="flex flex-col space-y-1"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="light" id="settings-theme-light" />
-                    <Label htmlFor="settings-theme-light" className="flex items-center">
-                      <Sun className="h-4 w-4 mr-2" />
-                      Claro
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="dark" id="settings-theme-dark" />
-                    <Label htmlFor="settings-theme-dark" className="flex items-center">
-                      <Moon className="h-4 w-4 mr-2" />
-                      Oscuro
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="system" id="settings-theme-system" />
-                    <Label htmlFor="settings-theme-system" className="flex items-center">
-                      <Monitor className="h-4 w-4 mr-2" />
-                      Sistema
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
               {/* Idioma */}
               <div className="grid gap-2 max-w-md">
                 <Label htmlFor="settings-language">Idioma</Label>
