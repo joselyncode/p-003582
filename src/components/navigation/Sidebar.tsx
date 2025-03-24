@@ -1,14 +1,15 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { SearchBar } from "../ui/SearchBar";
 import { SettingsModal } from "../layout/SettingsModal";
 import { NewPageModal } from "../layout/NewPageModal";
 import { DeletePageDialog } from "../layout/DeletePageDialog";
-import { Home, FileText, Star, Users, Settings, Plus, Trash2, MoreVertical } from "lucide-react";
+import { Home, FileText, Star, Users, Settings, Plus, Trash2, MoreVertical, ChevronLeft, ChevronRight, Folder } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
 import { useToast } from "@/hooks/use-toast";
 import { usePages } from "@/context/PagesContext";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import { 
   Popover,
   PopoverContent,
@@ -27,11 +28,12 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pageToDelete, setPageToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage<boolean>("sidebar-collapsed", false);
   const { settings } = useSettings();
   const { toast } = useToast();
   const { favorites, workspace, personal, createPage, deletePage } = usePages();
 
-  // Lista de secciones y páginas
+  // Lista de secciones y páginas fijas
   const defaultFavorites = [
     { name: "Inicio", icon: Home, path: "/" },
     { name: "Documentación", icon: FileText, path: "/docs" },
@@ -138,20 +140,41 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
     </li>
   );
 
+  // Función para toggle el estado del sidebar
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   return (
-    <div className="w-64 h-full bg-gray-100 border-r border-gray-200 flex flex-col">
+    <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} h-full bg-gray-100 border-r border-gray-200 flex flex-col transition-all duration-300`}>
+      {/* Botón para colapsar/expandir el sidebar */}
+      <button
+        onClick={toggleSidebar}
+        className="absolute right-0 top-20 transform translate-x-1/2 bg-white p-1.5 rounded-full shadow-md text-gray-500 hover:text-gray-800 z-10"
+        aria-label={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
+      >
+        {sidebarCollapsed ? (
+          <ChevronRight className="h-4 w-4" />
+        ) : (
+          <ChevronLeft className="h-4 w-4" />
+        )}
+      </button>
+
       {/* Logo y búsqueda */}
-      <div className="p-4">
+      <div className={`p-4 ${sidebarCollapsed ? 'flex flex-col items-center' : ''}`}>
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold">Workspace</h1>
+          <div className="flex items-center">
+            <Folder className="h-5 w-5 text-gray-700 mr-2" />
+            {!sidebarCollapsed && <h1 className="text-xl font-bold">Workspace</h1>}
+          </div>
         </div>
-        <SearchBar onSearch={setSearchQuery} />
+        {!sidebarCollapsed && <SearchBar onSearch={setSearchQuery} />}
       </div>
 
       {/* Navegación */}
       <nav className="flex-1 overflow-y-auto p-2">
         {/* Sección Favoritos */}
-        {showFavorites && (
+        {showFavorites && !sidebarCollapsed && (
           <div className="mb-6">
             <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">
               Favoritos
@@ -164,8 +187,28 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
           </div>
         )}
 
+        {/* Versión colapsada - solo iconos */}
+        {sidebarCollapsed && showFavorites && (
+          <div className="flex flex-col items-center space-y-4 mb-6">
+            {filteredFavorites.map((item, index) => (
+              <Link
+                key={index}
+                to={item.path}
+                className="p-2 rounded-md text-gray-700 hover:bg-gray-200 tooltip-wrapper"
+                title={item.name}
+              >
+                {item.icon && typeof item.icon === 'function' ? (
+                  <item.icon className="h-5 w-5 text-gray-600" />
+                ) : (
+                  <FileText className="h-5 w-5 text-gray-600" />
+                )}
+              </Link>
+            ))}
+          </div>
+        )}
+
         {/* Sección Workspace */}
-        {showWorkspace && (
+        {showWorkspace && !sidebarCollapsed && (
           <div className="mb-6">
             <div className="flex items-center justify-between px-3 mb-2">
               <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -187,8 +230,34 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
           </div>
         )}
 
+        {/* Versión colapsada - solo iconos de workspace */}
+        {sidebarCollapsed && showWorkspace && (
+          <div className="flex flex-col items-center space-y-4 mb-6">
+            <div className="w-full flex justify-center mb-1">
+              <button
+                onClick={() => setNewPageOpen(true)}
+                className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                aria-label="Agregar página"
+                title="Nueva página"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+            {filteredWorkspace.map((item, index) => (
+              <Link
+                key={index}
+                to={item.path}
+                className="p-2 rounded-md text-gray-700 hover:bg-gray-200 tooltip-wrapper"
+                title={item.name}
+              >
+                <FileText className="h-5 w-5 text-gray-600" />
+              </Link>
+            ))}
+          </div>
+        )}
+
         {/* Sección Personal */}
-        {showPersonal && (
+        {showPersonal && !sidebarCollapsed && (
           <div className="mb-6">
             <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">
               Personal
@@ -201,42 +270,73 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
           </div>
         )}
 
+        {/* Versión colapsada - solo iconos personal */}
+        {sidebarCollapsed && showPersonal && (
+          <div className="flex flex-col items-center space-y-4 mb-6">
+            {filteredPersonal.map((item, index) => (
+              <Link
+                key={index}
+                to={item.path}
+                className="p-2 rounded-md text-gray-700 hover:bg-gray-200 tooltip-wrapper"
+                title={item.name}
+              >
+                <FileText className="h-5 w-5 text-gray-600" />
+              </Link>
+            ))}
+          </div>
+        )}
+
         {/* Botón para crear nueva página */}
-        <div className="px-3 mb-6">
-          <button
-            onClick={() => setNewPageOpen(true)}
-            className="flex items-center w-full rounded-md px-3 py-2 text-gray-700 hover:bg-gray-200 transition"
-          >
-            <Plus className="h-4 w-4 mr-3 text-gray-500" />
-            <span>Nueva página</span>
-          </button>
-        </div>
+        {!sidebarCollapsed && (
+          <div className="px-3 mb-6">
+            <button
+              onClick={() => setNewPageOpen(true)}
+              className="flex items-center w-full rounded-md px-3 py-2 text-gray-700 hover:bg-gray-200 transition"
+            >
+              <Plus className="h-4 w-4 mr-3 text-gray-500" />
+              <span>Nueva página</span>
+            </button>
+          </div>
+        )}
       </nav>
 
       {/* Perfil de usuario */}
       <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center">
-          <img
-            src={userAvatar || "/images/female-avatar.svg"}
-            alt="Avatar"
-            className="h-8 w-8 rounded-full mr-2"
-          />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">
-              {userName || settings.userName}
-            </p>
-            <p className="text-xs text-gray-500 truncate">
-              Mi cuenta
-            </p>
+        {sidebarCollapsed ? (
+          <div className="flex justify-center">
+            <button onClick={() => setSettingsOpen(true)}>
+              <img
+                src={userAvatar || "/images/female-avatar.svg"}
+                alt="Avatar"
+                className="h-8 w-8 rounded-full"
+                title={userName || settings.userName}
+              />
+            </button>
           </div>
-          <button 
-            onClick={() => setSettingsOpen(true)}
-            className="ml-2 p-1.5 rounded-full hover:bg-gray-200"
-            aria-label="Configuración"
-          >
-            <Settings className="h-4 w-4 text-gray-500" />
-          </button>
-        </div>
+        ) : (
+          <div className="flex items-center">
+            <img
+              src={userAvatar || "/images/female-avatar.svg"}
+              alt="Avatar"
+              className="h-8 w-8 rounded-full mr-2"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {userName || settings.userName}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                Mi cuenta
+              </p>
+            </div>
+            <button 
+              onClick={() => setSettingsOpen(true)}
+              className="ml-2 p-1.5 rounded-full hover:bg-gray-200"
+              aria-label="Configuración"
+            >
+              <Settings className="h-4 w-4 text-gray-500" />
+            </button>
+          </div>
+        )}
       </div>
       
       {/* Modal de configuración */}

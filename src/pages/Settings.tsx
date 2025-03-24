@@ -3,15 +3,16 @@ import React from "react";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
 import { SettingsContent } from "@/components/settings/SettingsContent";
 import { PageEditor } from "@/components/editor/PageEditor";
+import { useSettings } from "@/hooks/use-settings";
 
 const Settings = () => {
-  const userName = "Joselyn Monge";
+  const { settings } = useSettings();
   const userAvatar = "/images/female-avatar.svg";
   const currentPath = ["Configuración"];
 
   return (
     <WorkspaceLayout
-      userName={userName}
+      userName={settings.userName}
       userAvatar={userAvatar}
       currentPath={currentPath}
     >
@@ -19,6 +20,7 @@ const Settings = () => {
         <PageEditor 
           workspaceName="Mi Workspace"
           pagePath={["Configuración"]}
+          initialTitle="Configuración"
         />
         <SettingsContent />
       </div>
