@@ -87,16 +87,16 @@ export function ShareModal({ open, onOpenChange, pageId }: ShareModalProps) {
       const { data: existingShares, error: fetchError } = await supabase
         .from('page_shares')
         .select('*')
-        .eq('page_id', pageId)
-        .single();
+        .eq('page_id', pageId);
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
+      if (fetchError) {
+        console.error('Error fetching existing shares:', fetchError);
         throw fetchError;
       }
 
-      if (existingShares) {
+      if (existingShares && existingShares.length > 0) {
         // Share exists, use it
-        const pageShare = existingShares as unknown as PageShare;
+        const pageShare = existingShares[0] as unknown as PageShare;
         setShareId(pageShare.id);
         setLinkPermission(pageShare.permission);
         setIsLinkEnabled(pageShare.is_link_enabled);
@@ -108,27 +108,30 @@ export function ShareModal({ open, onOpenChange, pageId }: ShareModalProps) {
         // Create a new share
         const { data: newShare, error: insertError } = await supabase
           .from('page_shares')
-          .insert({
+          .insert([{
             page_id: pageId,
             permission: 'view',
-            is_link_enabled: true,
-            created_by: null // We don't have user auth yet
-          })
-          .select()
-          .single();
+            is_link_enabled: true
+          }])
+          .select();
 
         if (insertError) {
+          console.error('Error creating new share:', insertError);
           throw insertError;
         }
 
-        const pageShare = newShare as unknown as PageShare;
+        if (!newShare || newShare.length === 0) {
+          throw new Error('No se pudo crear el enlace para compartir');
+        }
+
+        const pageShare = newShare[0] as unknown as PageShare;
         setShareId(pageShare.id);
         setLinkPermission('view');
         setIsLinkEnabled(true);
         setShareLink(`${window.location.origin}/share/${pageId}`);
         setUserShares([]);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error setting up share:', error);
       toast({
         title: "Error",
@@ -141,38 +144,52 @@ export function ShareModal({ open, onOpenChange, pageId }: ShareModalProps) {
   };
 
   const fetchUserShares = async (shareId: string) => {
-    const { data, error } = await supabase
-      .from('user_page_shares')
-      .select('*')
-      .eq('page_share_id', shareId);
+    try {
+      const { data, error } = await supabase
+        .from('user_page_shares')
+        .select('*')
+        .eq('page_share_id', shareId);
 
-    if (error) {
+      if (error) {
+        console.error('Error fetching user shares:', error);
+        return;
+      }
+
+      if (data) {
+        setUserShares(data.map(share => ({
+          id: share.id,
+          email: share.email,
+          permission: share.permission as SharePermission
+        })));
+      }
+    } catch (error) {
       console.error('Error fetching user shares:', error);
-      return;
-    }
-
-    if (data) {
-      setUserShares(data.map(share => ({
-        id: share.id,
-        email: share.email,
-        permission: share.permission as SharePermission
-      })));
     }
   };
 
   const copyToClipboard = () => {
     if (!shareLink) return;
     
-    navigator.clipboard.writeText(shareLink);
-    setCopied(true);
-    
-    toast({
-      description: "Enlace copiado al portapapeles",
-      duration: 1500,
-    });
-    
-    // Reset the copied state after a short delay
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard.writeText(shareLink)
+      .then(() => {
+        setCopied(true);
+        
+        toast({
+          description: "Enlace copiado al portapapeles",
+          duration: 1500,
+        });
+        
+        // Reset the copied state after a short delay
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(err => {
+        console.error('Error copying to clipboard:', err);
+        toast({
+          title: "Error",
+          description: "No se pudo copiar al portapapeles",
+          variant: "destructive",
+        });
+      });
   };
 
   const updateLinkPermission = async (permission: SharePermission) => {
@@ -183,10 +200,14 @@ export function ShareModal({ open, onOpenChange, pageId }: ShareModalProps) {
     try {
       const { error } = await supabase
         .from('page_shares')
-        .update({ permission, updated_at: new Date().toISOString() })
+        .update({ 
+          permission,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', shareId);
 
       if (error) {
+        console.error('Error updating link permission:', error);
         throw error;
       }
       
@@ -220,6 +241,7 @@ export function ShareModal({ open, onOpenChange, pageId }: ShareModalProps) {
         .eq('id', shareId);
 
       if (error) {
+        console.error('Error toggling link state:', error);
         throw error;
       }
       
@@ -255,23 +277,27 @@ export function ShareModal({ open, onOpenChange, pageId }: ShareModalProps) {
     try {
       const { data: userShare, error } = await supabase
         .from('user_page_shares')
-        .insert({
+        .insert([{
           page_share_id: shareId,
           email: data.email,
           permission: linkPermission, // Use the same permission as the current link setting
-        })
-        .select()
-        .single();
+        }])
+        .select();
 
       if (error) {
+        console.error('Error sharing by email:', error);
         throw error;
+      }
+      
+      if (!userShare || userShare.length === 0) {
+        throw new Error('No se pudo enviar la invitación');
       }
       
       // Add to local state
       setUserShares([...userShares, {
-        id: userShare.id,
+        id: userShare[0].id,
         email: data.email,
-        permission: userShare.permission
+        permission: userShare[0].permission
       }]);
       
       // Reset form
@@ -302,6 +328,7 @@ export function ShareModal({ open, onOpenChange, pageId }: ShareModalProps) {
         .eq('id', userId);
 
       if (error) {
+        console.error('Error updating user permission:', error);
         throw error;
       }
       
@@ -334,6 +361,7 @@ export function ShareModal({ open, onOpenChange, pageId }: ShareModalProps) {
         .eq('id', userId);
 
       if (error) {
+        console.error('Error removing user share:', error);
         throw error;
       }
       
