@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -60,7 +59,6 @@ const SortableColumnHeader = ({ header, index, onHeaderChange, onRemoveColumn, o
       <div className="flex items-center">
         <div className="w-full">
           <div className="relative group">
-            {/* Column context menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div 
@@ -147,7 +145,6 @@ const SortableRow = ({
       style={style}
       className="hover:bg-gray-50"
     >
-      {/* Row handle with context menu */}
       <TableCell className="w-10 p-0 relative border border-gray-200">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -186,7 +183,6 @@ const SortableRow = ({
         </DropdownMenu>
       </TableCell>
       
-      {/* Row cells */}
       {row.map((cell, colIndex) => (
         <TableCell 
           key={colIndex} 
@@ -203,14 +199,12 @@ const SortableRow = ({
         </TableCell>
       ))}
       
-      {/* Empty cell for the add column button */}
       <TableCell className="w-10 border border-gray-200"></TableCell>
     </TableRow>
   );
 };
 
 export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate }) => {
-  // Parse the table data from the JSON string or create a default empty table
   const parseTableData = (): TableData => {
     try {
       return JSON.parse(initialContent) as TableData;
@@ -224,7 +218,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
   
   const [tableData, setTableData] = useState<TableData>(parseTableData);
   
-  // Set up DnD sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -233,12 +226,10 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     })
   );
   
-  // Save table data when it changes
   useEffect(() => {
     onUpdate(JSON.stringify(tableData));
   }, [tableData, onUpdate]);
   
-  // Handle cell content editing
   const handleCellChange = (rowIndex: number, colIndex: number, value: string) => {
     const newRows = [...tableData.rows];
     newRows[rowIndex] = [...newRows[rowIndex]];
@@ -250,7 +241,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     });
   };
   
-  // Handle header content editing
   const handleHeaderChange = (colIndex: number, value: string) => {
     const newHeaders = [...tableData.headers];
     newHeaders[colIndex] = value;
@@ -261,7 +251,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     });
   };
   
-  // Add a new column
   const addColumn = () => {
     const newHeaders = [...tableData.headers, `Column ${tableData.headers.length + 1}`];
     const newRows = tableData.rows.map(row => [...row, ""]);
@@ -272,9 +261,8 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     });
   };
   
-  // Remove a column
   const removeColumn = (colIndex: number) => {
-    if (tableData.headers.length <= 1) return; // Prevent removing the last column
+    if (tableData.headers.length <= 1) return;
     
     const newHeaders = tableData.headers.filter((_, index) => index !== colIndex);
     const newRows = tableData.rows.map(row => 
@@ -287,7 +275,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     });
   };
   
-  // Insert a column before or after a specific column
   const insertColumn = (colIndex: number, position: 'before' | 'after') => {
     const insertIndex = position === 'before' ? colIndex : colIndex + 1;
     const newColumnName = `Column ${tableData.headers.length + 1}`;
@@ -307,7 +294,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     });
   };
   
-  // Duplicate a column
   const duplicateColumn = (colIndex: number) => {
     const columnHeader = tableData.headers[colIndex];
     const newColumnName = `${columnHeader} (copy)`;
@@ -327,7 +313,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     });
   };
   
-  // Clear a column's contents
   const clearColumn = (colIndex: number) => {
     const newRows = tableData.rows.map(row => {
       const newRow = [...row];
@@ -341,7 +326,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     });
   };
   
-  // Add a new row
   const addRow = () => {
     const newRow = Array(tableData.headers.length).fill("");
     
@@ -351,9 +335,8 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     });
   };
   
-  // Remove a row
   const removeRow = (rowIndex: number) => {
-    if (tableData.rows.length <= 1) return; // Prevent removing the last row
+    if (tableData.rows.length <= 1) return;
     
     const newRows = tableData.rows.filter((_, index) => index !== rowIndex);
     
@@ -363,7 +346,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     });
   };
   
-  // Insert a row before or after a specific row
   const insertRow = (rowIndex: number, position: 'before' | 'after') => {
     const insertIndex = position === 'before' ? rowIndex : rowIndex + 1;
     const newRow = Array(tableData.headers.length).fill("");
@@ -377,7 +359,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     });
   };
   
-  // Duplicate a row
   const duplicateRow = (rowIndex: number) => {
     const rowToDuplicate = tableData.rows[rowIndex];
     
@@ -390,7 +371,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     });
   };
   
-  // Clear a row's contents
   const clearRow = (rowIndex: number) => {
     const newRows = [...tableData.rows];
     newRows[rowIndex] = Array(tableData.headers.length).fill("");
@@ -401,7 +381,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     });
   };
   
-  // Handle column drag end
   const handleColumnDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
@@ -412,12 +391,10 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
       const activeIndex = parseInt(activeId.replace('col-', ''));
       const overIndex = parseInt(overId.replace('col-', ''));
       
-      // Move the column
       const newHeaders = [...tableData.headers];
       const [movedHeader] = newHeaders.splice(activeIndex, 1);
       newHeaders.splice(overIndex, 0, movedHeader);
       
-      // Move the column data in each row
       const newRows = tableData.rows.map(row => {
         const newRow = [...row];
         const [movedCell] = newRow.splice(activeIndex, 1);
@@ -432,7 +409,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
     }
   };
   
-  // Handle row drag end
   const handleRowDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
@@ -443,7 +419,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
       const activeIndex = parseInt(activeId.replace('row-', ''));
       const overIndex = parseInt(overId.replace('row-', ''));
       
-      // Move the row
       const newRows = [...tableData.rows];
       const [movedRow] = newRows.splice(activeIndex, 1);
       newRows.splice(overIndex, 0, movedRow);
@@ -457,9 +432,8 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
 
   return (
     <div className="relative overflow-x-auto my-2 group">
-      {/* Table options bar */}
       <div className="flex items-center justify-between mb-1 p-1 bg-gray-50 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-        <div className="text-sm font-medium text-gray-500">Options</div>
+        <div className="text-sm font-medium text-gray-500 sr-only">Options</div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="h-8 gap-1">
@@ -480,9 +454,7 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
         </DropdownMenu>
       </div>
 
-      {/* Main table */}
       <Table className="border-collapse border border-gray-200">
-        {/* Column headers with drag & drop */}
         <DndContext 
           sensors={sensors} 
           collisionDetection={closestCenter} 
@@ -490,10 +462,8 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
         >
           <TableHeader>
             <TableRow>
-              {/* Empty header for row handles column */}
               <TableHead className="w-10 p-0 bg-gray-50"></TableHead>
               
-              {/* Sortable Headers */}
               <SortableContext 
                 items={tableData.headers.map((_, i) => `col-${i}`)} 
                 strategy={horizontalListSortingStrategy}
@@ -512,7 +482,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
                 ))}
               </SortableContext>
               
-              {/* Add column button */}
               <TableHead className="w-10 p-0 bg-gray-50">
                 <Button 
                   variant="ghost" 
@@ -527,7 +496,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
           </TableHeader>
         </DndContext>
         
-        {/* Table rows with drag & drop */}
         <DndContext 
           sensors={sensors} 
           collisionDetection={closestCenter} 
@@ -553,7 +521,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ initialContent, onUpdate
               ))}
             </SortableContext>
             
-            {/* Add row button */}
             <TableRow>
               <TableCell 
                 colSpan={tableData.headers.length + 2} 
