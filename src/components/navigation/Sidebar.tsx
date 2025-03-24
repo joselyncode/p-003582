@@ -15,7 +15,12 @@ import {
   PopoverTrigger, 
 } from "@/components/ui/popover";
 
-export function Sidebar({ userAvatar }) {
+interface SidebarProps {
+  userName?: string;
+  userAvatar?: string;
+}
+
+export function Sidebar({ userName, userAvatar }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [newPageOpen, setNewPageOpen] = useState(false);
@@ -24,7 +29,7 @@ export function Sidebar({ userAvatar }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const { settings } = useSettings();
   const { toast } = useToast();
-  const { favorites, workspace, personal, loading, createPage, deletePage } = usePages();
+  const { favorites, workspace, personal, createPage, deletePage } = usePages();
 
   // Lista de secciones y páginas
   const defaultFavorites = [
@@ -218,7 +223,7 @@ export function Sidebar({ userAvatar }) {
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">
-              {settings.userName}
+              {userName || settings.userName}
             </p>
             <p className="text-xs text-gray-500 truncate">
               Mi cuenta
