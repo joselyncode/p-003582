@@ -108,14 +108,14 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
     );
   };
 
-  // Verificamos las páginas duplicadas y removemos duplicados del mismo nombre
-  const uniqueFavorites = [...new Map(favorites.map(item => [item.name, item])).values()];
-  const uniqueWorkspace = [...new Map(workspace.map(item => [item.name, item])).values()];
-  const uniquePersonal = [...new Map(personal.map(item => [item.name, item])).values()];
-
-  const filteredFavorites = filterItems([...defaultFavorites, ...uniqueFavorites]);
-  const filteredWorkspace = filterItems(uniqueWorkspace);
-  const filteredPersonal = filterItems(uniquePersonal);
+  // Eliminar páginas duplicadas - Asegúrate de que no hay elementos repetidos
+  const uniqueFavorites = favorites.filter(fav => 
+    !defaultFavorites.some(def => def.path === fav.path)
+  );
+  
+  const filteredFavorites = filterItems(defaultFavorites.concat(uniqueFavorites));
+  const filteredWorkspace = filterItems(workspace);
+  const filteredPersonal = filterItems(personal);
 
   // Determinar si una sección debe mostrarse (si hay elementos filtrados)
   const showFavorites = filteredFavorites.length > 0;
@@ -126,7 +126,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
   const getWorkspaceIcon = (name) => {
     const lowerName = name.toLowerCase();
     if (lowerName.includes('calendar') || lowerName.includes('calendario')) return Calendar;
-    if (lowerName.includes('database') || lowerName.includes('database') || lowerName.includes('datos')) return Database;
+    if (lowerName.includes('database') || lowerName.includes('base de datos')) return Database;
     if (lowerName.includes('document') || lowerName.includes('documento')) return FileText;
     return FileText;
   };
@@ -192,7 +192,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
       {/* Botón para colapsar/expandir el sidebar - hacemos que sea más visible */}
       <button
         onClick={toggleSidebar}
-        className="absolute right-0 top-16 transform translate-x-1/2 bg-white p-1.5 rounded-full shadow-md text-gray-500 hover:text-gray-800 z-10 border border-gray-200"
+        className="absolute right-0 top-16 transform translate-x-1/2 bg-white p-1.5 rounded-full shadow-md text-gray-500 hover:text-gray-800 z-10 border border-gray-200 flex items-center justify-center"
         aria-label={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
       >
         {sidebarCollapsed ? (
@@ -232,7 +232,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
         {/* Versión colapsada - solo iconos */}
         {sidebarCollapsed && showFavorites && (
           <div className="flex flex-col items-center space-y-4 mb-6">
-            {filteredFavorites.map((item, index) => (
+            {filteredFavorites.slice(0, 3).map((item, index) => (
               <Link
                 key={index}
                 to={item.path}
