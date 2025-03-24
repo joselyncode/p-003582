@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -196,7 +195,7 @@ const SortableRow = ({
     <TableRow 
       ref={setNodeRef}
       style={style}
-      className={`hover:bg-gray-50 ${rowColor}`}
+      className={`${rowColor} hover:bg-opacity-80`}
     >
       <TableCell className="w-10 p-0 relative border border-gray-200">
         <DropdownMenu>

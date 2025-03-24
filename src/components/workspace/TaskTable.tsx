@@ -42,7 +42,7 @@ export function TaskTable({ tasks }: TaskTableProps) {
       {tasks.map((task, index) => (
         <div
           key={index}
-          className="border-t border-gray-200 grid grid-cols-[2fr_1fr_1fr] items-center max-sm:grid-cols-1 max-sm:gap-2 max-sm:py-3"
+          className="border-t border-gray-200 grid grid-cols-[2fr_1fr_1fr] items-center max-sm:grid-cols-1 max-sm:gap-2 max-sm:py-3 hover:bg-opacity-50"
         >
           <div className="text-sm text-gray-700 px-4 py-[9.5px] max-sm:font-medium">
             {task.name}
