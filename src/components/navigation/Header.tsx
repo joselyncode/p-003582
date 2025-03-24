@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   ChevronLeft,
@@ -25,9 +24,17 @@ interface HeaderProps {
   currentPath: string[];
   onMenuClick?: () => void;
   pageId?: string;
+  onCommentsClick?: () => void;
+  commentsOpen?: boolean;
 }
 
-export function Header({ currentPath, onMenuClick, pageId = "default-page" }: HeaderProps) {
+export function Header({ 
+  currentPath, 
+  onMenuClick, 
+  pageId = "default-page",
+  onCommentsClick,
+  commentsOpen = false
+}: HeaderProps) {
   const navigate = useNavigate();
   const [showShareModal, setShowShareModal] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -35,7 +42,6 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
   const { toggleFavorite, getPageContent } = usePages();
   const { toast } = useToast();
 
-  // Verificar si la página actual está marcada como favorita
   useEffect(() => {
     const checkFavoriteStatus = async () => {
       if (!pageId || pageId === 'default-page') return;
@@ -54,7 +60,6 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
   }, [pageId, getPageContent]);
 
   const handleGoBack = () => {
-    // Navegar hacia atrás en el historial
     navigate(-1);
   };
 
@@ -62,7 +67,6 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
     if (pageId && pageId !== 'default-page') {
       setIsLoading(true);
       try {
-        // Call toggleFavorite but stay on the current page, don't navigate away
         await toggleFavorite(pageId, !isFavorite, false);
         setIsFavorite(!isFavorite);
         
@@ -85,16 +89,12 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
   };
 
   const handleShowComments = () => {
-    // This would ideally be handled by a state manager or a parent component
-    const commentPanelToggle = document.querySelector('[data-comments-toggle]');
-    if (commentPanelToggle && commentPanelToggle instanceof HTMLElement) {
-      commentPanelToggle.click();
+    if (onCommentsClick) {
+      onCommentsClick();
     }
   };
 
-  // Función para determinar la ruta basada en el elemento del breadcrumb
   const getBreadcrumbPath = (item: string, index: number): string => {
-    // Primer elemento suele ser el workspace, enviar a la raíz
     if (index === 0) {
       if (item.toLowerCase().includes("workspace")) {
         return "/workspace";
@@ -107,7 +107,6 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
       }
     }
     
-    // Para elementos intermedios, identificar la sección
     if (item.toLowerCase() === "workspace") {
       return "/workspace";
     } else if (item.toLowerCase() === "notas" || item.toLowerCase() === "notes") {
@@ -119,19 +118,16 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
     } else if (item.toLowerCase() === "tareas" || item.toLowerCase() === "todos") {
       return "/todos";
     } else {
-      // Si no coincide con ninguna sección conocida, no navegar
       return "#";
     }
   };
 
-  // Eliminar duplicados en la ruta de navegación
   const uniquePath = currentPath.filter((item, index, self) => 
     self.findIndex(i => i.toLowerCase() === item.toLowerCase()) === index
   );
 
   return (
     <header className="flex items-center border-b border-gray-200 h-12 px-4">
-      {/* Mobile menu button */}
       <button 
         className="md:hidden mr-2 hover:bg-gray-100 p-1 rounded"
         onClick={onMenuClick}
@@ -172,9 +168,11 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
           variant="ghost" 
           size="icon" 
           onClick={handleShowComments}
-          className="h-8 w-8"
+          className={`h-8 w-8 ${commentsOpen ? 'bg-gray-100' : ''}`}
+          aria-label="Mostrar comentarios"
+          data-comments-toggle
         >
-          <MessageSquare className="h-4 w-4 text-gray-500" />
+          <MessageSquare className={`h-4 w-4 ${commentsOpen ? 'text-blue-500' : 'text-gray-500'}`} />
         </Button>
         
         <Button 
@@ -183,6 +181,7 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
           onClick={handleFavoriteToggle}
           className="h-8 w-8"
           disabled={isLoading || pageId === 'default-page'}
+          aria-label={isFavorite ? "Quitar de favoritos" : "Añadir a favoritos"}
         >
           {isFavorite ? (
             <Star className="h-4 w-4 text-yellow-400 fill-current" />
@@ -196,6 +195,7 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
           size="icon" 
           onClick={() => setShowShareModal(true)}
           className="h-8 w-8"
+          aria-label="Compartir página"
         >
           <Share className="h-4 w-4 text-gray-500" />
         </Button>
@@ -204,12 +204,12 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
           variant="ghost" 
           size="icon"
           className="h-8 w-8"
+          aria-label="Más opciones"
         >
           <MoreHorizontal className="h-4 w-4 text-gray-500" />
         </Button>
       </div>
 
-      {/* Share Modal */}
       <ShareModal 
         open={showShareModal} 
         onOpenChange={setShowShareModal}

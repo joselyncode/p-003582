@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
@@ -30,9 +29,7 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     const currentPath = `/${section}/${pageId}`;
     let foundPage = allPages.find(page => page.path === currentPath);
 
-    // If page not found, it might be a favorite page that originally was in another section
     if (!foundPage && section === "favorite") {
-      // Try to find it with the slug from a different section
       foundPage = allPages.find(page => 
         page.section === "favorite" && 
         (page.path.endsWith(`/${pageId}`) || page.path === currentPath)
@@ -102,11 +99,9 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     }
   };
   
-  // Genera un array de breadcrumb con rutas reales - eliminando duplicados
   const getBreadcrumbPaths = (): string[] => {
     const sectionName = getSectionName();
     
-    // Simplificamos la estructura para evitar duplicados
     if (section === "workspace") {
       return ["Mi Workspace", pageTitle];
     } else if (section === "notes") {

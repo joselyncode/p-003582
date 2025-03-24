@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Sidebar } from "../navigation/Sidebar";
 import { Header } from "../navigation/Header";
 import { MobileDrawer } from "../layout/MobileDrawer";
+import { CommentsPanel } from "../editor/CommentsPanel";
 
 interface WorkspaceLayoutProps {
   children: React.ReactNode;
@@ -17,12 +18,17 @@ export function WorkspaceLayout({
   userName,
   userAvatar,
   currentPath,
-  pageId,
+  pageId = "default-page",
 }: WorkspaceLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  const toggleComments = () => {
+    setCommentsOpen(!commentsOpen);
   };
 
   return (
@@ -46,12 +52,22 @@ export function WorkspaceLayout({
             currentPath={currentPath} 
             onMenuClick={toggleSidebar}
             pageId={pageId}
+            onCommentsClick={toggleComments}
+            commentsOpen={commentsOpen}
           />
           <main className="flex-1 overflow-auto">
             {children}
           </main>
         </div>
       </div>
+
+      {/* Comments panel - conditionally rendered */}
+      {commentsOpen && pageId !== "default-page" && (
+        <CommentsPanel 
+          pageId={pageId} 
+          onClose={() => setCommentsOpen(false)} 
+        />
+      )}
     </div>
   );
 }
