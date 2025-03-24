@@ -29,6 +29,13 @@ interface SidebarProps {
   userAvatar?: string;
 }
 
+// Type for default menu items with Lucide icon components
+interface DefaultMenuItem {
+  name: string;
+  icon: React.FC<any>; // For Lucide icons
+  path: string;
+}
+
 export function Sidebar({ userName, userAvatar }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -42,7 +49,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
   const { favorites, workspace, personal, createPage, deletePage } = usePages();
 
   // Lista de secciones y páginas fijas con iconos mejorados
-  const defaultFavorites = [
+  const defaultFavorites: DefaultMenuItem[] = [
     { name: "Inicio", icon: Home, path: "/" },
     { name: "Documentación", icon: FileText, path: "/docs" },
     { name: "Configuración", icon: Settings, path: "/settings" },
@@ -113,12 +120,14 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
     !defaultFavorites.some(def => def.path === fav.path)
   );
   
-  const filteredFavorites = filterItems(defaultFavorites.concat(uniqueFavorites));
+  // Filtrar favortios pero manteniendo los tipos separados
+  const filteredDefaultFavorites = filterItems(defaultFavorites);
+  const filteredCustomFavorites = filterItems(uniqueFavorites);
   const filteredWorkspace = filterItems(workspace);
   const filteredPersonal = filterItems(personal);
 
   // Determinar si una sección debe mostrarse (si hay elementos filtrados)
-  const showFavorites = filteredFavorites.length > 0;
+  const showFavorites = filteredDefaultFavorites.length > 0 || filteredCustomFavorites.length > 0;
   const showWorkspace = filteredWorkspace.length > 0;
   const showPersonal = filteredPersonal.length > 0;
 
@@ -222,8 +231,11 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
               Favoritos
             </h2>
             <ul>
-              {filteredFavorites.map((item, index) => 
+              {filteredDefaultFavorites.map((item, index) => 
                 renderFavoriteItem(item, index)
+              )}
+              {filteredCustomFavorites.map((item, index) => 
+                renderPageItem(item, index + filteredDefaultFavorites.length)
               )}
             </ul>
           </div>
@@ -232,7 +244,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
         {/* Versión colapsada - solo iconos */}
         {sidebarCollapsed && showFavorites && (
           <div className="flex flex-col items-center space-y-4 mb-6">
-            {filteredFavorites.slice(0, 3).map((item, index) => (
+            {filteredDefaultFavorites.slice(0, 3).map((item, index) => (
               <Link
                 key={index}
                 to={item.path}
