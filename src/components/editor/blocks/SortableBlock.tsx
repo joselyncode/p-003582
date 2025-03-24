@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -70,7 +69,8 @@ export function SortableBlock({
   onTypeChange,
   onAddBlock,
   onDeleteBlock,
-  onDuplicate
+  onDuplicate,
+  index
 }: SortableBlockProps) {
   const {
     attributes,
@@ -86,10 +86,8 @@ export function SortableBlock({
   const [isNewBlock, setIsNewBlock] = useState(!block.content);
   const [isChecked, setIsChecked] = useState(false);
 
-  // Parse todo item completion status from content if present
   useEffect(() => {
     if (block.type === "todo" && block.content) {
-      // Check if the content has a completion marker at the beginning
       if (block.content.startsWith("[x]")) {
         setIsChecked(true);
       } else {
@@ -98,7 +96,6 @@ export function SortableBlock({
     }
   }, [block.content, block.type]);
 
-  // Set focus to the content editable div when the component mounts if it's a new block
   useEffect(() => {
     if (isNewBlock && contentEditableRef.current && isActive) {
       contentEditableRef.current.focus();
@@ -106,7 +103,6 @@ export function SortableBlock({
     }
   }, [isNewBlock, isActive]);
 
-  // Focus the editable content when the block becomes active
   useEffect(() => {
     if (isActive && contentEditableRef.current) {
       contentEditableRef.current.focus();
@@ -122,7 +118,6 @@ export function SortableBlock({
     if (onDuplicate) {
       onDuplicate(block.id);
     } else {
-      // Fallback mechanism
       onAddBlock(block.type, block.id);
     }
   };
@@ -132,7 +127,6 @@ export function SortableBlock({
   };
 
   const handleInsertAbove = () => {
-    // Find previous block and add a new block there
     onAddBlock(block.type, block.id);
   };
 
@@ -144,7 +138,6 @@ export function SortableBlock({
     setBgColor(colorClass);
   };
 
-  // Determine if the block is a list or table type
   const isTableBlock = block.type === "table";
   const isListType = block.type === "bullet" || block.type === "numbered" || block.type === "todo";
 
@@ -152,29 +145,22 @@ export function SortableBlock({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       
-      // If content is empty and user presses Enter, change to a text block
       if (!contentEditableRef.current?.textContent?.trim()) {
         onTypeChange(block.id, "text");
         return;
       }
       
-      // Create a new block of the same type
       const newBlockId = onAddBlock(block.type, block.id);
-      
-      // Set focus to the new block (handled by the PageEditor component)
     }
   };
 
   const handleTodoCheckChange = (checked: boolean) => {
     setIsChecked(checked);
     
-    // When a todo item is checked/unchecked, update the content to include the status
     if (contentEditableRef.current) {
       const currentText = contentEditableRef.current.textContent || '';
-      // Remove any existing completion markers
       const cleanText = currentText.replace(/^\[x\]|\[ \]/, '').trim();
       
-      // Update with the new content including completion status
       onUpdate(block.id, checked ? `[x]${cleanText}` : `${cleanText}`);
     }
   };
@@ -187,7 +173,6 @@ export function SortableBlock({
       className={`group relative py-1 px-1 rounded hover:bg-gray-50 ${bgColor}`}
       data-block-id={block.id}
     >
-      {/* Block handle and menu trigger */}
       <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-6 opacity-0 group-hover:opacity-100 transition-opacity">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -259,7 +244,6 @@ export function SortableBlock({
             className={`cursor-text ${isActive ? 'bg-gray-50' : ''}`}
             onClick={() => onSetActive(block.id)}
           >
-            {/* Block content renderer */}
             <div className="px-3 py-2">
               {block.type === "heading1" && (
                 <h1 
@@ -324,7 +308,6 @@ export function SortableBlock({
                     onKeyDown={handleKeyDown}
                     className={isChecked ? "text-decoration-line-through text-gray-500" : ""}
                   >
-                    {/* Display the content without the completion marker */}
                     {block.content ? block.content.replace(/^\[x\]/, '').trim() : ''}
                   </div>
                 </div>
@@ -423,7 +406,6 @@ export function SortableBlock({
         </ContextMenuContent>
       </ContextMenu>
 
-      {/* Hover menu */}
       {showBlockMenu && (
         <div className="absolute right-2 top-2 z-10">
           <Popover>
