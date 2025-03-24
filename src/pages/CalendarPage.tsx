@@ -25,8 +25,8 @@ const CalendarPage = () => {
   // Combinar todas las páginas en un solo array y añadir fechas simuladas de creación/edición
   const allPages = [...workspacePages, ...notesPages, ...personal].map(page => ({
     ...page,
-    lastEdited: page.lastEdited || Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000,
-    created: page.created || Date.now() - Math.floor(Math.random() * 60) * 24 * 60 * 60 * 1000
+    lastEditedDate: Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000,
+    createdDate: Date.now() - Math.floor(Math.random() * 60) * 24 * 60 * 60 * 1000
   }));
 
   // Función para obtener páginas por fecha
@@ -40,7 +40,7 @@ const CalendarPage = () => {
     dateEnd.setHours(23, 59, 59, 999);
     
     return allPages.filter(page => {
-      const editDate = new Date(page.lastEdited);
+      const editDate = new Date(page.lastEditedDate);
       return editDate >= dateStart && editDate <= dateEnd;
     });
   };
@@ -58,7 +58,7 @@ const CalendarPage = () => {
   };
 
   // Fechas con actividad (para resaltar en el calendario)
-  const datesWithActivity = allPages.map(page => new Date(page.lastEdited));
+  const datesWithActivity = allPages.map(page => new Date(page.lastEditedDate));
 
   return (
     <WorkspaceLayout
@@ -123,7 +123,7 @@ const CalendarPage = () => {
                             {page.name}
                           </Link>
                           <p className="text-sm text-gray-500">
-                            Editado: {format(new Date(page.lastEdited), "HH:mm")}
+                            Editado: {format(new Date(page.lastEditedDate), "HH:mm")}
                           </p>
                         </div>
                       </li>

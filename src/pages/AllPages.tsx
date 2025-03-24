@@ -22,7 +22,8 @@ const AllPages = () => {
   // Combinar todas las páginas en un solo array
   const allPages = [...workspacePages, ...notesPages, ...personal].map(page => ({
     ...page,
-    lastEdited: page.lastEdited || Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000
+    // Agregar propiedad lastEdited para cada página si no existe
+    lastEditedDate: Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000
   }));
 
   // Filtrar páginas según la búsqueda
@@ -82,7 +83,7 @@ const AllPages = () => {
                             : "Otro"}
                     </TableCell>
                     <TableCell>
-                      {format(new Date(page.lastEdited), "dd/MM/yyyy HH:mm")}
+                      {format(new Date(page.lastEditedDate), "dd/MM/yyyy HH:mm")}
                     </TableCell>
                   </TableRow>
                 ))
