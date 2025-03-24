@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { SortableBlock } from './blocks/SortableBlock';
 import { v4 as uuidv4 } from 'uuid';
@@ -11,10 +12,9 @@ import { ShareModal } from './ShareModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CommentsPanel } from './CommentsPanel';
-import { ChevronRight, MessageSquare, Edit } from 'lucide-react';
+import { Edit } from 'lucide-react';
 import { Block } from '@/context/PagesContext';
 import { Input } from '@/components/ui/input';
-import { FavoriteButton } from './FavoriteButton';
 
 interface PageEditorProps {
   workspaceName: string;
@@ -270,16 +270,6 @@ export function PageEditor({
   return (
     <div className="editor-container">
       <div className="mb-6">
-        <div className="flex items-center text-sm text-muted-foreground mb-1">
-          <span>{workspaceName}</span>
-          {pagePath.map((item, i) => (
-            <React.Fragment key={i}>
-              <ChevronRight className="h-4 w-4 mx-1" />
-              <span>{item}</span>
-            </React.Fragment>
-          ))}
-        </div>
-        
         <div className="flex items-center justify-between">
           <div className="flex-1">
             {isEditingTitle && allowTitleEdit ? (
@@ -316,21 +306,6 @@ export function PageEditor({
               <span>{formatLastSaved()}</span>
               <Badge variant="outline" className="text-xs">Draft</Badge>
             </div>
-          </div>
-          
-          <div className="flex gap-2 items-center">
-            {pageId && <FavoriteButton pageId={pageId} />}
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowComments(!showComments)}
-              className="md:flex hidden"
-              data-comments-toggle
-            >
-              <MessageSquare className="h-4 w-4 mr-1" />
-              Comments
-            </Button>
           </div>
         </div>
       </div>

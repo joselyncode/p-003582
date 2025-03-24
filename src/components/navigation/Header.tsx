@@ -1,10 +1,9 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   ChevronLeft,
   MoreHorizontal,
   Star,
-  StarOff,
   Share,
   MessageSquare,
   Menu
@@ -18,9 +17,9 @@ import {
 } from "@/components/ui/breadcrumb";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useLocalStorage } from "@/hooks/use-local-storage";
 import { ShareModal } from "@/components/editor/ShareModal";
 import { usePages } from "@/context/PagesContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface HeaderProps {
   currentPath: string[];
@@ -31,9 +30,28 @@ interface HeaderProps {
 export function Header({ currentPath, onMenuClick, pageId = "default-page" }: HeaderProps) {
   const navigate = useNavigate();
   const [showShareModal, setShowShareModal] = useState(false);
-  const [favorites, setFavorites] = useLocalStorage<string[]>("notion-favorites", []);
-  const isFavorite = pageId ? favorites.includes(pageId) : false;
-  const { toggleFavorite } = usePages();
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toggleFavorite, getPageContent } = usePages();
+  const { toast } = useToast();
+
+  // Verificar si la página actual está marcada como favorita
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (!pageId || pageId === 'default-page') return;
+      
+      try {
+        const content = await getPageContent(pageId);
+        if (content) {
+          setIsFavorite(content.is_favorite);
+        }
+      } catch (error) {
+        console.error('Error checking favorite status:', error);
+      }
+    };
+
+    checkFavoriteStatus();
+  }, [pageId, getPageContent]);
 
   const handleGoBack = () => {
     // Navegar hacia atrás en el historial
@@ -42,23 +60,31 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
 
   const handleFavoriteToggle = async () => {
     if (pageId && pageId !== 'default-page') {
+      setIsLoading(true);
       try {
         await toggleFavorite(pageId, !isFavorite);
-        // Actualizar el estado local después de la operación exitosa
-        if (isFavorite) {
-          setFavorites(favorites.filter(id => id !== pageId));
-        } else {
-          setFavorites([...favorites, pageId]);
-        }
+        setIsFavorite(!isFavorite);
+        
+        toast({
+          description: isFavorite 
+            ? "Página eliminada de favoritos" 
+            : "Página añadida a favoritos",
+        });
       } catch (error) {
         console.error("Error al cambiar estado de favorito:", error);
+        toast({
+          title: "Error",
+          description: "No se pudo actualizar el estado de favorito",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
     }
   };
 
   const handleShowComments = () => {
     // This would ideally be handled by a state manager or a parent component
-    // For now, we'll just use a direct DOM access as a placeholder
     const commentPanelToggle = document.querySelector('[data-comments-toggle]');
     if (commentPanelToggle && commentPanelToggle instanceof HTMLElement) {
       commentPanelToggle.click();
@@ -155,9 +181,10 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
           size="icon" 
           onClick={handleFavoriteToggle}
           className="h-8 w-8"
+          disabled={isLoading || pageId === 'default-page'}
         >
           {isFavorite ? (
-            <Star className="h-4 w-4 text-yellow-400" />
+            <Star className="h-4 w-4 text-yellow-400 fill-current" />
           ) : (
             <Star className="h-4 w-4 text-gray-500" />
           )}

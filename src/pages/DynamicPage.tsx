@@ -111,19 +111,6 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     }
   };
   
-  const getWorkspaceName = () => {
-    switch (section) {
-      case "notes":
-      case "personal":
-      case "favorite":
-        return "Mi Workspace";
-      case "workspace":
-        return "Workspace";
-      default:
-        return "Mi Workspace";
-    }
-  };
-  
   const handleTitleChange = async (newTitle: string) => {
     if (newTitle && newTitle !== pageTitle && currentPage?.id) {
       setPageTitle(newTitle);
@@ -146,8 +133,8 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
       <div className="max-w-4xl w-full mx-auto px-4 sm:px-6 py-4">
         {blocks ? (
           <PageEditor
-            workspaceName={getWorkspaceName()}
-            pagePath={getBreadcrumbPaths()}
+            workspaceName=""
+            pagePath={[]}
             blocks={blocks}
             onBlocksChange={handleBlocksChange}
             lastSaved={lastSaved}
@@ -164,6 +151,6 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
       </div>
     </WorkspaceLayout>
   );
-};
+}
 
 export default DynamicPage;
