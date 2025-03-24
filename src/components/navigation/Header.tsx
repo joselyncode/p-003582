@@ -62,7 +62,8 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
     if (pageId && pageId !== 'default-page') {
       setIsLoading(true);
       try {
-        await toggleFavorite(pageId, !isFavorite);
+        // Call toggleFavorite but stay on the current page, don't navigate away
+        await toggleFavorite(pageId, !isFavorite, false);
         setIsFavorite(!isFavorite);
         
         toast({

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
@@ -27,12 +28,21 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     const allPages = [...workspace, ...personal, ...favorites];
     
     const currentPath = `/${section}/${pageId}`;
-    const foundPage = allPages.find(page => page.path === currentPath);
+    let foundPage = allPages.find(page => page.path === currentPath);
+
+    // If page not found, it might be a favorite page that originally was in another section
+    if (!foundPage && section === "favorite") {
+      // Try to find it with the slug from a different section
+      foundPage = allPages.find(page => 
+        page.section === "favorite" && 
+        (page.path.endsWith(`/${pageId}`) || page.path === currentPath)
+      );
+    }
     
     if (!foundPage) {
       toast({
         title: "Error",
-        description: `No se encontró la página en la ruta ${currentPath}`,
+        description: `No se encontró la página con el ID ${pageId}`,
         variant: "destructive",
       });
       navigate('/');

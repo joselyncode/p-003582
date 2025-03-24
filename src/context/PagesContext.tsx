@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Database } from "@/integrations/supabase/types";
 
-// Define types for our pages
 export type PageSection = "favorite" | "workspace" | "notes" | "personal";
 export type Page = {
   id?: string;
@@ -14,7 +13,6 @@ export type Page = {
   section: PageSection;
 };
 
-// Define type for page content
 export type Block = {
   id: string;
   type: "text" | "heading1" | "heading2" | "heading3" | "bullet" | "numbered" | "todo" | "table";
@@ -40,10 +38,10 @@ type PagesContextType = {
   deletePage: (pageId: string) => Promise<boolean>;
   getPageContent: (pageId: string) => Promise<PageContent | null>;
   updatePageContent: (content: PageContent) => Promise<void>;
-  toggleFavorite: (pageId: string, isFavorite: boolean) => Promise<void>;
+  toggleFavorite: (pageId: string, isFavorite: boolean, shouldNavigate: boolean) => Promise<void>;
   getPageIdByPath: (path: string) => string | undefined;
   updatePageTitle: (pageId: string, newTitle: string) => Promise<boolean>;
-  movePageToSection: (pageId: string, newSection: PageSection) => Promise<boolean>;
+  movePageToSection: (pageId: string, newSection: PageSection, shouldNavigate: boolean) => Promise<boolean>;
 };
 
 const PagesContext = createContext<PagesContextType>({
@@ -341,7 +339,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const toggleFavorite = async (pageId: string, isFavorite: boolean): Promise<void> => {
+  const toggleFavorite = async (pageId: string, isFavorite: boolean, shouldNavigate: boolean = true): Promise<void> => {
     try {
       const { error } = await supabase
         .from('page_content')
@@ -362,7 +360,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         const targetSection = isFavorite ? 'favorite' : originalSection;
         
         if (page.section !== targetSection) {
-          await movePageToSection(pageId, targetSection);
+          await movePageToSection(pageId, targetSection, shouldNavigate);
         }
       }
 
@@ -419,7 +417,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const movePageToSection = async (pageId: string, newSection: PageSection): Promise<boolean> => {
+  const movePageToSection = async (pageId: string, newSection: PageSection, shouldNavigate: boolean = true): Promise<boolean> => {
     try {
       const allPages = [...workspace, ...personal, ...favorites];
       const existingPage = allPages.find(page => page.id === pageId);
@@ -475,6 +473,10 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
           newMap.set(newPath, pageId);
           return newMap;
         });
+        
+        if (shouldNavigate) {
+          window.location.href = newPath;
+        }
         
         return true;
       }
