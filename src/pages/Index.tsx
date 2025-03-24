@@ -2,15 +2,16 @@
 import React from "react";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
 import { PageEditor } from "@/components/editor/PageEditor";
+import { useSettings } from "@/hooks/use-settings";
 
 const Index = () => {
-  const userName = "Joselyn Monge";
+  const { settings } = useSettings();
   const userAvatar = "/images/female-avatar.svg";
   const currentPath = ["Mi Workspace", "Documentación", "Página de notas"];
 
   return (
     <WorkspaceLayout
-      userName={userName}
+      userName={settings.userName}
       userAvatar={userAvatar}
       currentPath={currentPath}
     >

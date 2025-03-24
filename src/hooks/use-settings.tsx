@@ -16,10 +16,11 @@ export function useSettings() {
   });
 
   const updateSettings = (newSettings: Partial<UserSettings>) => {
-    setSettings({
-      ...settings,
+    // Ensure we're updating with the latest state
+    setSettings(prevSettings => ({
+      ...prevSettings,
       ...newSettings
-    });
+    }));
   };
 
   return {
