@@ -35,6 +35,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export interface SortableBlockProps {
   id: string;
@@ -83,6 +84,19 @@ export function SortableBlock({
   const [bgColor, setBgColor] = useState("bg-transparent");
   const contentEditableRef = useRef<HTMLDivElement>(null);
   const [isNewBlock, setIsNewBlock] = useState(!block.content);
+  const [isChecked, setIsChecked] = useState(false);
+
+  // Parse todo item completion status from content if present
+  useEffect(() => {
+    if (block.type === "todo" && block.content) {
+      // Check if the content has a completion marker at the beginning
+      if (block.content.startsWith("[x]")) {
+        setIsChecked(true);
+      } else {
+        setIsChecked(false);
+      }
+    }
+  }, [block.content, block.type]);
 
   // Set focus to the content editable div when the component mounts if it's a new block
   useEffect(() => {
@@ -148,6 +162,20 @@ export function SortableBlock({
       const newBlockId = onAddBlock(block.type, block.id);
       
       // Set focus to the new block (handled by the PageEditor component)
+    }
+  };
+
+  const handleTodoCheckChange = (checked: boolean) => {
+    setIsChecked(checked);
+    
+    // When a todo item is checked/unchecked, update the content to include the status
+    if (contentEditableRef.current) {
+      const currentText = contentEditableRef.current.textContent || '';
+      // Remove any existing completion markers
+      const cleanText = currentText.replace(/^\[x\]|\[ \]/, '').trim();
+      
+      // Update with the new content including completion status
+      onUpdate(block.id, checked ? `[x]${cleanText}` : `${cleanText}`);
     }
   };
 
@@ -279,15 +307,25 @@ export function SortableBlock({
               )}
               {block.type === "todo" && (
                 <div className="flex items-start gap-2">
-                  <input type="checkbox" className="mt-1" />
+                  <Checkbox 
+                    id={`todo-${block.id}`}
+                    className="mt-1"
+                    checked={isChecked}
+                    onCheckedChange={handleTodoCheckChange}
+                  />
                   <div 
                     contentEditable={true} 
                     suppressContentEditableWarning={true}
                     ref={contentEditableRef}
-                    onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}
+                    onBlur={(e) => {
+                      const cleanText = e.currentTarget.textContent || '';
+                      onUpdate(block.id, isChecked ? `[x]${cleanText}` : cleanText);
+                    }}
                     onKeyDown={handleKeyDown}
+                    className={isChecked ? "text-decoration-line-through text-gray-500" : ""}
                   >
-                    {block.content}
+                    {/* Display the content without the completion marker */}
+                    {block.content ? block.content.replace(/^\[x\]/, '').trim() : ''}
                   </div>
                 </div>
               )}
@@ -307,7 +345,7 @@ export function SortableBlock({
               )}
               {block.type === "numbered" && (
                 <div className="flex items-start gap-2">
-                  <span className="mt-1">1.</span>
+                  <span className="mt-1">{index + 1}.</span>
                   <div 
                     contentEditable={true} 
                     suppressContentEditableWarning={true}
