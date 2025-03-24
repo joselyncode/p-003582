@@ -1,103 +1,78 @@
 
-import React from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  FileText, 
-  Calendar, 
-  Settings, 
-  User, 
-  Plus, 
-  Folder, 
-  Inbox, 
-  FolderPlus,
-  FilePlus,
-  CalendarClock,
-  PlusSquare, 
-  Home,
-  PanelLeft,
-  Trash2,
-  MoreVertical
-} from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
-} from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { usePages } from "@/context/PagesContext";
-import { useState } from "react";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { SearchBar } from "../ui/SearchBar";
+import { SettingsModal } from "../layout/SettingsModal";
 import { NewPageModal } from "../layout/NewPageModal";
 import { DeletePageDialog } from "../layout/DeletePageDialog";
-import { useToast } from "@/components/ui/use-toast";
+import { Home, FileText, Star, Users, Settings, Plus, Trash2, MoreVertical } from "lucide-react";
+import { useSettings } from "@/hooks/use-settings";
+import { useToast } from "@/hooks/use-toast";
+import { usePages } from "@/context/PagesContext";
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger, 
+} from "@/components/ui/popover";
 
-interface SidebarProps {
-  userName: string;
-  userAvatar?: string;
-}
-
-export function Sidebar({ userName, userAvatar }: SidebarProps) {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const { workspace, personal, favorites, loading, createPage, deletePage } = usePages();
-  const [showNewPageModal, setShowNewPageModal] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+export function Sidebar({ userAvatar }) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [newPageOpen, setNewPageOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [pageToDelete, setPageToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [selectedSection, setSelectedSection] = useState<"workspace" | "personal" | "notes">("workspace");
-  const [pageToDelete, setPageToDelete] = useState<{ id: string, name: string } | null>(null);
-  
-  const handleNewPage = () => {
-    setShowNewPageModal(true);
-  };
-  
-  const handleCreatePage = async (name: string, section: "workspace" | "personal" | "notes") => {
+  const { settings } = useSettings();
+  const { toast } = useToast();
+  const { favorites, workspace, personal, loading, createPage, deletePage } = usePages();
+
+  // Lista de secciones y páginas
+  const defaultFavorites = [
+    { name: "Inicio", icon: Home, path: "/" },
+    { name: "Documentación", icon: FileText, path: "/docs" },
+    { name: "Configuración", icon: Settings, path: "/settings" },
+  ];
+
+  // Función para crear una nueva página
+  const handleCreatePage = async (name) => {
     try {
-      const newPageId = await createPage(name, section);
+      const section = "workspace";
+      await createPage(name, section);
+      setNewPageOpen(false);
       
-      if (newPageId) {
-        toast({
-          title: "Página creada",
-          description: `Se ha creado la página "${name}" con éxito`,
-        });
-        
-        navigate(`/${section}/${newPageId}`);
-      }
+      toast({
+        description: `Se ha creado la página "${name}"`,
+      });
     } catch (error) {
+      console.error("Error creating page:", error);
       toast({
         title: "Error",
         description: "No se pudo crear la página",
         variant: "destructive",
       });
     }
-    
-    setShowNewPageModal(false);
   };
 
-  const handleDeleteClick = (e: React.MouseEvent, id: string, name: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setPageToDelete({ id, name });
-    setShowDeleteDialog(true);
+  // Función para mostrar el diálogo de confirmación de eliminación
+  const handleDeleteClick = (page) => {
+    setPageToDelete(page);
+    setDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = async () => {
+  // Función para eliminar la página
+  const handleDeletePage = async () => {
     if (!pageToDelete) return;
     
     setIsDeleting(true);
     try {
       const success = await deletePage(pageToDelete.id);
       if (success) {
-        setShowDeleteDialog(false);
         toast({
-          description: `Página "${pageToDelete.name}" eliminada con éxito`,
+          description: `Se ha eliminado la página "${pageToDelete.name}"`,
         });
       }
     } catch (error) {
-      console.error("Error al eliminar la página:", error);
+      console.error("Error deleting page:", error);
       toast({
         title: "Error",
         description: "No se pudo eliminar la página",
@@ -105,258 +80,180 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
       });
     } finally {
       setIsDeleting(false);
+      setDeleteDialogOpen(false);
       setPageToDelete(null);
     }
   };
-  
-  // CSS for the delete button that appears on hover
-  const deleteButtonClass = "opacity-0 group-hover:opacity-100 absolute right-0 flex items-center justify-center p-1 rounded-md hover:bg-gray-200 transition-opacity";
-  
-  return (
-    <div className="w-64 h-full bg-sidebar border-r border-gray-200 flex flex-col">
-      <div className="flex items-center gap-2 p-3">
-        <div className="bg-primary w-8 h-8 flex items-center justify-center rounded text-white font-bold">
-          N
-        </div>
-        <h1 className="text-base font-semibold">Mi Workspace</h1>
-      </div>
+
+  // Funciones para filtrar los elementos según la búsqueda
+  const filterItems = (items) => {
+    if (!searchQuery) return items;
+    return items.filter(item => 
+      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  };
+
+  const filteredFavorites = filterItems([...defaultFavorites, ...favorites]);
+  const filteredWorkspace = filterItems(workspace);
+  const filteredPersonal = filterItems(personal);
+
+  // Determinar si una sección debe mostrarse (si hay elementos filtrados)
+  const showFavorites = filteredFavorites.length > 0;
+  const showWorkspace = filteredWorkspace.length > 0;
+  const showPersonal = filteredPersonal.length > 0;
+
+  // Renderizar un elemento de página con opción de eliminar
+  const renderPageItem = (item, index, canDelete = true) => (
+    <li key={index} className="group relative">
+      <Link
+        to={item.path}
+        className="flex items-center rounded-md px-3 py-2 text-gray-700 hover:bg-gray-200"
+      >
+        {item.icon && typeof item.icon === 'function' ? (
+          <item.icon className="h-4 w-4 mr-3 text-gray-500" />
+        ) : (
+          <FileText className="h-4 w-4 mr-3 text-gray-500" />
+        )}
+        <span className="truncate">{item.name}</span>
+      </Link>
       
-      <div className="relative px-3 py-2">
-        <Input
-          placeholder="Buscar..."
-          className="h-8 bg-gray-100 border-0 focus-visible:ring-1"
-        />
-      </div>
-      
-      <div className="p-1">
-        <Link to="/all-pages" className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700">
-          <FileText className="h-4 w-4" />
-          <span>Todas las páginas</span>
-        </Link>
-        
-        <Link to="/calendar" className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700">
-          <Calendar className="h-4 w-4" />
-          <span>Calendario</span>
-        </Link>
-      </div>
-      
-      <Separator className="my-2" />
-      
-      <div className="flex-1 overflow-auto">
-        <div className="p-2">
-          <div className="flex items-center justify-between px-2 py-1">
-            <h2 className="text-xs uppercase font-medium text-gray-500">Workspace</h2>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 text-gray-500"
-                    onClick={() => {
-                      setSelectedSection("workspace");
-                      handleNewPage();
-                    }}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Nueva página de workspace</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          
-          {loading ? (
-            <div className="px-2 py-1 text-sm text-gray-500">Cargando...</div>
-          ) : (
-            workspace.map((page) => (
-              <div key={page.id} className="group relative">
-                <Link
-                  to={page.path}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700 w-full pr-8"
-                >
-                  <Folder className="h-4 w-4 text-gray-500" />
-                  <span className="truncate">{page.name}</span>
-                </Link>
-                {page.id && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={deleteButtonClass}
-                          onClick={(e) => handleDeleteClick(e, page.id!, page.name)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5 text-gray-500" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">
-                        <p>Eliminar página</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-        
-        <div className="p-2">
-          <div className="flex items-center justify-between px-2 py-1">
-            <h2 className="text-xs uppercase font-medium text-gray-500">Personal</h2>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 text-gray-500"
-                    onClick={() => {
-                      setSelectedSection("personal");
-                      handleNewPage();
-                    }}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Nueva página personal</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          
-          {loading ? (
-            <div className="px-2 py-1 text-sm text-gray-500">Cargando...</div>
-          ) : (
-            personal.map((page) => (
-              <div key={page.id} className="group relative">
-                <Link
-                  to={page.path}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700 w-full pr-8"
-                >
-                  <FileText className="h-4 w-4 text-gray-500" />
-                  <span className="truncate">{page.name}</span>
-                </Link>
-                {page.id && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={deleteButtonClass}
-                          onClick={(e) => handleDeleteClick(e, page.id!, page.name)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5 text-gray-500" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">
-                        <p>Eliminar página</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-        
-        <div className="p-2">
-          <div className="flex items-center justify-between px-2 py-1">
-            <h2 className="text-xs uppercase font-medium text-gray-500">Notas</h2>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 text-gray-500"
-                    onClick={() => {
-                      setSelectedSection("notes");
-                      handleNewPage();
-                    }}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Nueva nota</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          
-          {loading ? (
-            <div className="px-2 py-1 text-sm text-gray-500">Cargando...</div>
-          ) : (
-            favorites.map((page) => (
-              <div key={page.id} className="group relative">
-                <Link
-                  to={page.path}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700 w-full pr-8"
-                >
-                  <FileText className="h-4 w-4 text-gray-500" />
-                  <span className="truncate">{page.name}</span>
-                </Link>
-                {page.id && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={deleteButtonClass}
-                          onClick={(e) => handleDeleteClick(e, page.id!, page.name)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5 text-gray-500" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">
-                        <p>Eliminar página</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-      
-      <div className="p-2 border-t border-gray-200">
-        <button 
-          className="flex items-center gap-2 p-2 rounded hover:bg-gray-100 w-full"
-          onClick={() => navigate('/settings')}
+      {canDelete && item.id && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleDeleteClick(item);
+          }}
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-md text-gray-400 hover:text-red-500 hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity"
+          aria-label={`Eliminar ${item.name}`}
         >
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={userAvatar} />
-            <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">
-              {userName.slice(0, 1).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="text-left">
-            <div className="text-sm font-medium">{userName}</div>
-            <div className="text-xs text-gray-500">Mi Cuenta</div>
-          </div>
+          <Trash2 className="h-3.5 w-3.5" />
         </button>
+      )}
+    </li>
+  );
+
+  return (
+    <div className="w-64 h-full bg-gray-100 border-r border-gray-200 flex flex-col">
+      {/* Logo y búsqueda */}
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-bold">Workspace</h1>
+        </div>
+        <SearchBar onSearch={setSearchQuery} />
+      </div>
+
+      {/* Navegación */}
+      <nav className="flex-1 overflow-y-auto p-2">
+        {/* Sección Favoritos */}
+        {showFavorites && (
+          <div className="mb-6">
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">
+              Favoritos
+            </h2>
+            <ul>
+              {filteredFavorites.map((item, index) => 
+                renderPageItem(item, index, item.id != null)
+              )}
+            </ul>
+          </div>
+        )}
+
+        {/* Sección Workspace */}
+        {showWorkspace && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between px-3 mb-2">
+              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Workspace
+              </h2>
+              <button
+                onClick={() => setNewPageOpen(true)}
+                className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                aria-label="Agregar página"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <ul>
+              {filteredWorkspace.map((item, index) => 
+                renderPageItem(item, index)
+              )}
+            </ul>
+          </div>
+        )}
+
+        {/* Sección Personal */}
+        {showPersonal && (
+          <div className="mb-6">
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">
+              Personal
+            </h2>
+            <ul>
+              {filteredPersonal.map((item, index) => 
+                renderPageItem(item, index)
+              )}
+            </ul>
+          </div>
+        )}
+
+        {/* Botón para crear nueva página */}
+        <div className="px-3 mb-6">
+          <button
+            onClick={() => setNewPageOpen(true)}
+            className="flex items-center w-full rounded-md px-3 py-2 text-gray-700 hover:bg-gray-200 transition"
+          >
+            <Plus className="h-4 w-4 mr-3 text-gray-500" />
+            <span>Nueva página</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* Perfil de usuario */}
+      <div className="p-4 border-t border-gray-200">
+        <div className="flex items-center">
+          <img
+            src={userAvatar || "/images/female-avatar.svg"}
+            alt="Avatar"
+            className="h-8 w-8 rounded-full mr-2"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">
+              {settings.userName}
+            </p>
+            <p className="text-xs text-gray-500 truncate">
+              Mi cuenta
+            </p>
+          </div>
+          <button 
+            onClick={() => setSettingsOpen(true)}
+            className="ml-2 p-1.5 rounded-full hover:bg-gray-200"
+            aria-label="Configuración"
+          >
+            <Settings className="h-4 w-4 text-gray-500" />
+          </button>
+        </div>
       </div>
       
-      <NewPageModal 
-        open={showNewPageModal} 
-        onOpenChange={setShowNewPageModal}
-        onCreate={(name) => handleCreatePage(name, selectedSection)}
-        defaultSection={selectedSection}
+      {/* Modal de configuración */}
+      <SettingsModal 
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
       />
 
+      {/* Modal de nueva página */}
+      <NewPageModal
+        open={newPageOpen}
+        onOpenChange={setNewPageOpen}
+        onCreate={handleCreatePage}
+        defaultSection="workspace"
+      />
+
+      {/* Diálogo de confirmación para eliminar página */}
       {pageToDelete && (
         <DeletePageDialog
-          open={showDeleteDialog}
-          onOpenChange={setShowDeleteDialog}
-          onDelete={handleDeleteConfirm}
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          onDelete={handleDeletePage}
           pageName={pageToDelete.name}
           isDeleting={isDeleting}
         />
