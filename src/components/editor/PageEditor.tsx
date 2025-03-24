@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { SortableBlock } from './blocks/SortableBlock';
 import { v4 as uuidv4 } from 'uuid';
@@ -12,7 +11,7 @@ import { ShareModal } from './ShareModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CommentsPanel } from './CommentsPanel';
-import { ChevronRight, Share, MessageSquare } from 'lucide-react';
+import { ChevronRight, MessageSquare } from 'lucide-react';
 import { Block } from '@/context/PagesContext';
 
 interface PageEditorProps {
@@ -50,7 +49,6 @@ export function PageEditor({
   const [blockMenuPosition, setBlockMenuPosition] = useState({ top: 0, left: 0 });
   const [temporaryPageId, setTemporaryPageId] = useState<string>(uuidv4());
 
-  // Update blocks when initialBlocks change (e.g., when loading from DB)
   useEffect(() => {
     if (initialBlocks) {
       setBlocks(initialBlocks);
@@ -230,23 +228,15 @@ export function PageEditor({
             </div>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 md:hidden">
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => setShowComments(!showComments)}
+              data-comments-toggle
             >
               <MessageSquare className="h-4 w-4 mr-1" />
               Comments
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowShareModal(true)}
-            >
-              <Share className="h-4 w-4 mr-1" />
-              Share
             </Button>
           </div>
         </div>
@@ -316,13 +306,6 @@ export function PageEditor({
           onClose={() => setShowComments(false)} 
         />
       )}
-
-      {/* Share modal */}
-      <ShareModal 
-        open={showShareModal} 
-        onOpenChange={setShowShareModal}
-        pageId={temporaryPageId}
-      />
     </div>
   );
 }

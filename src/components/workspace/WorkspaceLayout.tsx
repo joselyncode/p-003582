@@ -9,6 +9,7 @@ interface WorkspaceLayoutProps {
   userName: string;
   userAvatar?: string;
   currentPath: string[];
+  pageId?: string;
 }
 
 export function WorkspaceLayout({
@@ -16,6 +17,7 @@ export function WorkspaceLayout({
   userName,
   userAvatar,
   currentPath,
+  pageId,
 }: WorkspaceLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -43,6 +45,7 @@ export function WorkspaceLayout({
           <Header 
             currentPath={currentPath} 
             onMenuClick={toggleSidebar}
+            pageId={pageId}
           />
           <main className="flex-1 overflow-auto">
             {children}
