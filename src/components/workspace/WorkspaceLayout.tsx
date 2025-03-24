@@ -32,7 +32,7 @@ export function WorkspaceLayout({
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-white">
+    <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground">
       {/* Mobile drawer */}
       <MobileDrawer 
         userAvatar={userAvatar}
@@ -55,7 +55,7 @@ export function WorkspaceLayout({
             onCommentsClick={toggleComments}
             commentsOpen={commentsOpen}
           />
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-auto bg-background">
             {children}
           </main>
         </div>
