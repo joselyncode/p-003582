@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Block } from "@/context/PagesContext";
@@ -81,6 +81,23 @@ export function SortableBlock({
 
   const [showBlockMenu, setShowBlockMenu] = useState(false);
   const [bgColor, setBgColor] = useState("bg-transparent");
+  const contentEditableRef = useRef<HTMLDivElement>(null);
+  const [isNewBlock, setIsNewBlock] = useState(!block.content);
+
+  // Set focus to the content editable div when the component mounts if it's a new block
+  useEffect(() => {
+    if (isNewBlock && contentEditableRef.current && isActive) {
+      contentEditableRef.current.focus();
+      setIsNewBlock(false);
+    }
+  }, [isNewBlock, isActive]);
+
+  // Focus the editable content when the block becomes active
+  useEffect(() => {
+    if (isActive && contentEditableRef.current) {
+      contentEditableRef.current.focus();
+    }
+  }, [isActive]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -113,8 +130,26 @@ export function SortableBlock({
     setBgColor(colorClass);
   };
 
-  // Determinar si el bloque es de tipo tabla
+  // Determine if the block is a list or table type
   const isTableBlock = block.type === "table";
+  const isListType = block.type === "bullet" || block.type === "numbered" || block.type === "todo";
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      
+      // If content is empty and user presses Enter, change to a text block
+      if (!contentEditableRef.current?.textContent?.trim()) {
+        onTypeChange(block.id, "text");
+        return;
+      }
+      
+      // Create a new block of the same type
+      const newBlockId = onAddBlock(block.type, block.id);
+      
+      // Set focus to the new block (handled by the PageEditor component)
+    }
+  };
 
   return (
     <div
@@ -199,34 +234,59 @@ export function SortableBlock({
             {/* Block content renderer */}
             <div className="px-3 py-2">
               {block.type === "heading1" && (
-                <h1 className="text-3xl font-bold" contentEditable={true} suppressContentEditableWarning={true}
-                  onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}>
+                <h1 
+                  className="text-3xl font-bold" 
+                  contentEditable={true} 
+                  suppressContentEditableWarning={true}
+                  ref={contentEditableRef}
+                  onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}
+                >
                   {block.content}
                 </h1>
               )}
               {block.type === "heading2" && (
-                <h2 className="text-2xl font-bold" contentEditable={true} suppressContentEditableWarning={true}
-                  onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}>
+                <h2 
+                  className="text-2xl font-bold" 
+                  contentEditable={true} 
+                  suppressContentEditableWarning={true}
+                  ref={contentEditableRef}
+                  onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}
+                >
                   {block.content}
                 </h2>
               )}
               {block.type === "heading3" && (
-                <h3 className="text-xl font-bold" contentEditable={true} suppressContentEditableWarning={true}
-                  onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}>
+                <h3 
+                  className="text-xl font-bold" 
+                  contentEditable={true} 
+                  suppressContentEditableWarning={true}
+                  ref={contentEditableRef}
+                  onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}
+                >
                   {block.content}
                 </h3>
               )}
               {block.type === "text" && (
-                <p className="text-base" contentEditable={true} suppressContentEditableWarning={true}
-                  onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}>
+                <p 
+                  className="text-base" 
+                  contentEditable={true} 
+                  suppressContentEditableWarning={true}
+                  ref={contentEditableRef}
+                  onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}
+                >
                   {block.content}
                 </p>
               )}
               {block.type === "todo" && (
                 <div className="flex items-start gap-2">
                   <input type="checkbox" className="mt-1" />
-                  <div contentEditable={true} suppressContentEditableWarning={true}
-                    onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}>
+                  <div 
+                    contentEditable={true} 
+                    suppressContentEditableWarning={true}
+                    ref={contentEditableRef}
+                    onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}
+                    onKeyDown={handleKeyDown}
+                  >
                     {block.content}
                   </div>
                 </div>
@@ -234,8 +294,13 @@ export function SortableBlock({
               {block.type === "bullet" && (
                 <div className="flex items-start gap-2">
                   <span className="mt-1">•</span>
-                  <div contentEditable={true} suppressContentEditableWarning={true}
-                    onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}>
+                  <div 
+                    contentEditable={true} 
+                    suppressContentEditableWarning={true}
+                    ref={contentEditableRef}
+                    onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}
+                    onKeyDown={handleKeyDown}
+                  >
                     {block.content}
                   </div>
                 </div>
@@ -243,8 +308,13 @@ export function SortableBlock({
               {block.type === "numbered" && (
                 <div className="flex items-start gap-2">
                   <span className="mt-1">1.</span>
-                  <div contentEditable={true} suppressContentEditableWarning={true}
-                    onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}>
+                  <div 
+                    contentEditable={true} 
+                    suppressContentEditableWarning={true}
+                    ref={contentEditableRef}
+                    onBlur={(e) => onUpdate(block.id, e.currentTarget.textContent || '')}
+                    onKeyDown={handleKeyDown}
+                  >
                     {block.content}
                   </div>
                 </div>

@@ -147,9 +147,10 @@ export function PageEditor({
       });
     }
     
+    // Set the new block as active immediately to focus it
     setTimeout(() => {
       setActiveBlockId(newBlockId);
-    }, 100);
+    }, 10);
     
     setShowBlockMenu(false);
 
@@ -184,7 +185,7 @@ export function PageEditor({
     
     setTimeout(() => {
       setActiveBlockId(newBlockId);
-    }, 100);
+    }, 10);
   };
 
   const handleDeleteBlock = (id: string) => {
