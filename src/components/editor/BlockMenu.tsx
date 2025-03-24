@@ -7,7 +7,8 @@ import {
   Heading3, 
   List, 
   ListOrdered, 
-  CheckSquare
+  CheckSquare,
+  Table
 } from "lucide-react";
 import { Block } from "@/context/PagesContext";
 
@@ -44,6 +45,7 @@ export function BlockMenu({ onSelect, onClose }: BlockMenuProps) {
     { type: "bullet" as const, label: "Lista con viñetas", icon: List },
     { type: "numbered" as const, label: "Lista numerada", icon: ListOrdered },
     { type: "todo" as const, label: "Lista de tareas", icon: CheckSquare },
+    { type: "table" as const, label: "Tabla", icon: Table },
   ];
 
   useEffect(() => {

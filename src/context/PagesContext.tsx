@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Home, FileText, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +17,7 @@ export type Page = {
 // Define type for page content
 export type Block = {
   id: string;
-  type: "text" | "heading1" | "heading2" | "heading3" | "todo" | "bullet" | "numbered";
+  type: "text" | "heading1" | "heading2" | "heading3" | "bullet" | "numbered" | "todo" | "table";
   content: string;
 };
 

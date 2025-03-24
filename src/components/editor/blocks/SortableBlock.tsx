@@ -11,6 +11,7 @@ import {
   ContextMenuTrigger
 } from "@/components/ui/context-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { TableBlock } from "./TableBlock";
 
 export interface SortableBlockProps {
   id: string;
@@ -133,6 +134,12 @@ export function SortableBlock({
                     {block.content}
                   </div>
                 </div>
+              )}
+              {block.type === "table" && (
+                <TableBlock 
+                  initialContent={block.content}
+                  onUpdate={(content) => onUpdate(block.id, content)}
+                />
               )}
             </div>
           </div>
