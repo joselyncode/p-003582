@@ -29,10 +29,9 @@ interface SidebarProps {
   userAvatar?: string;
 }
 
-// Type for default menu items with Lucide icon components
 interface DefaultMenuItem {
   name: string;
-  icon: React.FC<any>; // For Lucide icons
+  icon: React.FC<any>;
   path: string;
 }
 
@@ -50,19 +49,16 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
   const { toast } = useToast();
   const { favorites, workspace, personal, createPage, deletePage } = usePages();
 
-  // Lista de secciones y páginas fijas con iconos mejorados
   const defaultFavorites: DefaultMenuItem[] = [
     { name: "Inicio", icon: Home, path: "/" },
     { name: "Documentación", icon: FileText, path: "/docs" },
     { name: "Configuración", icon: Settings, path: "/settings" },
   ];
 
-  // Separar páginas de workspace y notas
   const workspacePages = workspace.filter(page => page.section === "workspace" || page.path.includes("/workspace/"));
   const notesPages = workspace.filter(page => page.section === "notes" || page.path.includes("/notes/"));
   const personalPages = personal.filter(page => page.section === "personal" || page.path.includes("/personal/"));
 
-  // Función para crear una nueva página
   const handleCreatePage = async (name: string) => {
     try {
       console.log("Creando página en sección:", newPageSection);
@@ -84,13 +80,11 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
     }
   };
 
-  // Función para mostrar el diálogo de confirmación de eliminación
   const handleDeleteClick = (page) => {
     setPageToDelete(page);
     setDeleteDialogOpen(true);
   };
 
-  // Función para eliminar la página
   const handleDeletePage = async () => {
     if (!pageToDelete) return;
     
@@ -116,7 +110,6 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
     }
   };
 
-  // Funciones para filtrar los elementos según la búsqueda
   const filterItems = (items) => {
     if (!searchQuery) return items;
     return items.filter(item => 
@@ -124,25 +117,21 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
     );
   };
 
-  // Eliminar páginas duplicadas
   const uniqueFavorites = favorites.filter(fav => 
     !defaultFavorites.some(def => def.path === fav.path)
   );
   
-  // Filtrar favoritos pero manteniendo los tipos separados
   const filteredDefaultFavorites = filterItems(defaultFavorites);
   const filteredCustomFavorites = filterItems(uniqueFavorites);
   const filteredWorkspacePages = filterItems(workspacePages);
   const filteredNotesPages = filterItems(notesPages);
   const filteredPersonalPages = filterItems(personalPages);
 
-  // Determinar si una sección debe mostrarse (si hay elementos filtrados)
   const showFavorites = filteredDefaultFavorites.length > 0 || filteredCustomFavorites.length > 0;
   const showWorkspace = filteredWorkspacePages.length > 0;
   const showNotes = filteredNotesPages.length > 0;
   const showPersonal = filteredPersonalPages.length > 0;
 
-  // Iconos para elementos del workspace
   const getWorkspaceIcon = (name) => {
     const lowerName = name.toLowerCase();
     if (lowerName.includes('calendar') || lowerName.includes('calendario')) return Calendar;
@@ -151,7 +140,6 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
     return FileText;
   };
 
-  // Renderizar un elemento de página con opción de eliminar
   const renderPageItem = (item, index, canDelete = true) => (
     <li key={index} className="group relative">
       <Link
@@ -202,21 +190,20 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
     </li>
   );
 
-  // Función para toggle el estado del sidebar
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  // Función para abrir el modal de nueva página con sección específica
   const openNewPageModal = (section: "workspace" | "notes" | "personal") => {
     setNewPageSection(section);
     setHideSection(true);
     setNewPageOpen(true);
   };
 
+  const currentAvatar = userAvatar || settings.userAvatar || "/images/female-avatar.svg";
+
   return (
     <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} h-full bg-gray-100 border-r border-gray-200 flex flex-col transition-all duration-300 relative`}>
-      {/* Botón para colapsar/expandir el sidebar */}
       <button
         onClick={toggleSidebar}
         className="absolute right-0 top-16 transform translate-x-1/2 bg-white p-1.5 rounded-full shadow-md text-gray-500 hover:text-gray-800 z-10 border border-gray-200 flex items-center justify-center"
@@ -229,7 +216,6 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
         )}
       </button>
 
-      {/* Logo y búsqueda */}
       <div className={`p-4 ${sidebarCollapsed ? 'flex flex-col items-center' : ''}`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
@@ -244,9 +230,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
         {!sidebarCollapsed && <SearchBar onSearch={setSearchQuery} />}
       </div>
 
-      {/* Navegación */}
       <nav className="flex-1 overflow-y-auto p-2">
-        {/* Sección Favoritos */}
         {showFavorites && !sidebarCollapsed && (
           <div className="mb-6">
             <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">
@@ -263,7 +247,6 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
           </div>
         )}
 
-        {/* Versión colapsada - solo iconos */}
         {sidebarCollapsed && showFavorites && (
           <div className="flex flex-col items-center space-y-4 mb-6">
             {filteredDefaultFavorites.slice(0, 3).map((item, index) => (
@@ -287,7 +270,6 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
           </div>
         )}
 
-        {/* Sección Workspace */}
         {showWorkspace && !sidebarCollapsed && (
           <div className="mb-6">
             <div className="flex items-center justify-between px-3 mb-2">
@@ -311,7 +293,6 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
           </div>
         )}
 
-        {/* Sección Notas */}
         {showNotes && !sidebarCollapsed && (
           <div className="mb-6">
             <div className="flex items-center justify-between px-3 mb-2">
@@ -334,7 +315,6 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
           </div>
         )}
 
-        {/* Versión colapsada - iconos de workspace y notas */}
         {sidebarCollapsed && (showWorkspace || showNotes) && (
           <div className="flex flex-col items-center space-y-4 mb-6">
             {showWorkspace && (
@@ -388,7 +368,6 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
           </div>
         )}
 
-        {/* Sección Personal */}
         {showPersonal && !sidebarCollapsed && (
           <div className="mb-6">
             <div className="flex items-center justify-between px-3 mb-2">
@@ -411,7 +390,6 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
           </div>
         )}
 
-        {/* Versión colapsada - iconos personal */}
         {sidebarCollapsed && showPersonal && (
           <div className="flex flex-col items-center space-y-4 mb-6">
             <div className="w-full flex justify-center mb-1">
@@ -438,13 +416,12 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
         )}
       </nav>
 
-      {/* Perfil de usuario */}
       <div className="p-4 border-t border-gray-200">
         {sidebarCollapsed ? (
           <div className="flex justify-center">
             <button onClick={() => setSettingsOpen(true)}>
               <img
-                src={userAvatar || "/images/female-avatar.svg"}
+                src={currentAvatar}
                 alt="Avatar"
                 className="h-8 w-8 rounded-full"
                 title={userName || settings.userName}
@@ -454,7 +431,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
         ) : (
           <div className="flex items-center">
             <img
-              src={userAvatar || "/images/female-avatar.svg"}
+              src={currentAvatar}
               alt="Avatar"
               className="h-8 w-8 rounded-full mr-2"
             />
@@ -477,13 +454,11 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
         )}
       </div>
       
-      {/* Modal de configuración */}
       <SettingsModal 
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
       />
 
-      {/* Modal de nueva página */}
       <NewPageModal
         open={newPageOpen}
         onOpenChange={setNewPageOpen}
@@ -492,7 +467,6 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
         hideSection={hideSection}
       />
 
-      {/* Diálogo de confirmación para eliminar página */}
       {pageToDelete && (
         <DeletePageDialog
           open={deleteDialogOpen}
