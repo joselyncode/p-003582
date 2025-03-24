@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { SortableBlock } from './blocks/SortableBlock';
 import { v4 as uuidv4 } from 'uuid';
@@ -26,6 +25,9 @@ interface PageEditorProps {
   initialTitle?: string;
   onTitleChange?: (newTitle: string) => void;
   pageId?: string;
+  readOnly?: boolean;
+  isSharedPage?: boolean;
+  showComments?: boolean;
 }
 
 export function PageEditor({ 
@@ -37,12 +39,15 @@ export function PageEditor({
   allowTitleEdit = false,
   initialTitle = "Untitled",
   onTitleChange,
-  pageId
+  pageId,
+  readOnly,
+  isSharedPage,
+  showComments
 }: PageEditorProps) {
   const [blocks, setBlocks] = useState<Block[]>(initialBlocks || []);
   
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(showComments || false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showBlockMenu, setShowBlockMenu] = useState(false);
   const [blockMenuPosition, setBlockMenuPosition] = useState({ top: 0, left: 0 });

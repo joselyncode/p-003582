@@ -16,6 +16,7 @@ import AllPages from "./pages/AllPages";
 import CalendarPage from "./pages/CalendarPage";
 import { PagesProvider } from "./context/PagesContext";
 import DynamicPage from "./pages/DynamicPage";
+import SharedPage from "./pages/SharedPage";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -50,6 +51,8 @@ const App = () => {
               <Route path="/workspace/:pageId" element={<DynamicPage section="workspace" />} />
               <Route path="/personal/:pageId" element={<DynamicPage section="personal" />} />
               <Route path="/favorite/:pageId" element={<DynamicPage section="favorite" />} />
+              {/* Ruta para páginas compartidas */}
+              <Route path="/share/:pageId" element={<SharedPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </PagesProvider>
