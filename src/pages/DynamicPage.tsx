@@ -93,13 +93,15 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     }
   };
   
-  // Genera un array de breadcrumb con rutas reales
+  // Genera un array de breadcrumb con rutas reales - eliminando duplicados
   const getBreadcrumbPaths = (): string[] => {
     const sectionName = getSectionName();
     
-    // Si estamos en una subsección, incluir la jerarquía completa
-    if (section === "notes" || section === "workspace") {
-      return ["Mi Workspace", sectionName, pageTitle];
+    // Simplificamos la estructura para evitar duplicados
+    if (section === "workspace") {
+      return ["Mi Workspace", pageTitle];
+    } else if (section === "notes") {
+      return ["Mi Workspace", "Notas", pageTitle];
     } else if (section === "personal") {
       return ["Personal", pageTitle];
     } else if (section === "favorite") {

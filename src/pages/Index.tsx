@@ -8,8 +8,8 @@ const Index = () => {
   const { settings } = useSettings();
   const userAvatar = "/images/female-avatar.svg";
   
-  // Definir una estructura de breadcrumb más significativa
-  const currentPath = ["Mi Workspace", "Inicio"];
+  // Definir una estructura de breadcrumb simplificada
+  const currentPath = ["Mi Workspace"];
 
   return (
     <WorkspaceLayout

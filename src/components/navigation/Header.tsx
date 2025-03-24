@@ -97,6 +97,11 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
     }
   };
 
+  // Eliminar duplicados en la ruta de navegación
+  const uniquePath = currentPath.filter((item, index, self) => 
+    self.findIndex(i => i.toLowerCase() === item.toLowerCase()) === index
+  );
+
   return (
     <header className="flex items-center border-b border-gray-200 h-12 px-4">
       {/* Mobile menu button */}
@@ -117,7 +122,7 @@ export function Header({ currentPath, onMenuClick, pageId = "default-page" }: He
 
       <Breadcrumb className="flex-1">
         <BreadcrumbList>
-          {currentPath.map((item, index) => (
+          {uniquePath.map((item, index) => (
             <React.Fragment key={index}>
               {index > 0 && <BreadcrumbSeparator />}
               <BreadcrumbItem>
