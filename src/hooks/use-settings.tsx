@@ -16,7 +16,6 @@ export function useSettings() {
   });
 
   const updateSettings = (newSettings: Partial<UserSettings>) => {
-    // The issue is here - we need to pass a value directly when using a callback, not return a value
     setSettings({
       ...settings,
       ...newSettings
