@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { SortableBlock } from './blocks/SortableBlock';
 import { v4 as uuidv4 } from 'uuid';
@@ -42,12 +43,12 @@ export function PageEditor({
   pageId,
   readOnly,
   isSharedPage,
-  showComments
+  showComments: initialShowComments
 }: PageEditorProps) {
   const [blocks, setBlocks] = useState<Block[]>(initialBlocks || []);
   
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
-  const [showComments, setShowComments] = useState(showComments || false);
+  const [showComments, setShowComments] = useState(initialShowComments || false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showBlockMenu, setShowBlockMenu] = useState(false);
   const [blockMenuPosition, setBlockMenuPosition] = useState({ top: 0, left: 0 });
@@ -390,7 +391,7 @@ export function PageEditor({
 
       {showComments && (
         <CommentsPanel 
-          pageId={temporaryPageId} 
+          pageId={pageId || temporaryPageId} 
           onClose={() => setShowComments(false)} 
         />
       )}
