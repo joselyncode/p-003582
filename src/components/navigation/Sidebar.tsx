@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { SearchBar } from "../ui/SearchBar";
@@ -46,6 +45,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
   const [pageToDelete, setPageToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage<boolean>("sidebar-collapsed", false);
+  const [hideSection, setHideSection] = useState(false);
   const { settings } = useSettings();
   const { toast } = useToast();
   const { favorites, workspace, personal, createPage, deletePage } = usePages();
@@ -210,6 +210,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
   // Función para abrir el modal de nueva página con sección específica
   const openNewPageModal = (section: "workspace" | "notes" | "personal") => {
     setNewPageSection(section);
+    setHideSection(true);
     setNewPageOpen(true);
   };
 
@@ -232,7 +233,6 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
       <div className={`p-4 ${sidebarCollapsed ? 'flex flex-col items-center' : ''}`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
-            {/* Notion-like icon */}
             <div className="h-5 w-5 bg-blue-600 text-white rounded flex items-center justify-center mr-2 flex-shrink-0">
               <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor">
                 <path d="M4 4h8v1.5H4V4zm0 3h8v1.5H4V7zm0 3h5v1.5H4V10z" />
@@ -436,8 +436,6 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
             ))}
           </div>
         )}
-
-        {/* Se elimina el botón "Nueva página" del fondo */}
       </nav>
 
       {/* Perfil de usuario */}
@@ -491,6 +489,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
         onOpenChange={setNewPageOpen}
         onCreate={handleCreatePage}
         defaultSection={newPageSection}
+        hideSection={hideSection}
       />
 
       {/* Diálogo de confirmación para eliminar página */}

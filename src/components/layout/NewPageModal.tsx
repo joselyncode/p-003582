@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, Home, Star, Users } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -19,6 +18,7 @@ interface NewPageModalProps {
   onOpenChange: (open: boolean) => void;
   onCreate?: (name: string) => Promise<void>;
   defaultSection?: PageSection;
+  hideSection?: boolean;
 }
 
 // Define the form schema with validation
@@ -27,7 +27,13 @@ const formSchema = z.object({
   pageType: z.enum(["favorite", "workspace", "notes", "personal"]),
 });
 
-export function NewPageModal({ open, onOpenChange, onCreate, defaultSection = "notes" }: NewPageModalProps) {
+export function NewPageModal({ 
+  open, 
+  onOpenChange, 
+  onCreate, 
+  defaultSection = "notes",
+  hideSection = false 
+}: NewPageModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -128,52 +134,56 @@ export function NewPageModal({ open, onOpenChange, onCreate, defaultSection = "n
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="pageType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sección</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona una sección" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="favorite">
-                        <div className="flex items-center gap-2">
-                          <Star className="h-4 w-4" />
-                          <span>Favoritos</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="workspace">
-                        <div className="flex items-center gap-2">
-                          <Home className="h-4 w-4" />
-                          <span>Workspace</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="notes">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4" />
-                          <span>Página de notas</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="personal">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          <span>Personal</span>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            
+            {!hideSection && (
+              <FormField
+                control={form.control}
+                name="pageType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sección</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona una sección" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="favorite">
+                          <div className="flex items-center gap-2">
+                            <Star className="h-4 w-4" />
+                            <span>Favoritos</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="workspace">
+                          <div className="flex items-center gap-2">
+                            <Home className="h-4 w-4" />
+                            <span>Workspace</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="notes">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            <span>Página de notas</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="personal">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            <span>Personal</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            
             <DialogFooter>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Creando..." : "Crear página"}
