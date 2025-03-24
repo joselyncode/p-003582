@@ -12,6 +12,7 @@ import {
   BreadcrumbList, 
   BreadcrumbSeparator 
 } from "@/components/ui/breadcrumb";
+import { useNavigate } from "react-router-dom";
 
 interface HeaderProps {
   currentPath: string[];
@@ -19,6 +20,13 @@ interface HeaderProps {
 }
 
 export function Header({ currentPath, onMenuClick }: HeaderProps) {
+  const navigate = useNavigate();
+
+  const handleGoBack = () => {
+    // Navegar hacia atrás en el historial
+    navigate(-1);
+  };
+
   return (
     <header className="flex items-center border-b border-gray-200 h-12 px-4">
       {/* Mobile menu button */}
@@ -29,7 +37,11 @@ export function Header({ currentPath, onMenuClick }: HeaderProps) {
         <Menu className="h-5 w-5 text-gray-500" />
       </button>
       
-      <button className="mr-2 hover:bg-gray-100 p-1 rounded">
+      <button 
+        className="mr-2 hover:bg-gray-100 p-1 rounded"
+        onClick={handleGoBack}
+        aria-label="Volver atrás"
+      >
         <ChevronLeft className="h-5 w-5 text-gray-500" />
       </button>
 
