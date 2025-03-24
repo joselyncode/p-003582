@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { 
   Sheet, 
@@ -130,7 +131,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                 <AvatarImage src={formData.avatar} alt={formData.name} />
               ) : (
                 <AvatarFallback className="bg-gray-100">
-                  {formData.name?.charAt(0)?.toUpperCase() || "U"}
+                  <User className="h-10 w-10 text-gray-400" />
                 </AvatarFallback>
               )}
             </Avatar>

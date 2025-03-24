@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -109,7 +108,7 @@ export function SettingsContent() {
                     <AvatarImage src={settings.userAvatar} alt={settings.userName} />
                   ) : (
                     <AvatarFallback className="bg-gray-100 dark:bg-gray-700">
-                      {settings.userName?.charAt(0)?.toUpperCase() || "U"}
+                      <User className="h-8 w-8 text-gray-400" />
                     </AvatarFallback>
                   )}
                 </Avatar>
