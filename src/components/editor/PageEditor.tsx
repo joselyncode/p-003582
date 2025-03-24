@@ -225,7 +225,7 @@ export function PageEditor({
   }, [lastSaved]);
   
   const showBlockMenuAt = (afterId: string) => {
-    const blockElement = document.getElementById(`block-${afterId}`);
+    const blockElement = document.querySelector(`[data-block-id="${afterId}"]`);
     
     if (blockElement) {
       const rect = blockElement.getBoundingClientRect();
@@ -331,7 +331,7 @@ export function PageEditor({
               strategy={verticalListSortingStrategy}
             >
               {blocks.map((block, index) => (
-                <div id={`block-${block.id}`} key={block.id}>
+                <div key={block.id}>
                   <SortableBlock
                     id={block.id}
                     block={block}

@@ -1,22 +1,36 @@
 
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Input } from "@/components/ui/input";
+import React from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { 
-  ChevronDown, 
-  ChevronRight, 
-  Plus, 
-  Search, 
+  LayoutDashboard, 
   FileText, 
   Calendar, 
-  Star, 
-  Settings,
+  Settings, 
+  User, 
+  Plus, 
+  Folder, 
+  Inbox, 
+  FolderPlus,
+  FilePlus,
+  CalendarClock,
+  PlusSquare, 
   Home,
-  Users,
-  Layout
+  PanelLeft
 } from "lucide-react";
-import { NewPageModal } from "../layout/NewPageModal";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { usePages } from "@/context/PagesContext";
+import { useState } from "react";
+import { NewPageModal } from "../layout/NewPageModal";
+import { useToast } from "@/components/ui/use-toast";
 
 interface SidebarProps {
   userName: string;
@@ -24,226 +38,218 @@ interface SidebarProps {
 }
 
 export function Sidebar({ userName, userAvatar }: SidebarProps) {
-  const [workspacesExpanded, setWorkspacesExpanded] = useState(true);
-  const [favoritesExpanded, setFavoritesExpanded] = useState(true);
-  const [privateExpanded, setPrivateExpanded] = useState(true);
-  const [newPageOpen, setNewPageOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { workspace, personal, favorites, loading, createPage } = usePages();
+  const [showNewPageModal, setShowNewPageModal] = useState(false);
+  const [selectedSection, setSelectedSection] = useState<"workspace" | "personal" | "notes">("workspace");
   
-  const { favorites, workspace, personal } = usePages();
-
-  // Map icon strings to actual components
-  const getIconComponent = (iconName: string) => {
-    switch (iconName) {
-      case "Home":
-        return Home;
-      case "FileText":
-        return FileText;
-      case "Star":
-        return Star;
-      case "Settings":
-        return Settings;
-      case "Calendar":
-        return Calendar;
-      case "Users":
-        return Users;
-      default:
-        return FileText;
+  const handleNewPage = () => {
+    setShowNewPageModal(true);
+  };
+  
+  const handleCreatePage = async (name: string, section: "workspace" | "personal" | "notes") => {
+    try {
+      const newPageId = await createPage(name, section);
+      
+      if (newPageId) {
+        toast({
+          title: "Página creada",
+          description: `Se ha creado la página "${name}" con éxito`,
+        });
+        
+        navigate(`/${section}/${newPageId}`);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo crear la página",
+        variant: "destructive",
+      });
     }
+    
+    setShowNewPageModal(false);
   };
-
-  // Function to filter items based on search query
-  const filterItems = (items) => {
-    if (!searchQuery) return items;
-    return items.filter(item => 
-      item.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  };
-
-  const filteredFavorites = filterItems(favorites);
-  const filteredWorkspace = filterItems(workspace);
-  const filteredPersonal = filterItems(personal);
-
+  
   return (
-    <aside className="w-64 h-full flex flex-col border-r border-gray-200 bg-gray-50">
-      {/* Workspace Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-gray-900 rounded flex items-center justify-center text-white">
-            N
-          </div>
-          <span className="font-medium text-gray-800">Mi Workspace</span>
+    <div className="w-64 h-full bg-sidebar border-r border-gray-200 flex flex-col">
+      <div className="flex items-center gap-2 p-3">
+        <div className="bg-primary w-8 h-8 flex items-center justify-center rounded text-white font-bold">
+          N
         </div>
+        <h1 className="text-base font-semibold">Mi Workspace</h1>
       </div>
-
-      {/* Search */}
-      <div className="px-3 py-2">
-        <div className="relative">
-          <div className="absolute inset-y-0 left-2 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-gray-400" />
-          </div>
-          <Input 
-            className="pl-8 py-1 h-8 text-sm bg-gray-100 border-0"
-            placeholder="Buscar..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+      
+      <div className="relative px-3 py-2">
+        <Input
+          placeholder="Buscar..."
+          className="h-8 bg-gray-100 border-0 focus-visible:ring-1"
+        />
       </div>
-
-      {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-2">
-        {/* Quick Links */}
-        <div className="px-3 mb-2">
-          <Link 
-            to="/all-pages"
-            className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm"
-          >
-            <Layout className="h-4 w-4" />
-            <span>Todas las páginas</span>
-          </Link>
-          <Link 
-            to="/calendar"
-            className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm"
-          >
-            <Calendar className="h-4 w-4" />
-            <span>Calendario</span>
-          </Link>
-        </div>
-
-        {/* Favorites */}
-        {filteredFavorites.length > 0 && (
-          <div className="px-3 mb-1">
-            <button 
-              onClick={() => setFavoritesExpanded(!favoritesExpanded)}
-              className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
-            >
-              {favoritesExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-              <span>FAVORITOS</span>
-            </button>
-            
-            {favoritesExpanded && (
-              <div className="pl-2">
-                {filteredFavorites.map((item, index) => {
-                  const ItemIcon = getIconComponent(item.icon);
-                  return (
-                    <Link 
-                      key={`favorite-${index}`} 
-                      to={item.path}
-                      className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm"
-                    >
-                      <ItemIcon className="h-3.5 w-3.5 text-gray-500" />
-                      <span>{item.name}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Workspace */}
-        {filteredWorkspace.length > 0 && (
-          <div className="px-3 mb-1">
-            <button 
-              onClick={() => setWorkspacesExpanded(!workspacesExpanded)}
-              className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
-            >
-              {workspacesExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-              <span>WORKSPACE</span>
-            </button>
-            
-            {workspacesExpanded && (
-              <div className="pl-2">
-                {filteredWorkspace.map((item, index) => {
-                  const ItemIcon = getIconComponent(item.icon);
-                  return (
-                    <Link 
-                      key={`workspace-${index}`} 
-                      to={item.path}
-                      className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm"
-                    >
-                      <ItemIcon className="h-3.5 w-3.5 text-gray-500" />
-                      <span>{item.name}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Personal */}
-        {filteredPersonal.length > 0 && (
-          <div className="px-3 mb-1">
-            <button 
-              onClick={() => setPrivateExpanded(!privateExpanded)}
-              className="flex items-center gap-1 text-xs text-gray-500 mb-1 w-full"
-            >
-              {privateExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-              <span>PRIVADO</span>
-            </button>
-            
-            {privateExpanded && (
-              <div className="pl-2">
-                {filteredPersonal.map((item, index) => {
-                  const ItemIcon = getIconComponent(item.icon);
-                  return (
-                    <Link 
-                      key={`personal-${index}`} 
-                      to={item.path}
-                      className="flex items-center gap-2 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm"
-                    >
-                      <ItemIcon className="h-3.5 w-3.5 text-gray-500" />
-                      <span>{item.name}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
+      
+      <div className="p-1">
+        <Link to="/all-pages" className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700">
+          <FileText className="h-4 w-4" />
+          <span>Todas las páginas</span>
+        </Link>
+        
+        <Link to="/calendar" className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700">
+          <Calendar className="h-4 w-4" />
+          <span>Calendario</span>
+        </Link>
       </div>
-
-      {/* Create new button */}
-      <div className="px-3 py-2">
-        <button 
-          className="flex items-center gap-1 text-gray-600 hover:bg-gray-200 w-full rounded-md px-2 py-1.5 text-sm"
-          onClick={() => setNewPageOpen(true)}
-        >
-          <Plus className="h-4 w-4" />
-          <span>Nueva página</span>
-        </button>
-      </div>
-
-      {/* User profile */}
-      <div className="p-3 border-t border-gray-200 mt-auto">
-        <div className="flex items-center gap-2">
-          {userAvatar ? (
-            <img
-              src={userAvatar}
-              alt={`${userName}'s avatar`}
-              className="w-6 h-6 rounded-full"
-            />
+      
+      <Separator className="my-2" />
+      
+      <div className="flex-1 overflow-auto">
+        <div className="p-2">
+          <div className="flex items-center justify-between px-2 py-1">
+            <h2 className="text-xs uppercase font-medium text-gray-500">Workspace</h2>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 text-gray-500"
+                    onClick={() => {
+                      setSelectedSection("workspace");
+                      handleNewPage();
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Nueva página de workspace</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          
+          {loading ? (
+            <div className="px-2 py-1 text-sm text-gray-500">Cargando...</div>
           ) : (
-            <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center">
-              <span className="text-xs text-gray-600">
-                {userName.charAt(0)}
-              </span>
-            </div>
+            workspace.map((page) => (
+              <Link
+                key={page.id}
+                to={page.path}
+                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700 w-full"
+              >
+                <Folder className="h-4 w-4 text-gray-500" />
+                <span className="truncate">{page.name}</span>
+              </Link>
+            ))
           )}
-          <span className="text-sm text-gray-700">{userName}</span>
-          <button className="ml-auto">
-            <Settings className="h-4 w-4 text-gray-500" />
-          </button>
+        </div>
+        
+        <div className="p-2">
+          <div className="flex items-center justify-between px-2 py-1">
+            <h2 className="text-xs uppercase font-medium text-gray-500">Personal</h2>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 text-gray-500"
+                    onClick={() => {
+                      setSelectedSection("personal");
+                      handleNewPage();
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Nueva página personal</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          
+          {loading ? (
+            <div className="px-2 py-1 text-sm text-gray-500">Cargando...</div>
+          ) : (
+            personal.map((page) => (
+              <Link
+                key={page.id}
+                to={page.path}
+                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700 w-full"
+              >
+                <FileText className="h-4 w-4 text-gray-500" />
+                <span className="truncate">{page.name}</span>
+              </Link>
+            ))
+          )}
+        </div>
+        
+        <div className="p-2">
+          <div className="flex items-center justify-between px-2 py-1">
+            <h2 className="text-xs uppercase font-medium text-gray-500">Notas</h2>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 text-gray-500"
+                    onClick={() => {
+                      setSelectedSection("notes");
+                      handleNewPage();
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Nueva nota</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          
+          {loading ? (
+            <div className="px-2 py-1 text-sm text-gray-500">Cargando...</div>
+          ) : (
+            favorites.map((page) => (
+              <Link
+                key={page.id}
+                to={page.path}
+                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 text-sm text-gray-700 w-full"
+              >
+                <FileText className="h-4 w-4 text-gray-500" />
+                <span className="truncate">{page.name}</span>
+              </Link>
+            ))
+          )}
         </div>
       </div>
       
-      {/* New Page Modal */}
-      <NewPageModal
-        open={newPageOpen}
-        onOpenChange={setNewPageOpen}
+      <div className="p-2 border-t border-gray-200">
+        <button 
+          className="flex items-center gap-2 p-2 rounded hover:bg-gray-100 w-full"
+          onClick={() => navigate('/settings')}
+        >
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={userAvatar} />
+            <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">
+              {userName.slice(0, 1).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="text-left">
+            <div className="text-sm font-medium">{userName}</div>
+            <div className="text-xs text-gray-500">Mi Cuenta</div>
+          </div>
+        </button>
+      </div>
+      
+      <NewPageModal 
+        open={showNewPageModal} 
+        onOpenChange={setShowNewPageModal}
+        onCreate={(name) => handleCreatePage(name, selectedSection)}
+        defaultSection={selectedSection}
       />
-    </aside>
+    </div>
   );
 }
