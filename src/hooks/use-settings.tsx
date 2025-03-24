@@ -16,10 +16,11 @@ export function useSettings() {
   });
 
   const updateSettings = (newSettings: Partial<UserSettings>) => {
-    setSettings({
-      ...settings,
+    // Use the functional update pattern to ensure type safety
+    setSettings(prevSettings => ({
+      ...prevSettings,
       ...newSettings
-    });
+    }));
   };
 
   return {

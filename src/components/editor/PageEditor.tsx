@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { SortableBlock } from './blocks/SortableBlock';
 import { v4 as uuidv4 } from 'uuid';
@@ -24,6 +23,7 @@ interface PageEditorProps {
   lastSaved?: number;
   allowTitleEdit?: boolean;
   initialTitle?: string;
+  onTitleChange?: (newTitle: string) => void;
 }
 
 export function PageEditor({ 
@@ -33,9 +33,9 @@ export function PageEditor({
   onBlocksChange,
   lastSaved,
   allowTitleEdit = false,
-  initialTitle = "Untitled"
+  initialTitle = "Untitled",
+  onTitleChange
 }: PageEditorProps) {
-  // Inicializar con un array vacío en lugar de un bloque por defecto
   const [blocks, setBlocks] = useState<Block[]>(initialBlocks || []);
   
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
@@ -47,7 +47,6 @@ export function PageEditor({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleText, setTitleText] = useState(initialTitle);
 
-  // Update title when initialTitle changes (e.g. when navigating between pages)
   useEffect(() => {
     if (initialTitle && initialTitle !== "Untitled") {
       setTitleText(initialTitle);
@@ -57,7 +56,6 @@ export function PageEditor({
   useEffect(() => {
     if (initialBlocks) {
       setBlocks(initialBlocks);
-      // Only use heading1 for title if initialTitle is not provided
       if (!initialTitle || initialTitle === "Untitled") {
         const titleBlock = initialBlocks.find(b => b.type === "heading1");
         if (titleBlock) {
@@ -131,7 +129,6 @@ export function PageEditor({
       content: ""
     };
     
-    // Si no hay bloques, simplemente añade el nuevo bloque
     if (blocks.length === 0) {
       const newBlocks = [newBlock];
       setBlocks(newBlocks);
@@ -140,7 +137,6 @@ export function PageEditor({
         onBlocksChange(newBlocks);
       }
     } else {
-      // Añadir bloque después del bloque especificado
       setBlocks(prev => {
         const index = prev.findIndex(block => block.id === afterId);
         const newBlocks = [
@@ -157,7 +153,6 @@ export function PageEditor({
       });
     }
     
-    // Set the new block as active immediately to focus it
     setTimeout(() => {
       setActiveBlockId(newBlockId);
     }, 10);
@@ -251,7 +246,10 @@ export function PageEditor({
   const handleTitleChange = (newTitle: string) => {
     setTitleText(newTitle);
     
-    // No modificar los bloques existentes al cambiar el título
+    if (onTitleChange) {
+      onTitleChange(newTitle);
+    }
+    
     if (onBlocksChange && blocks.length > 0) {
       onBlocksChange(blocks);
     }
@@ -261,6 +259,8 @@ export function PageEditor({
     setIsEditingTitle(false);
     if (!titleText.trim()) {
       handleTitleChange("Untitled");
+    } else if (titleText !== initialTitle) {
+      handleTitleChange(titleText);
     }
   };
 
@@ -386,7 +386,6 @@ export function PageEditor({
             size="sm"
             onClick={() => {
               if (blocks.length === 0) {
-                // Si no hay bloques, mostrar el menú en una posición predeterminada
                 setBlockMenuPosition({
                   top: 200,
                   left: window.innerWidth / 2 - 100

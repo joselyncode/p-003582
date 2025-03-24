@@ -159,6 +159,14 @@ export function WorkspaceContent() {
     setHasUnsavedChanges(true);
   };
   
+  const handleTitleChange = (newTitle: string) => {
+    if (newTitle && newTitle !== pageTitle) {
+      setPageTitle(newTitle);
+      // Aquí se podría implementar la actualización del título en la base de datos
+      // por ahora solo actualizamos el estado local
+    }
+  };
+  
   const { workspaceName, pagePath } = getPageInfo();
   
   return (
@@ -171,6 +179,7 @@ export function WorkspaceContent() {
         lastSaved={lastSaved}
         allowTitleEdit={true}
         initialTitle={pageTitle}
+        onTitleChange={handleTitleChange}
       />
     </main>
   );

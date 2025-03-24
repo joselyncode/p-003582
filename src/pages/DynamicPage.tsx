@@ -107,6 +107,14 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     }
   };
   
+  const handleTitleChange = (newTitle: string) => {
+    if (newTitle && newTitle !== pageTitle) {
+      setPageTitle(newTitle);
+      // Aquí se podría implementar la actualización del título en la base de datos
+      // por ahora solo actualizamos el estado local
+    }
+  };
+  
   return (
     <WorkspaceLayout
       userName="Usuario"
@@ -123,6 +131,7 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
             lastSaved={lastSaved}
             allowTitleEdit={true}
             initialTitle={pageTitle}
+            onTitleChange={handleTitleChange}
           />
         ) : (
           <div className="flex items-center justify-center h-64">
