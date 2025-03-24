@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { 
   ChevronLeft,
-  MoreHorizontal,
   Star,
   Share,
   MessageSquare,
@@ -197,15 +196,6 @@ export function Header({
           aria-label="Compartir página"
         >
           <Share className="h-4 w-4 text-gray-500" />
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="h-8 w-8"
-          aria-label="Más opciones"
-        >
-          <MoreHorizontal className="h-4 w-4 text-gray-500" />
         </Button>
       </div>
 
