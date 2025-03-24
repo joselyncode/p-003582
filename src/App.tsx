@@ -49,6 +49,7 @@ const App = () => {
               <Route path="/notes/:pageId" element={<DynamicPage section="notes" />} />
               <Route path="/workspace/:pageId" element={<DynamicPage section="workspace" />} />
               <Route path="/personal/:pageId" element={<DynamicPage section="personal" />} />
+              <Route path="/favorite/:pageId" element={<DynamicPage section="favorite" />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </PagesProvider>

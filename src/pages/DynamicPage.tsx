@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
@@ -151,6 +150,6 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
       </div>
     </WorkspaceLayout>
   );
-}
+};
 
 export default DynamicPage;
