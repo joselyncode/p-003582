@@ -34,6 +34,8 @@ type PagesContextType = {
   workspace: Page[];
   personal: Page[];
   isLoading: boolean;
+  loading: boolean;
+  createPage: (name: string, section: "workspace" | "personal" | "notes") => Promise<string | undefined>;
   addPage: (page: Page) => Promise<string | undefined>;
   getPageContent: (pageId: string) => Promise<PageContent | null>;
   updatePageContent: (content: PageContent) => Promise<void>;
@@ -46,6 +48,8 @@ const PagesContext = createContext<PagesContextType>({
   workspace: [],
   personal: [],
   isLoading: true,
+  loading: true,
+  createPage: async () => undefined,
   addPage: async () => undefined,
   getPageContent: async () => null,
   updatePageContent: async () => {},
@@ -58,6 +62,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
   const [workspace, setWorkspace] = useState<Page[]>([]);
   const [personal, setPersonal] = useState<Page[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [pagesMap, setPagesMap] = useState<Map<string, string>>(new Map());
   const { toast } = useToast();
 
@@ -65,6 +70,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     const fetchPages = async () => {
       try {
         setIsLoading(true);
+        setLoading(true);
         const { data, error } = await supabase
           .from('pages')
           .select('*');
@@ -113,11 +119,33 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         });
       } finally {
         setIsLoading(false);
+        setLoading(false);
       }
     };
 
     fetchPages();
   }, [toast]);
+
+  const createPage = async (name: string, section: "workspace" | "personal" | "notes"): Promise<string | undefined> => {
+    try {
+      const path = `/${section}/${name.toLowerCase().replace(/\s+/g, '-')}`;
+      
+      return await addPage({
+        name,
+        icon: 'FileText',
+        path,
+        section
+      });
+    } catch (error) {
+      console.error("Error creating page:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear la página",
+        variant: "destructive",
+      });
+      return undefined;
+    }
+  };
 
   const addPage = async (page: Page): Promise<string | undefined> => {
     try {
@@ -261,6 +289,8 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         workspace, 
         personal, 
         isLoading,
+        loading,
+        createPage,
         addPage, 
         getPageContent, 
         updatePageContent,

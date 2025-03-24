@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -13,11 +12,13 @@ import { usePages, PageSection } from "@/context/PagesContext";
 interface NewPageModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreate?: (name: string) => Promise<void>;
+  defaultSection?: PageSection;
 }
 
-export function NewPageModal({ open, onOpenChange }: NewPageModalProps) {
+export function NewPageModal({ open, onOpenChange, onCreate, defaultSection = "notes" }: NewPageModalProps) {
   const [pageName, setPageName] = useState("");
-  const [pageType, setPageType] = useState<PageSection>("notes");
+  const [pageType, setPageType] = useState<PageSection>(defaultSection);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -38,21 +39,22 @@ export function NewPageModal({ open, onOpenChange }: NewPageModalProps) {
     setIsSubmitting(true);
 
     try {
-      // Create path for the new page based on its name
-      const path = `/${pageType}/${pageName.toLowerCase().replace(/\s+/g, '-')}`;
-      
-      // Add the new page to our context (and database)
-      const newPageId = await addPage({
-        name: pageName,
-        icon: "FileText",
-        path,
-        section: pageType
-      });
+      if (onCreate) {
+        await onCreate(pageName);
+      } else {
+        const path = `/${pageType}/${pageName.toLowerCase().replace(/\s+/g, '-')}`;
+        
+        const newPageId = await addPage({
+          name: pageName,
+          icon: "FileText",
+          path,
+          section: pageType
+        });
 
-      if (newPageId) {
-        // Close modal and navigate
-        onOpenChange(false);
-        navigate(path);
+        if (newPageId) {
+          onOpenChange(false);
+          navigate(path);
+        }
       }
     } catch (error) {
       console.error("Error creating page:", error);
