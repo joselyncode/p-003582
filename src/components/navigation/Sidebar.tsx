@@ -5,16 +5,24 @@ import { SearchBar } from "../ui/SearchBar";
 import { SettingsModal } from "../layout/SettingsModal";
 import { NewPageModal } from "../layout/NewPageModal";
 import { DeletePageDialog } from "../layout/DeletePageDialog";
-import { Home, FileText, Star, Users, Settings, Plus, Trash2, MoreVertical, ChevronLeft, ChevronRight, Folder } from "lucide-react";
+import { 
+  Home, 
+  FileText, 
+  Settings, 
+  Plus, 
+  Trash2, 
+  ChevronLeft, 
+  ChevronRight, 
+  Star,
+  Calendar,
+  Database,
+  Folder,
+  LayoutDashboard
+} from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
 import { useToast } from "@/hooks/use-toast";
 import { usePages } from "@/context/PagesContext";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger, 
-} from "@/components/ui/popover";
 
 interface SidebarProps {
   userName?: string;
@@ -33,7 +41,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
   const { toast } = useToast();
   const { favorites, workspace, personal, createPage, deletePage } = usePages();
 
-  // Lista de secciones y páginas fijas
+  // Lista de secciones y páginas fijas con iconos mejorados
   const defaultFavorites = [
     { name: "Inicio", icon: Home, path: "/" },
     { name: "Documentación", icon: FileText, path: "/docs" },
@@ -100,14 +108,28 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
     );
   };
 
-  const filteredFavorites = filterItems([...defaultFavorites, ...favorites]);
-  const filteredWorkspace = filterItems(workspace);
-  const filteredPersonal = filterItems(personal);
+  // Verificamos las páginas duplicadas y removemos duplicados del mismo nombre
+  const uniqueFavorites = [...new Map(favorites.map(item => [item.name, item])).values()];
+  const uniqueWorkspace = [...new Map(workspace.map(item => [item.name, item])).values()];
+  const uniquePersonal = [...new Map(personal.map(item => [item.name, item])).values()];
+
+  const filteredFavorites = filterItems([...defaultFavorites, ...uniqueFavorites]);
+  const filteredWorkspace = filterItems(uniqueWorkspace);
+  const filteredPersonal = filterItems(uniquePersonal);
 
   // Determinar si una sección debe mostrarse (si hay elementos filtrados)
   const showFavorites = filteredFavorites.length > 0;
   const showWorkspace = filteredWorkspace.length > 0;
   const showPersonal = filteredPersonal.length > 0;
+
+  // Iconos para elementos del workspace
+  const getWorkspaceIcon = (name) => {
+    const lowerName = name.toLowerCase();
+    if (lowerName.includes('calendar') || lowerName.includes('calendario')) return Calendar;
+    if (lowerName.includes('database') || lowerName.includes('database') || lowerName.includes('datos')) return Database;
+    if (lowerName.includes('document') || lowerName.includes('documento')) return FileText;
+    return FileText;
+  };
 
   // Renderizar un elemento de página con opción de eliminar
   const renderPageItem = (item, index, canDelete = true) => (
@@ -140,17 +162,37 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
     </li>
   );
 
+  const renderFavoriteItem = (item, index) => (
+    <li key={index} className="group relative">
+      <Link
+        to={item.path}
+        className="flex items-center rounded-md px-3 py-2 text-gray-700 hover:bg-gray-200"
+      >
+        {item.name.toLowerCase() === "inicio" ? (
+          <Home className="h-4 w-4 mr-3 text-gray-500" />
+        ) : item.name.toLowerCase().includes("document") || item.name.toLowerCase().includes("documentación") ? (
+          <FileText className="h-4 w-4 mr-3 text-gray-500" />
+        ) : item.name.toLowerCase().includes("config") || item.name.toLowerCase().includes("configuración") ? (
+          <Settings className="h-4 w-4 mr-3 text-gray-500" />
+        ) : (
+          <Star className="h-4 w-4 mr-3 text-gray-500" />
+        )}
+        <span className="truncate">{item.name}</span>
+      </Link>
+    </li>
+  );
+
   // Función para toggle el estado del sidebar
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
   return (
-    <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} h-full bg-gray-100 border-r border-gray-200 flex flex-col transition-all duration-300`}>
-      {/* Botón para colapsar/expandir el sidebar */}
+    <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} h-full bg-gray-100 border-r border-gray-200 flex flex-col transition-all duration-300 relative`}>
+      {/* Botón para colapsar/expandir el sidebar - hacemos que sea más visible */}
       <button
         onClick={toggleSidebar}
-        className="absolute right-0 top-20 transform translate-x-1/2 bg-white p-1.5 rounded-full shadow-md text-gray-500 hover:text-gray-800 z-10"
+        className="absolute right-0 top-16 transform translate-x-1/2 bg-white p-1.5 rounded-full shadow-md text-gray-500 hover:text-gray-800 z-10 border border-gray-200"
         aria-label={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
       >
         {sidebarCollapsed ? (
@@ -164,7 +206,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
       <div className={`p-4 ${sidebarCollapsed ? 'flex flex-col items-center' : ''}`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
-            <Folder className="h-5 w-5 text-gray-700 mr-2" />
+            <LayoutDashboard className="h-5 w-5 text-blue-600 mr-2" />
             {!sidebarCollapsed && <h1 className="text-xl font-bold">Workspace</h1>}
           </div>
         </div>
@@ -181,7 +223,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
             </h2>
             <ul>
               {filteredFavorites.map((item, index) => 
-                renderPageItem(item, index, item.id != null)
+                renderFavoriteItem(item, index)
               )}
             </ul>
           </div>
@@ -197,10 +239,14 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
                 className="p-2 rounded-md text-gray-700 hover:bg-gray-200 tooltip-wrapper"
                 title={item.name}
               >
-                {item.icon && typeof item.icon === 'function' ? (
-                  <item.icon className="h-5 w-5 text-gray-600" />
-                ) : (
+                {item.name.toLowerCase() === "inicio" ? (
+                  <Home className="h-5 w-5 text-gray-600" />
+                ) : item.name.toLowerCase().includes("document") || item.name.toLowerCase().includes("documentación") ? (
                   <FileText className="h-5 w-5 text-gray-600" />
+                ) : item.name.toLowerCase().includes("config") || item.name.toLowerCase().includes("configuración") ? (
+                  <Settings className="h-5 w-5 text-gray-600" />
+                ) : (
+                  <Star className="h-5 w-5 text-gray-600" />
                 )}
               </Link>
             ))}
@@ -223,9 +269,34 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
               </button>
             </div>
             <ul>
-              {filteredWorkspace.map((item, index) => 
-                renderPageItem(item, index)
-              )}
+              {filteredWorkspace.map((item, index) => {
+                const Icon = getWorkspaceIcon(item.name);
+                return (
+                  <li key={index} className="group relative">
+                    <Link
+                      to={item.path}
+                      className="flex items-center rounded-md px-3 py-2 text-gray-700 hover:bg-gray-200"
+                    >
+                      <Icon className="h-4 w-4 mr-3 text-gray-500" />
+                      <span className="truncate">{item.name}</span>
+                    </Link>
+                    
+                    {item.id && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleDeleteClick(item);
+                        }}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-md text-gray-400 hover:text-red-500 hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label={`Eliminar ${item.name}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
@@ -243,16 +314,19 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
                 <Plus className="h-4 w-4" />
               </button>
             </div>
-            {filteredWorkspace.map((item, index) => (
-              <Link
-                key={index}
-                to={item.path}
-                className="p-2 rounded-md text-gray-700 hover:bg-gray-200 tooltip-wrapper"
-                title={item.name}
-              >
-                <FileText className="h-5 w-5 text-gray-600" />
-              </Link>
-            ))}
+            {filteredWorkspace.map((item, index) => {
+              const Icon = getWorkspaceIcon(item.name);
+              return (
+                <Link
+                  key={index}
+                  to={item.path}
+                  className="p-2 rounded-md text-gray-700 hover:bg-gray-200 tooltip-wrapper"
+                  title={item.name}
+                >
+                  <Icon className="h-5 w-5 text-gray-600" />
+                </Link>
+              );
+            })}
           </div>
         )}
 
