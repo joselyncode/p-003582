@@ -49,7 +49,6 @@ export interface SortableBlockProps {
   onDuplicate?: (id: string) => void;
 }
 
-// Background color options
 const bgColorOptions = [
   { label: "Default", value: "bg-transparent" },
   { label: "Gray", value: "bg-gray-100" },
@@ -306,7 +305,7 @@ export function SortableBlock({
                       onUpdate(block.id, isChecked ? `[x]${cleanText}` : cleanText);
                     }}
                     onKeyDown={handleKeyDown}
-                    className={isChecked ? "text-decoration-line-through text-gray-500" : ""}
+                    className={isChecked ? "line-through underline text-gray-500" : ""}
                   >
                     {block.content ? block.content.replace(/^\[x\]/, '').trim() : ''}
                   </div>

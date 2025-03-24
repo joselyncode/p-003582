@@ -1,3 +1,4 @@
+
 import React from "react";
 
 interface ChecklistItemProps {
@@ -28,7 +29,9 @@ export function ChecklistItem({
         checked={isChecked}
         onChange={handleChange}
       />
-      <span className="text-base text-gray-700">{label}</span>
+      <span className={`text-base text-gray-700 ${isChecked ? "line-through underline" : ""}`}>
+        {label}
+      </span>
     </div>
   );
 }
