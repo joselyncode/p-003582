@@ -4,13 +4,25 @@ import {
   MessageSquare, 
   User, 
   Send, 
-  X 
+  X,
+  Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Comment {
   id: string;
@@ -32,6 +44,8 @@ export function CommentsPanel({ pageId, onClose }: CommentsPanelProps) {
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState<Comment[]>([]);
   const userName = "Joselyn Monge"; // Default user name
+  const { toast } = useToast();
+  const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
   
   // Use LocalStorage to persist comments
   const [savedComments, setSavedComments] = useLocalStorage<CommentsData>("notion-comments", {});
@@ -65,6 +79,30 @@ export function CommentsPanel({ pageId, onClose }: CommentsPanelProps) {
     setNewComment("");
   };
 
+  const deleteComment = (commentId: string) => {
+    setCommentToDelete(commentId);
+  };
+
+  const confirmDelete = () => {
+    if (!commentToDelete) return;
+    
+    const updatedComments = comments.filter(comment => comment.id !== commentToDelete);
+    setComments(updatedComments);
+    
+    // Save to localStorage
+    setSavedComments({
+      ...savedComments,
+      [pageId]: updatedComments
+    });
+    
+    toast({
+      title: "Comentario eliminado",
+      description: "El comentario se ha eliminado correctamente",
+    });
+    
+    setCommentToDelete(null);
+  };
+
   const formatCommentDate = (timestamp: number) => {
     return format(timestamp, "d MMM 'a las' HH:mm", { locale: es });
   };
@@ -96,14 +134,24 @@ export function CommentsPanel({ pageId, onClose }: CommentsPanelProps) {
         ) : (
           comments.map((comment) => (
             <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
-              <div className="flex items-center mb-2">
-                <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-2">
-                  <User className="h-4 w-4 text-gray-500" />
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-2">
+                    <User className="h-4 w-4 text-gray-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{comment.author}</p>
+                    <p className="text-xs text-gray-500">{formatCommentDate(comment.createdAt)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium">{comment.author}</p>
-                  <p className="text-xs text-gray-500">{formatCommentDate(comment.createdAt)}</p>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => deleteComment(comment.id)}
+                  className="text-gray-400 hover:text-red-500"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
               <p className="text-sm">{comment.text}</p>
             </div>
@@ -129,6 +177,24 @@ export function CommentsPanel({ pageId, onClose }: CommentsPanelProps) {
           </Button>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!commentToDelete} onOpenChange={(open) => !open && setCommentToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción eliminará permanentemente el comentario y no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-500 hover:bg-red-600">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
