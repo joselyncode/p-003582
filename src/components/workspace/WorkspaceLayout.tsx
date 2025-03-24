@@ -59,15 +59,15 @@ export function WorkspaceLayout({
             {children}
           </main>
         </div>
-      </div>
 
-      {/* Comments panel - conditionally rendered */}
-      {commentsOpen && pageId !== "default-page" && (
-        <CommentsPanel 
-          pageId={pageId} 
-          onClose={() => setCommentsOpen(false)} 
-        />
-      )}
+        {/* Comments panel - conditionally rendered */}
+        {commentsOpen && (
+          <CommentsPanel 
+            pageId={pageId} 
+            onClose={() => setCommentsOpen(false)} 
+          />
+        )}
+      </div>
     </div>
   );
 }

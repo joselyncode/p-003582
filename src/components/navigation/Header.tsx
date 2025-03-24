@@ -170,7 +170,6 @@ export function Header({
           onClick={handleShowComments}
           className={`h-8 w-8 ${commentsOpen ? 'bg-gray-100' : ''}`}
           aria-label="Mostrar comentarios"
-          data-comments-toggle
         >
           <MessageSquare className={`h-4 w-4 ${commentsOpen ? 'text-blue-500' : 'text-gray-500'}`} />
         </Button>
