@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { SortableBlock } from './blocks/SortableBlock';
 import { v4 as uuidv4 } from 'uuid';
@@ -46,17 +47,23 @@ export function PageEditor({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleText, setTitleText] = useState(initialTitle);
 
+  // Update title when initialTitle changes (e.g. when navigating between pages)
+  useEffect(() => {
+    if (initialTitle && initialTitle !== "Untitled") {
+      setTitleText(initialTitle);
+    }
+  }, [initialTitle]);
+
   useEffect(() => {
     if (initialBlocks) {
       setBlocks(initialBlocks);
-      const titleBlock = initialBlocks.find(b => b.type === "heading1");
-      if (titleBlock) {
-        setTitleText(titleBlock.content || initialTitle);
-      } else {
-        setTitleText(initialTitle);
+      // Only use heading1 for title if initialTitle is not provided
+      if (!initialTitle || initialTitle === "Untitled") {
+        const titleBlock = initialBlocks.find(b => b.type === "heading1");
+        if (titleBlock) {
+          setTitleText(titleBlock.content || "Untitled");
+        }
       }
-    } else {
-      setTitleText(initialTitle);
     }
   }, [initialBlocks, initialTitle]);
 

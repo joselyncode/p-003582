@@ -20,6 +20,7 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
   const [pageContent, setPageContent] = useState<PageContent | null>(null);
   const [blocks, setBlocks] = useState<Block[] | undefined>(undefined);
   const [lastSaved, setLastSaved] = useState<number | undefined>(undefined);
+  const [currentPage, setCurrentPage] = useState<any>(null);
   
   // Buscar la página en las diferentes secciones
   useEffect(() => {
@@ -28,9 +29,9 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     
     // Buscar la página actual por URL
     const currentPath = `/${section}/${pageId}`;
-    const currentPage = allPages.find(page => page.path === currentPath);
+    const foundPage = allPages.find(page => page.path === currentPath);
     
-    if (!currentPage) {
+    if (!foundPage) {
       toast({
         title: "Error",
         description: `No se encontró la página en la ruta ${currentPath}`,
@@ -40,12 +41,13 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
       return;
     }
     
-    setPageTitle(currentPage.name);
+    setPageTitle(foundPage.name);
+    setCurrentPage(foundPage);
     
     // Buscar el contenido de la página
-    if (currentPage.id) {
+    if (foundPage.id) {
       const fetchPageContent = async () => {
-        const content = await getPageContent(currentPage.id!);
+        const content = await getPageContent(foundPage.id!);
         if (content) {
           setPageContent(content);
           setBlocks(content.blocks);
@@ -78,7 +80,7 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     }
   };
   
-  // Determinar la sección para la ruta de migas de pan
+  // Determinar el nombre correcto para la migas de pan
   const getSectionName = () => {
     switch (section) {
       case "notes":
@@ -92,20 +94,35 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     }
   };
   
+  // Determinar el nombre del espacio de trabajo basado en la sección
+  const getWorkspaceName = () => {
+    switch (section) {
+      case "notes":
+      case "personal":
+        return "Mi Workspace";
+      case "workspace":
+        return "Workspace";
+      default:
+        return "Mi Workspace";
+    }
+  };
+  
   return (
     <WorkspaceLayout
       userName="Usuario"
       currentPath={[getSectionName(), pageTitle]}
+      pageId={currentPage?.id}
     >
       <div className="max-w-4xl w-full mx-auto px-4 sm:px-6 py-4">
         {blocks ? (
           <PageEditor
-            workspaceName="Second brain"
+            workspaceName={getWorkspaceName()}
             pagePath={[getSectionName(), pageTitle]}
             blocks={blocks}
             onBlocksChange={handleBlocksChange}
             lastSaved={lastSaved}
             allowTitleEdit={true}
+            initialTitle={pageTitle}
           />
         ) : (
           <div className="flex items-center justify-center h-64">

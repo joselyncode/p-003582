@@ -19,37 +19,37 @@ export function WorkspaceContent() {
     if (path === "/") {
       return {
         workspaceName: "Mi Workspace",
-        pagePath: []
+        pagePath: ["Inicio"]
       };
     } else if (path === "/workspace") {
       return {
         workspaceName: "Mi Workspace",
-        pagePath: []
+        pagePath: ["Workspace"]
       };
     } else if (path === "/docs") {
       return {
-        workspaceName: "Second brain",
-        pagePath: ["Base de datos: tareas Buo"]
+        workspaceName: "Mi Workspace",
+        pagePath: ["Documentación"]
       };
     } else if (path === "/notes") {
       return {
-        workspaceName: "Second brain",
-        pagePath: ["Base de datos: tareas Buo"]
+        workspaceName: "Mi Workspace",
+        pagePath: ["Notas"]
       };
     } else if (path === "/personal") {
       return {
-        workspaceName: "Second brain",
-        pagePath: ["Proyectos personales"]
+        workspaceName: "Mi Workspace",
+        pagePath: ["Personal"]
       };
     } else if (path === "/todos") {
       return {
-        workspaceName: "Second brain",
-        pagePath: ["Base de datos: tareas Buo"]
+        workspaceName: "Mi Workspace",
+        pagePath: ["Tareas"]
       };
     } else {
       return {
         workspaceName: "Mi Workspace",
-        pagePath: []
+        pagePath: ["Página"]
       };
     }
   };

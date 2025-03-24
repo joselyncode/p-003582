@@ -17,7 +17,7 @@ export function useSettings() {
 
   const updateSettings = (newSettings: Partial<UserSettings>) => {
     // Ensure we're updating with the latest state
-    setSettings(prevSettings => ({
+    setSettings((prevSettings: UserSettings) => ({
       ...prevSettings,
       ...newSettings
     }));
