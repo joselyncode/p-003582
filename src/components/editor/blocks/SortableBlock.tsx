@@ -197,22 +197,6 @@ export function SortableBlock({
               <span>Delete</span>
             </DropdownMenuItem>
             
-            {isTableBlock && (
-              <>
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem onClick={handleInsertAbove}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  <span>Insert above</span>
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem onClick={handleInsertBelow}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  <span>Insert below</span>
-                </DropdownMenuItem>
-              </>
-            )}
-            
             <DropdownMenuSeparator />
             
             <DropdownMenuSub>
@@ -365,22 +349,6 @@ export function SortableBlock({
             <Trash2 className="mr-2 h-4 w-4" />
             <span>Delete</span>
           </ContextMenuItem>
-          
-          {isTableBlock && (
-            <>
-              <ContextMenuSeparator />
-              
-              <ContextMenuItem onClick={handleInsertAbove}>
-                <Plus className="mr-2 h-4 w-4" />
-                <span>Insert above</span>
-              </ContextMenuItem>
-              
-              <ContextMenuItem onClick={handleInsertBelow}>
-                <Plus className="mr-2 h-4 w-4" />
-                <span>Insert below</span>
-              </ContextMenuItem>
-            </>
-          )}
           
           <ContextMenuSeparator />
           
