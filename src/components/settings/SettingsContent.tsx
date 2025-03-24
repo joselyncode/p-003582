@@ -3,6 +3,7 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   User, 
   Mail, 
@@ -10,34 +11,99 @@ import {
   Bell, 
   Palette, 
   Users, 
-  Globe 
+  Globe,
+  Moon,
+  Sun,
+  Monitor,
+  Upload
 } from "lucide-react";
+import { useSettings } from "@/hooks/use-settings";
+import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export function SettingsContent() {
+  const { settings, updateSettings } = useSettings();
+  const { toast } = useToast();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Por favor selecciona un archivo de imagen válido.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validar tamaño (máximo 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "La imagen debe ser menor a 2MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Convertir a base64
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64Image = event.target?.result as string;
+      updateSettings({ userAvatar: base64Image });
+      
+      toast({
+        title: "Avatar actualizado",
+        description: "Tu imagen de perfil ha sido actualizada correctamente.",
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleThemeChange = (theme: 'light' | 'dark' | 'system') => {
+    updateSettings({ theme });
+    toast({
+      title: "Tema actualizado",
+      description: `El tema ha sido cambiado a: ${
+        theme === 'light' ? 'Claro' : 
+        theme === 'dark' ? 'Oscuro' : 
+        'Sistema'
+      }`,
+    });
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-8 py-6">
       <h1 className="text-2xl font-bold mb-6">Configuración</h1>
 
-      <div className="grid grid-cols-[200px_1fr] gap-8">
+      <div className="grid grid-cols-[200px_1fr] gap-8 max-sm:grid-cols-1">
         {/* Sidebar de navegación */}
         <div className="space-y-1">
-          <button className="flex items-center gap-2 text-gray-800 bg-gray-100 w-full rounded-md px-3 py-2 text-sm font-medium text-left">
+          <button className="flex items-center gap-2 text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 w-full rounded-md px-3 py-2 text-sm font-medium text-left">
             <User className="h-4 w-4" />
             <span>Mi cuenta</span>
           </button>
-          <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-100 w-full rounded-md px-3 py-2 text-sm text-left">
+          <button className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 w-full rounded-md px-3 py-2 text-sm text-left">
             <Bell className="h-4 w-4" />
             <span>Notificaciones</span>
           </button>
-          <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-100 w-full rounded-md px-3 py-2 text-sm text-left">
+          <button className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 w-full rounded-md px-3 py-2 text-sm text-left">
             <Palette className="h-4 w-4" />
             <span>Apariencia</span>
           </button>
-          <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-100 w-full rounded-md px-3 py-2 text-sm text-left">
+          <button className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 w-full rounded-md px-3 py-2 text-sm text-left">
             <Users className="h-4 w-4" />
             <span>Miembros</span>
           </button>
-          <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-100 w-full rounded-md px-3 py-2 text-sm text-left">
+          <button className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 w-full rounded-md px-3 py-2 text-sm text-left">
             <Globe className="h-4 w-4" />
             <span>Integraciónes</span>
           </button>
@@ -45,16 +111,54 @@ export function SettingsContent() {
 
         {/* Contenido de configuración */}
         <div className="space-y-6">
-          <div className="p-6 bg-white rounded-lg border border-gray-200">
+          <div className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-medium mb-4">Información personal</h2>
             
             <div className="space-y-4">
+              {/* Avatar upload */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <Avatar 
+                  className="h-16 w-16 cursor-pointer" 
+                  onClick={handleAvatarClick}
+                >
+                  {settings.userAvatar ? (
+                    <AvatarImage src={settings.userAvatar} alt={settings.userName} />
+                  ) : (
+                    <AvatarFallback className="bg-gray-100 dark:bg-gray-700">
+                      {settings.userName?.charAt(0)?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <input 
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
+                <div>
+                  <h3 className="text-sm font-medium">Foto de perfil</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    JPG, GIF o PNG. Máximo 2MB.
+                  </p>
+                  <Button 
+                    onClick={handleAvatarClick} 
+                    variant="outline" 
+                    size="sm"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Cambiar
+                  </Button>
+                </div>
+              </div>
+              
               <div className="grid gap-1.5">
                 <Label htmlFor="name">Nombre completo</Label>
                 <Input 
                   id="name" 
-                  defaultValue="Joselyn Monge" 
+                  defaultValue={settings.userName} 
                   className="max-w-md"
+                  onChange={(e) => updateSettings({ userName: e.target.value })}
                 />
               </div>
               
@@ -63,26 +167,69 @@ export function SettingsContent() {
                 <Input 
                   id="email" 
                   type="email" 
-                  defaultValue="joselyn@ejemplo.com" 
+                  defaultValue={settings.userEmail} 
                   className="max-w-md"
+                  onChange={(e) => updateSettings({ userEmail: e.target.value })}
                 />
-              </div>
-              
-              <div className="grid gap-1.5">
-                <Label htmlFor="avatar">Foto de perfil</Label>
-                <div className="flex items-center gap-4">
-                  <img 
-                    src="/images/female-avatar.svg" 
-                    alt="Avatar" 
-                    className="w-12 h-12 rounded-full" 
-                  />
-                  <Button variant="outline" size="sm">Cambiar</Button>
-                </div>
               </div>
             </div>
           </div>
 
-          <div className="p-6 bg-white rounded-lg border border-gray-200">
+          <div className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-medium mb-4">Preferencias</h2>
+            
+            <div className="space-y-4">
+              {/* Tema */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  Tema
+                </Label>
+                <RadioGroup 
+                  value={settings.theme} 
+                  onValueChange={handleThemeChange}
+                  className="flex flex-col space-y-1"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="light" id="settings-theme-light" />
+                    <Label htmlFor="settings-theme-light" className="flex items-center">
+                      <Sun className="h-4 w-4 mr-2" />
+                      Claro
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="dark" id="settings-theme-dark" />
+                    <Label htmlFor="settings-theme-dark" className="flex items-center">
+                      <Moon className="h-4 w-4 mr-2" />
+                      Oscuro
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="system" id="settings-theme-system" />
+                    <Label htmlFor="settings-theme-system" className="flex items-center">
+                      <Monitor className="h-4 w-4 mr-2" />
+                      Sistema
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* Idioma */}
+              <div className="grid gap-2 max-w-md">
+                <Label htmlFor="settings-language">Idioma</Label>
+                <select 
+                  id="settings-language" 
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring dark:bg-gray-700 dark:border-gray-600"
+                  value={settings.language}
+                  onChange={(e) => updateSettings({ language: e.target.value })}
+                >
+                  <option value="es">Español</option>
+                  <option value="en">Inglés</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-medium mb-4">Contraseña</h2>
             
             <div className="space-y-4">

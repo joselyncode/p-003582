@@ -7,7 +7,7 @@ import { useSettings } from "@/hooks/use-settings";
 
 const Settings = () => {
   const { settings } = useSettings();
-  const userAvatar = "/images/female-avatar.svg";
+  const userAvatar = settings.userAvatar || "/images/female-avatar.svg";
   const currentPath = ["Configuración"];
 
   return (
