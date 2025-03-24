@@ -156,92 +156,95 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
           </TooltipContent>
         </Tooltip>
 
-        <Popover>
+        <Tooltip>
           <TooltipTrigger asChild>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded">
-                <Palette className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded">
+                  <Palette className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-2" side="bottom">
+                <div className="grid gap-2">
+                  <h4 className="font-medium text-sm">Text color</h4>
+                  <div className="grid grid-cols-3 gap-1">
+                    {colorOptions.map((color) => (
+                      <Button 
+                        key={`text-${color.name}`}
+                        variant="ghost" 
+                        className="h-7 px-2 justify-start"
+                        onClick={() => handleColorSelect('text', color.textColor)}
+                      >
+                        <div className={`w-4 h-4 mr-2 rounded-full ${color.textColor} flex items-center justify-center`}>
+                          <span className="text-xs">A</span>
+                        </div>
+                        <span className="text-xs">{color.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+                  
+                  <h4 className="font-medium text-sm mt-2">Background color</h4>
+                  <div className="grid grid-cols-3 gap-1">
+                    {colorOptions.map((color) => (
+                      <Button 
+                        key={`bg-${color.name}`}
+                        variant="ghost" 
+                        className="h-7 px-2 justify-start"
+                        onClick={() => handleColorSelect('background', color.bgColor)}
+                      >
+                        <div className={`w-4 h-4 mr-2 rounded-full ${color.bgColor} border border-gray-200`}></div>
+                        <span className="text-xs">{color.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </TooltipTrigger>
-          <PopoverContent className="w-56 p-2" side="bottom">
-            <div className="grid gap-2">
-              <h4 className="font-medium text-sm">Text color</h4>
-              <div className="grid grid-cols-3 gap-1">
-                {colorOptions.map((color) => (
-                  <Button 
-                    key={`text-${color.name}`}
-                    variant="ghost" 
-                    className="h-7 px-2 justify-start"
-                    onClick={() => handleColorSelect('text', color.textColor)}
-                  >
-                    <div className={`w-4 h-4 mr-2 rounded-full ${color.textColor} flex items-center justify-center`}>
-                      <span className="text-xs">A</span>
-                    </div>
-                    <span className="text-xs">{color.name}</span>
-                  </Button>
-                ))}
-              </div>
-              
-              <h4 className="font-medium text-sm mt-2">Background color</h4>
-              <div className="grid grid-cols-3 gap-1">
-                {colorOptions.map((color) => (
-                  <Button 
-                    key={`bg-${color.name}`}
-                    variant="ghost" 
-                    className="h-7 px-2 justify-start"
-                    onClick={() => handleColorSelect('background', color.bgColor)}
-                  >
-                    <div className={`w-4 h-4 mr-2 rounded-full ${color.bgColor} border border-gray-200`}></div>
-                    <span className="text-xs">{color.name}</span>
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+          <TooltipContent>
+            <p>Format color</p>
+          </TooltipContent>
+        </Tooltip>
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <div>
-              {showLinkInput ? (
-                <div className="flex items-center bg-gray-100 rounded px-2">
-                  <input
-                    type="text" 
-                    value={linkInput}
-                    onChange={(e) => setLinkInput(e.target.value)}
-                    placeholder="Enter URL..."
-                    className="bg-transparent border-none outline-none text-sm py-1 w-32"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleAddLink();
-                      } else if (e.key === 'Escape') {
-                        setShowLinkInput(false);
-                        setLinkInput("");
-                      }
-                    }}
-                    autoFocus
-                  />
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleAddLink}
-                    className="h-6 px-1"
-                  >
-                    Add
-                  </Button>
-                </div>
-              ) : (
+            {showLinkInput ? (
+              <div className="flex items-center bg-gray-100 rounded px-2">
+                <input
+                  type="text" 
+                  value={linkInput}
+                  onChange={(e) => setLinkInput(e.target.value)}
+                  placeholder="Enter URL..."
+                  className="bg-transparent border-none outline-none text-sm py-1 w-32"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddLink();
+                    } else if (e.key === 'Escape') {
+                      setShowLinkInput(false);
+                      setLinkInput("");
+                    }
+                  }}
+                  autoFocus
+                />
                 <Button 
                   variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 rounded" 
+                  size="sm" 
                   onClick={handleAddLink}
+                  className="h-6 px-1"
                 >
-                  <Link className="h-4 w-4" />
+                  Add
                 </Button>
-              )}
-            </div>
+              </div>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 rounded" 
+                onClick={handleAddLink}
+              >
+                <Link className="h-4 w-4" />
+              </Button>
+            )}
           </TooltipTrigger>
           <TooltipContent>
             <p>Add link</p>
