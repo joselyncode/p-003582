@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,23 +71,23 @@ export function SettingsContent() {
       <div className="grid grid-cols-[200px_1fr] gap-8 max-sm:grid-cols-1">
         {/* Sidebar de navegación */}
         <div className="space-y-1">
-          <button className="flex items-center gap-2 text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 w-full rounded-md px-3 py-2 text-sm font-medium text-left">
+          <button className="flex items-center gap-2 text-gray-800 bg-gray-100 w-full rounded-md px-3 py-2 text-sm font-medium text-left">
             <User className="h-4 w-4" />
             <span>Mi cuenta</span>
           </button>
-          <button className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 w-full rounded-md px-3 py-2 text-sm text-left">
+          <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-100 w-full rounded-md px-3 py-2 text-sm text-left">
             <Bell className="h-4 w-4" />
             <span>Notificaciones</span>
           </button>
-          <button className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 w-full rounded-md px-3 py-2 text-sm text-left">
+          <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-100 w-full rounded-md px-3 py-2 text-sm text-left">
             <Palette className="h-4 w-4" />
             <span>Apariencia</span>
           </button>
-          <button className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 w-full rounded-md px-3 py-2 text-sm text-left">
+          <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-100 w-full rounded-md px-3 py-2 text-sm text-left">
             <Users className="h-4 w-4" />
             <span>Miembros</span>
           </button>
-          <button className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 w-full rounded-md px-3 py-2 text-sm text-left">
+          <button className="flex items-center gap-2 text-gray-600 hover:bg-gray-100 w-full rounded-md px-3 py-2 text-sm text-left">
             <Globe className="h-4 w-4" />
             <span>Integraciónes</span>
           </button>
@@ -94,7 +95,7 @@ export function SettingsContent() {
 
         {/* Contenido de configuración */}
         <div className="space-y-6">
-          <div className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="p-6 bg-white rounded-lg border border-gray-200">
             <h2 className="text-lg font-medium mb-4">Información personal</h2>
             
             <div className="space-y-4">
@@ -107,7 +108,7 @@ export function SettingsContent() {
                   {settings.userAvatar ? (
                     <AvatarImage src={settings.userAvatar} alt={settings.userName} />
                   ) : (
-                    <AvatarFallback className="bg-gray-100 dark:bg-gray-700">
+                    <AvatarFallback className="bg-gray-100">
                       <User className="h-8 w-8 text-gray-400" />
                     </AvatarFallback>
                   )}
@@ -121,7 +122,7 @@ export function SettingsContent() {
                 />
                 <div>
                   <h3 className="text-sm font-medium">Foto de perfil</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  <p className="text-xs text-gray-500 mb-2">
                     JPG, GIF o PNG. Máximo 2MB.
                   </p>
                   <Button 
@@ -158,7 +159,7 @@ export function SettingsContent() {
             </div>
           </div>
 
-          <div className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="p-6 bg-white rounded-lg border border-gray-200">
             <h2 className="text-lg font-medium mb-4">Preferencias</h2>
             
             <div className="space-y-4">
@@ -167,7 +168,7 @@ export function SettingsContent() {
                 <Label htmlFor="settings-language">Idioma</Label>
                 <select 
                   id="settings-language" 
-                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring dark:bg-gray-700 dark:border-gray-600"
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   value={settings.language}
                   onChange={(e) => updateSettings({ language: e.target.value })}
                 >
@@ -178,7 +179,7 @@ export function SettingsContent() {
             </div>
           </div>
 
-          <div className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="p-6 bg-white rounded-lg border border-gray-200">
             <h2 className="text-lg font-medium mb-4">Contraseña</h2>
             
             <div className="space-y-4">

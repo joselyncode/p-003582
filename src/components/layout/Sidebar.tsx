@@ -1,14 +1,15 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { SearchBar } from "../ui/SearchBar";
 import { SettingsModal } from "./SettingsModal";
 import { NewPageModal } from "./NewPageModal";
 import { DeletePageDialog } from "./DeletePageDialog";
-import { Home, FileText, Star, Users, Settings, Plus, Trash2 } from "lucide-react";
+import { Home, FileText, Star, Users, Settings, Plus, Trash2, User } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
 import { useToast } from "@/hooks/use-toast";
 import { usePages } from "@/context/PagesContext";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface SidebarProps {
   userName?: string;
@@ -206,19 +207,24 @@ export function Sidebar({ userAvatar }: SidebarProps) {
             </ul>
           </div>
         )}
-
-        {/* Se elimina el botón "Nueva página" del fondo */}
       </nav>
 
       {/* Perfil de usuario */}
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center">
-          <img
-            src={userAvatar || "/images/female-avatar.svg"}
-            alt="Avatar"
-            className="h-8 w-8 rounded-full mr-2"
-          />
-          <div className="flex-1 min-w-0">
+          <Avatar className="h-8 w-8 rounded-full">
+            {settings.userAvatar ? (
+              <AvatarImage 
+                src={settings.userAvatar} 
+                alt={settings.userName}
+              />
+            ) : (
+              <AvatarFallback>
+                <User className="h-5 w-5 text-gray-400" />
+              </AvatarFallback>
+            )}
+          </Avatar>
+          <div className="flex-1 min-w-0 ml-2">
             <p className="text-sm font-medium text-gray-900 truncate">
               {settings.userName}
             </p>
