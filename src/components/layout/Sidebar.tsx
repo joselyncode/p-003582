@@ -185,9 +185,20 @@ export function Sidebar({ userAvatar }: SidebarProps) {
         {/* Sección Personal */}
         {showPersonal && (
           <div className="mb-6">
-            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">
-              Personal
-            </h2>
+            <div className="flex items-center justify-between px-3 mb-2">
+              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Personal
+              </h2>
+              <button
+                onClick={() => {
+                  setNewPageOpen(true);
+                }}
+                className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                aria-label="Agregar página personal"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+            </div>
             <ul>
               {filteredPersonal.map((item, index) => 
                 renderPageItem(item, index)
@@ -196,16 +207,7 @@ export function Sidebar({ userAvatar }: SidebarProps) {
           </div>
         )}
 
-        {/* Botón para crear nueva página */}
-        <div className="px-3 mb-6">
-          <button
-            onClick={() => setNewPageOpen(true)}
-            className="flex items-center w-full rounded-md px-3 py-2 text-gray-700 hover:bg-gray-200 transition"
-          >
-            <Plus className="h-4 w-4 mr-3 text-gray-500" />
-            <span>Nueva página</span>
-          </button>
-        </div>
+        {/* Se elimina el botón "Nueva página" del fondo */}
       </nav>
 
       {/* Perfil de usuario */}

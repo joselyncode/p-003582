@@ -437,18 +437,7 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
           </div>
         )}
 
-        {/* Botón para crear nueva página */}
-        {!sidebarCollapsed && (
-          <div className="px-3 mb-6">
-            <button
-              onClick={() => setNewPageOpen(true)}
-              className="flex items-center w-full rounded-md px-3 py-2 text-gray-700 hover:bg-gray-200 transition"
-            >
-              <Plus className="h-4 w-4 mr-3 text-gray-500" />
-              <span>Nueva página</span>
-            </button>
-          </div>
-        )}
+        {/* Se elimina el botón "Nueva página" del fondo */}
       </nav>
 
       {/* Perfil de usuario */}
