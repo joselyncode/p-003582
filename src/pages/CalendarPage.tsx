@@ -11,15 +11,19 @@ import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 
 const CalendarPage = () => {
-  const { workspace, notes, personal } = usePages();
+  const { workspace, personal } = usePages();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const userName = "Joselyn Monge";
   const userAvatar = "/images/female-avatar.svg";
   const currentPath = ["Calendario"];
 
+  // Filter workspace pages into workspace and notes categories
+  const workspacePages = workspace.filter(page => page.path.includes("/workspace"));
+  const notesPages = workspace.filter(page => page.path.includes("/notes"));
+
   // Combinar todas las páginas en un solo array y añadir fechas simuladas de creación/edición
-  const allPages = [...workspace, ...notes, ...personal].map(page => ({
+  const allPages = [...workspacePages, ...notesPages, ...personal].map(page => ({
     ...page,
     lastEdited: page.lastEdited || Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000,
     created: page.created || Date.now() - Math.floor(Math.random() * 60) * 24 * 60 * 60 * 1000

@@ -9,14 +9,18 @@ import { Link } from "react-router-dom";
 import { format } from "date-fns";
 
 const AllPages = () => {
-  const { workspace, notes, personal } = usePages();
+  const { workspace, personal } = usePages();
   const [searchQuery, setSearchQuery] = useState("");
   const userName = "Joselyn Monge";
   const userAvatar = "/images/female-avatar.svg";
   const currentPath = ["Todas las páginas"];
 
+  // Filter workspace pages into workspace and notes categories
+  const workspacePages = workspace.filter(page => page.path.includes("/workspace"));
+  const notesPages = workspace.filter(page => page.path.includes("/notes"));
+
   // Combinar todas las páginas en un solo array
-  const allPages = [...workspace, ...notes, ...personal].map(page => ({
+  const allPages = [...workspacePages, ...notesPages, ...personal].map(page => ({
     ...page,
     lastEdited: page.lastEdited || Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000
   }));
