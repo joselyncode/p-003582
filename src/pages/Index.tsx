@@ -18,6 +18,7 @@ const Index = () => {
         <PageEditor 
           workspaceName="Mi Workspace"
           pagePath={["Inicio"]}
+          allowTitleEdit={true}
         />
       </div>
     </WorkspaceLayout>

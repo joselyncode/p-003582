@@ -66,7 +66,7 @@ export function WorkspaceContent() {
           setLastSaved(content.last_edited);
         } else {
           setPageBlocks([
-            { id: "1", type: "heading1", content: "" }
+            { id: "1", type: "heading1", content: "Untitled" }
           ]);
         }
       }
@@ -139,6 +139,7 @@ export function WorkspaceContent() {
         blocks={pageBlocks}
         onBlocksChange={handleContentChange}
         lastSaved={lastSaved}
+        allowTitleEdit={true}
       />
     </main>
   );

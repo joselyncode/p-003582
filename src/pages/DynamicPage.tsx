@@ -105,6 +105,7 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
             blocks={blocks}
             onBlocksChange={handleBlocksChange}
             lastSaved={lastSaved}
+            allowTitleEdit={true}
           />
         ) : (
           <div className="flex items-center justify-center h-64">

@@ -11,8 +11,9 @@ import { ShareModal } from './ShareModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CommentsPanel } from './CommentsPanel';
-import { ChevronRight, MessageSquare } from 'lucide-react';
+import { ChevronRight, MessageSquare, Edit } from 'lucide-react';
 import { Block } from '@/context/PagesContext';
+import { Input } from '@/components/ui/input';
 
 interface PageEditorProps {
   workspaceName: string;
@@ -20,6 +21,7 @@ interface PageEditorProps {
   blocks?: Block[];
   onBlocksChange?: (blocks: Block[]) => void;
   lastSaved?: number;
+  allowTitleEdit?: boolean;
 }
 
 export function PageEditor({ 
@@ -27,7 +29,8 @@ export function PageEditor({
   pagePath, 
   blocks: initialBlocks,
   onBlocksChange,
-  lastSaved 
+  lastSaved,
+  allowTitleEdit = false
 }: PageEditorProps) {
   const [blocks, setBlocks] = useState<Block[]>(initialBlocks || [
     {
@@ -43,10 +46,18 @@ export function PageEditor({
   const [showBlockMenu, setShowBlockMenu] = useState(false);
   const [blockMenuPosition, setBlockMenuPosition] = useState({ top: 0, left: 0 });
   const [temporaryPageId, setTemporaryPageId] = useState<string>(uuidv4());
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleText, setTitleText] = useState("");
 
   useEffect(() => {
     if (initialBlocks) {
       setBlocks(initialBlocks);
+      const titleBlock = initialBlocks.find(b => b.type === "heading1");
+      if (titleBlock) {
+        setTitleText(titleBlock.content || "Untitled");
+      } else {
+        setTitleText("Untitled");
+      }
     }
   }, [initialBlocks]);
 
@@ -69,7 +80,6 @@ export function PageEditor({
         
         const newItems = arrayMove(items, oldIndex, newIndex);
         
-        // Notify parent of the change
         if (onBlocksChange) {
           onBlocksChange(newItems);
         }
@@ -85,7 +95,6 @@ export function PageEditor({
         block.id === id ? { ...block, content } : block
       );
       
-      // Notify parent of the change
       if (onBlocksChange) {
         onBlocksChange(newBlocks);
       }
@@ -100,7 +109,6 @@ export function PageEditor({
         block.id === id ? { ...block, type: newType } : block
       );
       
-      // Notify parent of the change
       if (onBlocksChange) {
         onBlocksChange(newBlocks);
       }
@@ -125,7 +133,6 @@ export function PageEditor({
         ...prev.slice(index + 1)
       ];
       
-      // Notify parent of the change
       if (onBlocksChange) {
         onBlocksChange(newBlocks);
       }
@@ -133,23 +140,19 @@ export function PageEditor({
       return newBlocks;
     });
     
-    // Focus the new block
     setTimeout(() => {
       setActiveBlockId(newBlockId);
     }, 100);
     
-    // Hide the block menu
     setShowBlockMenu(false);
 
     return newBlockId;
   };
 
   const handleDuplicateBlock = (id: string) => {
-    // Find the block to duplicate
     const blockToDuplicate = blocks.find(block => block.id === id);
     if (!blockToDuplicate) return;
     
-    // Create a new block with the same type and content
     const newBlockId = uuidv4();
     const newBlock: Block = {
       id: newBlockId,
@@ -165,7 +168,6 @@ export function PageEditor({
         ...prev.slice(index + 1)
       ];
       
-      // Notify parent of the change
       if (onBlocksChange) {
         onBlocksChange(newBlocks);
       }
@@ -173,14 +175,12 @@ export function PageEditor({
       return newBlocks;
     });
     
-    // Focus the new block
     setTimeout(() => {
       setActiveBlockId(newBlockId);
     }, 100);
   };
 
   const handleDeleteBlock = (id: string) => {
-    // Prevent deleting all blocks
     if (blocks.length <= 1) {
       return;
     }
@@ -188,7 +188,6 @@ export function PageEditor({
     setBlocks(prev => {
       const newBlocks = prev.filter(block => block.id !== id);
       
-      // Notify parent of the change
       if (onBlocksChange) {
         onBlocksChange(newBlocks);
       }
@@ -203,20 +202,17 @@ export function PageEditor({
     const now = new Date();
     const saved = new Date(lastSaved);
     
-    // If less than a minute ago
     const diffInSeconds = Math.floor((now.getTime() - saved.getTime()) / 1000);
     
     if (diffInSeconds < 60) {
       return "Saved just now";
     }
     
-    // If less than an hour ago
     if (diffInSeconds < 3600) {
       const minutes = Math.floor(diffInSeconds / 60);
       return `Saved ${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
     }
     
-    // Format as time
     return `Saved at ${saved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   }, [lastSaved]);
   
@@ -234,9 +230,47 @@ export function PageEditor({
     setShowBlockMenu(true);
   };
 
+  const handleTitleChange = (newTitle: string) => {
+    setTitleText(newTitle);
+    
+    const updatedBlocks = [...blocks];
+    const titleBlockIndex = updatedBlocks.findIndex(b => b.type === "heading1");
+    
+    if (titleBlockIndex >= 0) {
+      updatedBlocks[titleBlockIndex] = {
+        ...updatedBlocks[titleBlockIndex],
+        content: newTitle
+      };
+    } else if (updatedBlocks.length > 0) {
+      updatedBlocks[0] = {
+        ...updatedBlocks[0],
+        type: "heading1",
+        content: newTitle
+      };
+    } else {
+      updatedBlocks.push({
+        id: uuidv4(),
+        type: "heading1",
+        content: newTitle
+      });
+    }
+    
+    setBlocks(updatedBlocks);
+    
+    if (onBlocksChange) {
+      onBlocksChange(updatedBlocks);
+    }
+  };
+
+  const handleTitleSave = () => {
+    setIsEditingTitle(false);
+    if (!titleText.trim()) {
+      handleTitleChange("Untitled");
+    }
+  };
+
   return (
     <div className="editor-container">
-      {/* Page header with breadcrumbs */}
       <div className="mb-6">
         <div className="flex items-center text-sm text-muted-foreground mb-1">
           <span>{workspaceName}</span>
@@ -249,11 +283,37 @@ export function PageEditor({
         </div>
         
         <div className="flex items-center justify-between">
-          <div>
-            {/* This is just a placeholder - in a real app, the first h1 block would be the title */}
-            <h1 className="text-3xl font-bold">
-              {blocks.find(b => b.type === "heading1")?.content || ""}
-            </h1>
+          <div className="flex-1">
+            {isEditingTitle && allowTitleEdit ? (
+              <div className="flex items-center">
+                <Input
+                  className="text-3xl font-bold py-1 h-auto"
+                  value={titleText}
+                  onChange={(e) => setTitleText(e.target.value)}
+                  onBlur={handleTitleSave}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleTitleSave();
+                    }
+                  }}
+                  autoFocus
+                />
+              </div>
+            ) : (
+              <div 
+                className="flex items-center gap-2" 
+                onClick={() => allowTitleEdit && setIsEditingTitle(true)}
+              >
+                <h1 className="text-3xl font-bold">
+                  {titleText || "Untitled"}
+                </h1>
+                {allowTitleEdit && (
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            )}
             <div className="flex gap-2 items-center mt-1 text-xs text-muted-foreground">
               <span>{formatLastSaved()}</span>
               <Badge variant="outline" className="text-xs">Draft</Badge>
@@ -274,7 +334,6 @@ export function PageEditor({
         </div>
       </div>
 
-      {/* Editor blocks */}
       <div className="editor-blocks relative min-h-[70vh]">
         <DndContext
           sensors={sensors}
@@ -304,7 +363,6 @@ export function PageEditor({
           </SortableContext>
         </DndContext>
 
-        {/* Block menu */}
         {showBlockMenu && (
           <div style={{ position: 'absolute', top: blockMenuPosition.top, left: blockMenuPosition.left }}>
             <BlockMenu 
@@ -317,7 +375,6 @@ export function PageEditor({
           </div>
         )}
 
-        {/* Add block button */}
         <div className="mt-4 text-center">
           <Button
             variant="outline"
@@ -332,7 +389,6 @@ export function PageEditor({
         </div>
       </div>
 
-      {/* Comments panel */}
       {showComments && (
         <CommentsPanel 
           pageId={temporaryPageId} 
@@ -342,4 +398,3 @@ export function PageEditor({
     </div>
   );
 }
-
