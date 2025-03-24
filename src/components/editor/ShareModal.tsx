@@ -42,6 +42,16 @@ interface UserShare {
   permission: SharePermission;
 }
 
+interface PageShare {
+  id: string;
+  page_id: string;
+  permission: SharePermission;
+  is_link_enabled: boolean;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: string | null;
+}
+
 export function ShareModal({ open, onOpenChange, pageId }: ShareModalProps) {
   const [shareLink, setShareLink] = useState("");
   const [linkPermission, setLinkPermission] = useState<SharePermission>("view");
@@ -86,13 +96,14 @@ export function ShareModal({ open, onOpenChange, pageId }: ShareModalProps) {
 
       if (existingShares) {
         // Share exists, use it
-        setShareId(existingShares.id);
-        setLinkPermission(existingShares.permission);
-        setIsLinkEnabled(existingShares.is_link_enabled);
+        const pageShare = existingShares as unknown as PageShare;
+        setShareId(pageShare.id);
+        setLinkPermission(pageShare.permission);
+        setIsLinkEnabled(pageShare.is_link_enabled);
         setShareLink(`${window.location.origin}/share/${pageId}`);
         
         // Fetch user shares
-        await fetchUserShares(existingShares.id);
+        await fetchUserShares(pageShare.id);
       } else {
         // Create a new share
         const { data: newShare, error: insertError } = await supabase
@@ -110,7 +121,8 @@ export function ShareModal({ open, onOpenChange, pageId }: ShareModalProps) {
           throw insertError;
         }
 
-        setShareId(newShare.id);
+        const pageShare = newShare as unknown as PageShare;
+        setShareId(pageShare.id);
         setLinkPermission('view');
         setIsLinkEnabled(true);
         setShareLink(`${window.location.origin}/share/${pageId}`);

@@ -9,6 +9,16 @@ import { PageContent, Block } from "@/context/PagesContext";
 
 type SharePermission = 'view' | 'edit' | 'comment';
 
+interface PageShare {
+  id: string;
+  page_id: string;
+  permission: SharePermission;
+  is_link_enabled: boolean;
+  pages?: {
+    name: string;
+  };
+}
+
 const SharedPage = () => {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
@@ -34,7 +44,7 @@ const SharedPage = () => {
         // First, check if the page exists and is shared
         const { data: pageShareData, error: pageShareError } = await supabase
           .from('page_shares')
-          .select('*, pages:page_id(*)')
+          .select('*, pages(*)')
           .eq('page_id', pageId)
           .single();
           
@@ -42,14 +52,16 @@ const SharedPage = () => {
           throw new Error('Esta página no existe o no está compartida');
         }
         
-        if (!pageShareData.is_link_enabled) {
+        const pageShare = pageShareData as unknown as PageShare;
+        
+        if (!pageShare.is_link_enabled) {
           throw new Error('El enlace para compartir está desactivado');
         }
         
-        setPermission(pageShareData.permission as SharePermission);
+        setPermission(pageShare.permission as SharePermission);
         
-        if (pageShareData.pages) {
-          setPageTitle(pageShareData.pages.name);
+        if (pageShare.pages) {
+          setPageTitle(pageShare.pages.name);
         }
         
         // Now fetch the page content
@@ -63,7 +75,7 @@ const SharedPage = () => {
           throw new Error('No se pudo cargar el contenido de la página');
         }
         
-        setPageContent(contentData);
+        setPageContent(contentData as PageContent);
         setBlocks(contentData.blocks as Block[]);
         setLastSaved(contentData.last_edited);
         

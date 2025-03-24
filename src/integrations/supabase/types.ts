@@ -41,6 +41,44 @@ export type Database = {
           },
         ]
       }
+      page_shares: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_link_enabled: boolean
+          page_id: string
+          permission: Database["public"]["Enums"]["share_permission"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_link_enabled?: boolean
+          page_id: string
+          permission?: Database["public"]["Enums"]["share_permission"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_link_enabled?: boolean
+          page_id?: string
+          permission?: Database["public"]["Enums"]["share_permission"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_shares_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pages: {
         Row: {
           created_at: string | null
@@ -71,6 +109,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_page_shares: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          page_share_id: string
+          permission: Database["public"]["Enums"]["share_permission"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          page_share_id: string
+          permission?: Database["public"]["Enums"]["share_permission"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          page_share_id?: string
+          permission?: Database["public"]["Enums"]["share_permission"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_page_shares_page_share_id_fkey"
+            columns: ["page_share_id"]
+            isOneToOne: false
+            referencedRelation: "page_shares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -79,7 +152,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      share_permission: "view" | "edit" | "comment"
     }
     CompositeTypes: {
       [_ in never]: never
