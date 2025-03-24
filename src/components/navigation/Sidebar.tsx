@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { SearchBar } from "../ui/SearchBar";
@@ -215,7 +214,12 @@ export function Sidebar({ userName, userAvatar }: SidebarProps) {
       <div className={`p-4 ${sidebarCollapsed ? 'flex flex-col items-center' : ''}`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
-            <LayoutDashboard className="h-5 w-5 text-blue-600 mr-2" />
+            {/* Notion-like icon: Square with a simple N-like structure */}
+            <div className="h-5 w-5 bg-blue-600 text-white rounded flex items-center justify-center mr-2 flex-shrink-0">
+              <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor">
+                <path d="M4 4h8v1.5H4V4zm0 3h8v1.5H4V7zm0 3h5v1.5H4V10z" />
+              </svg>
+            </div>
             {!sidebarCollapsed && <h1 className="text-xl font-bold">Workspace</h1>}
           </div>
         </div>
