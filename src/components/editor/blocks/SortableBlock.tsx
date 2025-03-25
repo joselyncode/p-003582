@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -87,6 +86,7 @@ export function SortableBlock({
   const [isNewBlock, setIsNewBlock] = useState(!block.content);
   const [isChecked, setIsChecked] = useState(false);
   const [formatMenuPosition, setFormatMenuPosition] = useState<{ x: number, y: number } | null>(null);
+  const [hasTextSelection, setHasTextSelection] = useState(false);
 
   useEffect(() => {
     if (block.type === "todo" && block.content) {
@@ -144,7 +144,7 @@ export function SortableBlock({
         return;
       }
       
-      const newBlockId = onAddBlock(block.type, block.id);
+      onAddBlock(block.type, block.id);
     }
   };
 
@@ -166,13 +166,14 @@ export function SortableBlock({
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
       
-      // Set position for format menu directly above or below the selection
       setFormatMenuPosition({
-        x: rect.left + (rect.width / 2), // Center of selection
-        y: rect.top // Top of selection (menu will appear above)
+        x: rect.left + (rect.width / 2),
+        y: rect.top
       });
+      setHasTextSelection(true);
     } else {
       setFormatMenuPosition(null);
+      setHasTextSelection(false);
     }
   };
 
@@ -183,7 +184,6 @@ export function SortableBlock({
       return;
     }
     
-    // Get the selected range
     const range = selection.getRangeAt(0);
     const selectedText = range.toString();
     
@@ -193,7 +193,6 @@ export function SortableBlock({
     
     let formattedText = '';
     
-    // Format the text based on the selected option
     switch (format) {
       case 'bold':
         formattedText = `<strong>${selectedText}</strong>`;
@@ -226,7 +225,6 @@ export function SortableBlock({
         return;
     }
     
-    // Create a document fragment with the formatted HTML
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = formattedText;
     const fragment = document.createDocumentFragment();
@@ -235,17 +233,15 @@ export function SortableBlock({
       fragment.appendChild(tempDiv.firstChild);
     }
     
-    // Replace the selected text with our formatted fragment
     range.deleteContents();
     range.insertNode(fragment);
     
-    // Update content in state
     if (contentEditableRef.current) {
       onUpdate(block.id, contentEditableRef.current.innerHTML);
     }
     
-    // Close the format menu
     setFormatMenuPosition(null);
+    setHasTextSelection(false);
   };
 
   return (
@@ -492,11 +488,11 @@ export function SortableBlock({
         </div>
       )}
 
-      {/* Format Menu for text selection */}
       <FormatMenu 
         position={formatMenuPosition} 
         onClose={() => setFormatMenuPosition(null)}
         onFormatText={applyFormatting}
+        hasSelection={hasTextSelection}
       />
     </div>
   );

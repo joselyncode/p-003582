@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { 
   Bold, 
@@ -36,9 +37,10 @@ interface FormatMenuProps {
   position: { x: number; y: number } | null;
   onClose: () => void;
   onFormatText: (format: string, value?: string) => void;
+  hasSelection?: boolean;
 }
 
-export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps) {
+export function FormatMenu({ position, onClose, onFormatText, hasSelection = true }: FormatMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [linkInput, setLinkInput] = useState("");
   const [showLinkInput, setShowLinkInput] = useState(false);
@@ -99,10 +101,13 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
   } as React.CSSProperties : { display: 'none' };
 
   const applyFormat = (format: string) => {
+    if (!hasSelection) return;
     onFormatText(format);
   };
 
   const handleAddLink = () => {
+    if (!hasSelection) return;
+    
     if (showLinkInput && linkInput.trim()) {
       onFormatText('link', linkInput.trim());
       setLinkInput("");
@@ -113,6 +118,7 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
   };
 
   const handleColorSelect = (type: 'text' | 'background', colorClass: string) => {
+    if (!hasSelection) return;
     onFormatText(type === 'text' ? 'textColor' : 'backgroundColor', colorClass);
   };
 
@@ -147,12 +153,13 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
                 size="icon" 
                 className="h-8 w-8 rounded" 
                 onClick={() => applyFormat('bold')}
+                disabled={!hasSelection}
               >
                 <Bold className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Bold</p>
+              <p>{hasSelection ? "Bold" : "Selecciona texto para aplicar formato"}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -163,12 +170,13 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
                 size="icon" 
                 className="h-8 w-8 rounded" 
                 onClick={() => applyFormat('italic')}
+                disabled={!hasSelection}
               >
                 <Italic className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Italic</p>
+              <p>{hasSelection ? "Italic" : "Selecciona texto para aplicar formato"}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -179,12 +187,13 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
                 size="icon" 
                 className="h-8 w-8 rounded" 
                 onClick={() => applyFormat('underline')}
+                disabled={!hasSelection}
               >
                 <Underline className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Underline</p>
+              <p>{hasSelection ? "Underline" : "Selecciona texto para aplicar formato"}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -195,12 +204,13 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
                 size="icon" 
                 className="h-8 w-8 rounded" 
                 onClick={() => applyFormat('strikethrough')}
+                disabled={!hasSelection}
               >
                 <Strikethrough className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Strikethrough</p>
+              <p>{hasSelection ? "Strikethrough" : "Selecciona texto para aplicar formato"}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -208,7 +218,12 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
             <TooltipTrigger asChild>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 rounded"
+                    disabled={!hasSelection}
+                  >
                     <Palette className="h-4 w-4" />
                   </Button>
                 </PopoverTrigger>
@@ -250,7 +265,7 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
               </Popover>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Format color</p>
+              <p>{hasSelection ? "Format color" : "Selecciona texto para aplicar formato"}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -289,13 +304,14 @@ export function FormatMenu({ position, onClose, onFormatText }: FormatMenuProps)
                   size="icon" 
                   className="h-8 w-8 rounded" 
                   onClick={handleAddLink}
+                  disabled={!hasSelection}
                 >
                   <Link className="h-4 w-4" />
                 </Button>
               )}
             </TooltipTrigger>
             <TooltipContent>
-              <p>Add link</p>
+              <p>{hasSelection ? "Add link" : "Selecciona texto para aplicar formato"}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
