@@ -34,12 +34,17 @@ const colorOptions = [
 ];
 
 // Define proper types for the Tailwind to CSS mapping
-type TextColorStyle = { color: string };
-type BgColorStyle = { backgroundColor: string };
+interface TextColorStyle {
+  color: string;
+}
 
-// Mapeo de clases de Tailwind a valores CSS
+interface BgColorStyle {
+  backgroundColor: string;
+}
+
+// Mapping of Tailwind classes to CSS values
 const tailwindToCSS: Record<string, TextColorStyle | BgColorStyle> = {
-  // Texto
+  // Text colors
   "text-foreground": { color: "inherit" },
   "text-gray-500": { color: "#6b7280" },
   "text-red-500": { color: "#ef4444" },
@@ -50,7 +55,7 @@ const tailwindToCSS: Record<string, TextColorStyle | BgColorStyle> = {
   "text-purple-500": { color: "#a855f7" },
   "text-pink-500": { color: "#ec4899" },
   
-  // Fondo
+  // Background colors
   "bg-transparent": { backgroundColor: "transparent" },
   "bg-gray-100": { backgroundColor: "#f3f4f6" },
   "bg-red-100": { backgroundColor: "#fee2e2" },
@@ -149,16 +154,17 @@ export function FormatMenu({ position, onClose, onFormatText, hasSelection = tru
   const handleColorSelect = (type: 'text' | 'background', colorClass: string) => {
     if (!hasSelection) return;
     
-    // Convertir clase Tailwind a estilo CSS directo
-    const cssStyle = tailwindToCSS[colorClass];
-    
-    if (cssStyle) {
-      // Check property based on the type of color we're setting
-      if (type === 'text' && 'color' in cssStyle) {
-        const styleString = `color:${cssStyle.color};`;
+    // Apply correct color based on type
+    if (type === 'text') {
+      const textStyle = tailwindToCSS[colorClass] as TextColorStyle;
+      if ('color' in textStyle) {
+        const styleString = `color:${textStyle.color};`;
         onFormatText('textColor', styleString);
-      } else if (type === 'background' && 'backgroundColor' in cssStyle) {
-        const styleString = `background-color:${cssStyle.backgroundColor};`;
+      }
+    } else if (type === 'background') {
+      const bgStyle = tailwindToCSS[colorClass] as BgColorStyle;
+      if ('backgroundColor' in bgStyle) {
+        const styleString = `background-color:${bgStyle.backgroundColor};`;
         onFormatText('backgroundColor', styleString);
       }
     }
