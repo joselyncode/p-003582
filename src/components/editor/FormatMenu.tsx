@@ -33,8 +33,12 @@ const colorOptions = [
   { name: "Pink", textColor: "text-pink-500", bgColor: "bg-pink-100" },
 ];
 
+// Define proper types for the Tailwind to CSS mapping
+type TextColorStyle = { color: string };
+type BgColorStyle = { backgroundColor: string };
+
 // Mapeo de clases de Tailwind a valores CSS
-const tailwindToCSS = {
+const tailwindToCSS: Record<string, TextColorStyle | BgColorStyle> = {
   // Texto
   "text-foreground": { color: "inherit" },
   "text-gray-500": { color: "#6b7280" },
@@ -146,14 +150,17 @@ export function FormatMenu({ position, onClose, onFormatText, hasSelection = tru
     if (!hasSelection) return;
     
     // Convertir clase Tailwind a estilo CSS directo
-    const cssStyle = tailwindToCSS[colorClass as keyof typeof tailwindToCSS];
+    const cssStyle = tailwindToCSS[colorClass];
     
-    // Pasar el estilo CSS como valor, no la clase Tailwind
     if (cssStyle) {
-      const styleString = type === 'text' 
-        ? `color:${cssStyle.color};` 
-        : `background-color:${cssStyle.backgroundColor};`;
-      onFormatText(type === 'text' ? 'textColor' : 'backgroundColor', styleString);
+      // Check property based on the type of color we're setting
+      if (type === 'text' && 'color' in cssStyle) {
+        const styleString = `color:${cssStyle.color};`;
+        onFormatText('textColor', styleString);
+      } else if (type === 'background' && 'backgroundColor' in cssStyle) {
+        const styleString = `background-color:${cssStyle.backgroundColor};`;
+        onFormatText('backgroundColor', styleString);
+      }
     }
   };
 
