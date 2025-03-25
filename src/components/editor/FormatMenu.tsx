@@ -33,6 +33,31 @@ const colorOptions = [
   { name: "Pink", textColor: "text-pink-500", bgColor: "bg-pink-100" },
 ];
 
+// Mapeo de clases de Tailwind a valores CSS
+const tailwindToCSS = {
+  // Texto
+  "text-foreground": { color: "inherit" },
+  "text-gray-500": { color: "#6b7280" },
+  "text-red-500": { color: "#ef4444" },
+  "text-orange-500": { color: "#f97316" },
+  "text-yellow-500": { color: "#eab308" },
+  "text-green-500": { color: "#22c55e" },
+  "text-blue-500": { color: "#3b82f6" },
+  "text-purple-500": { color: "#a855f7" },
+  "text-pink-500": { color: "#ec4899" },
+  
+  // Fondo
+  "bg-transparent": { backgroundColor: "transparent" },
+  "bg-gray-100": { backgroundColor: "#f3f4f6" },
+  "bg-red-100": { backgroundColor: "#fee2e2" },
+  "bg-orange-100": { backgroundColor: "#ffedd5" },
+  "bg-yellow-100": { backgroundColor: "#fef9c3" },
+  "bg-green-100": { backgroundColor: "#dcfce7" },
+  "bg-blue-100": { backgroundColor: "#dbeafe" },
+  "bg-purple-100": { backgroundColor: "#f3e8ff" },
+  "bg-pink-100": { backgroundColor: "#fce7f3" }
+};
+
 interface FormatMenuProps {
   position: { x: number; y: number } | null;
   onClose: () => void;
@@ -119,7 +144,17 @@ export function FormatMenu({ position, onClose, onFormatText, hasSelection = tru
 
   const handleColorSelect = (type: 'text' | 'background', colorClass: string) => {
     if (!hasSelection) return;
-    onFormatText(type === 'text' ? 'textColor' : 'backgroundColor', colorClass);
+    
+    // Convertir clase Tailwind a estilo CSS directo
+    const cssStyle = tailwindToCSS[colorClass as keyof typeof tailwindToCSS];
+    
+    // Pasar el estilo CSS como valor, no la clase Tailwind
+    if (cssStyle) {
+      const styleString = type === 'text' 
+        ? `color:${cssStyle.color};` 
+        : `background-color:${cssStyle.backgroundColor};`;
+      onFormatText(type === 'text' ? 'textColor' : 'backgroundColor', styleString);
+    }
   };
 
   if (!position) return null;

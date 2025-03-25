@@ -213,12 +213,12 @@ export function SortableBlock({
         break;
       case 'textColor':
         if (value) {
-          formattedText = `<span class="${value}">${selectedText}</span>`;
+          formattedText = `<span style="${value}">${selectedText}</span>`;
         }
         break;
       case 'backgroundColor':
         if (value) {
-          formattedText = `<span class="${value}">${selectedText}</span>`;
+          formattedText = `<span style="${value}">${selectedText}</span>`;
         }
         break;
       default:
