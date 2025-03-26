@@ -1,8 +1,8 @@
-
 import React, { useEffect, useState } from "react";
 import { PageEditor } from "../editor/PageEditor";
 import { useLocation } from "react-router-dom";
 import { usePages, Block } from "@/context/PagesContext";
+import { toast } from "sonner";
 
 export function WorkspaceContent() {
   const location = useLocation();
@@ -90,21 +90,26 @@ export function WorkspaceContent() {
   
   useEffect(() => {
     const loadPageContent = async () => {
-      const id = getPageIdByPath(location.pathname);
-      setPageId(id);
-      
-      // Actualizar el título de la página
-      const { pageTitle } = getPageInfo();
-      setPageTitle(pageTitle);
-      
-      if (id) {
-        const content = await getPageContent(id);
-        if (content) {
-          setPageBlocks(content.blocks);
-          setLastSaved(content.last_edited);
-        } else {
-          setPageBlocks([]);
+      try {
+        const id = getPageIdByPath(location.pathname);
+        setPageId(id);
+        
+        // Actualizar el título de la página
+        const { pageTitle } = getPageInfo();
+        setPageTitle(pageTitle);
+        
+        if (id) {
+          const content = await getPageContent(id);
+          if (content) {
+            setPageBlocks(content.blocks);
+            setLastSaved(content.last_edited);
+          } else {
+            setPageBlocks([]);
+          }
         }
+      } catch (error) {
+        console.error("Error cargando contenido de página:", error);
+        // No mostramos el toast de error para evitar el popup
       }
     };
     
