@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Home, Star, Users } from "lucide-react";
+import { FileText, Home, Star, Users, Folder } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { usePages, PageSection } from "@/context/PagesContext";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,7 +24,7 @@ interface NewPageModalProps {
 // Define the form schema with validation
 const formSchema = z.object({
   pageName: z.string().min(1, "El nombre de la página es obligatorio"),
-  pageType: z.enum(["favorite", "workspace", "notes", "personal"]),
+  pageType: z.enum(["favorite", "workspace", "notes", "personal", "projects"]),
 });
 
 export function NewPageModal({ 
@@ -174,6 +174,12 @@ export function NewPageModal({
                           <div className="flex items-center gap-2">
                             <Users className="h-4 w-4" />
                             <span>Personal</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="projects">
+                          <div className="flex items-center gap-2">
+                            <Folder className="h-4 w-4" />
+                            <span>Proyectos</span>
                           </div>
                         </SelectItem>
                       </SelectContent>
