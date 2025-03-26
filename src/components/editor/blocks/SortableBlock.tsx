@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -178,9 +179,12 @@ export function SortableBlock({
   };
 
   const applyFormatting = (format: string, value?: string) => {
+    console.log(`Applying formatting: ${format}`, value); // Debug log
+    
     const selection = window.getSelection();
     
     if (!selection || selection.isCollapsed || !selection.rangeCount || !contentEditableRef.current) {
+      console.log("No valid selection detected"); // Debug log
       return;
     }
     
@@ -188,8 +192,11 @@ export function SortableBlock({
     const selectedText = range.toString();
     
     if (!selectedText) {
+      console.log("Selected text is empty"); // Debug log
       return;
     }
+    
+    console.log("Selected text:", selectedText); // Debug log
     
     let formattedText = '';
     
@@ -213,11 +220,13 @@ export function SortableBlock({
         break;
       case 'textColor':
         if (value) {
+          console.log(`Creating span with color: ${value}`); // Debug log
           formattedText = `<span style="color:${value};">${selectedText}</span>`;
         }
         break;
       case 'backgroundColor':
         if (value) {
+          console.log(`Creating span with background-color: ${value}`); // Debug log
           formattedText = `<span style="background-color:${value};">${selectedText}</span>`;
         }
         break;
@@ -226,8 +235,11 @@ export function SortableBlock({
     }
     
     if (!formattedText) {
+      console.log("No formatted text was created"); // Debug log
       return;
     }
+    
+    console.log("Formatted text to insert:", formattedText); // Debug log
     
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = formattedText;
@@ -240,13 +252,17 @@ export function SortableBlock({
     range.deleteContents();
     range.insertNode(fragment);
     
+    // Force update the content immediately
     if (contentEditableRef.current) {
-      onUpdate(block.id, contentEditableRef.current.innerHTML);
+      const newContent = contentEditableRef.current.innerHTML;
+      console.log("Updated content:", newContent); // Debug log
+      onUpdate(block.id, newContent);
     }
     
     setFormatMenuPosition(null);
     setHasTextSelection(false);
     
+    // Clear the selection after applying formatting
     document.getSelection()?.removeAllRanges();
   };
 
