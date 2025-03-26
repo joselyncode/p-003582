@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -213,15 +212,21 @@ export function SortableBlock({
         }
         break;
       case 'textColor':
-        // Aplicar color directamente usando el valor CSS
-        formattedText = `<span style="color:${value};">${selectedText}</span>`;
+        if (value) {
+          formattedText = `<span style="color:${value};">${selectedText}</span>`;
+        }
         break;
       case 'backgroundColor':
-        // Aplicar color de fondo directamente usando el valor CSS
-        formattedText = `<span style="background-color:${value};">${selectedText}</span>`;
+        if (value) {
+          formattedText = `<span style="background-color:${value};">${selectedText}</span>`;
+        }
         break;
       default:
         return;
+    }
+    
+    if (!formattedText) {
+      return;
     }
     
     const tempDiv = document.createElement('div');
@@ -235,13 +240,14 @@ export function SortableBlock({
     range.deleteContents();
     range.insertNode(fragment);
     
-    // Importante: actualizar el contenido después de aplicar el formato
     if (contentEditableRef.current) {
       onUpdate(block.id, contentEditableRef.current.innerHTML);
     }
     
     setFormatMenuPosition(null);
     setHasTextSelection(false);
+    
+    document.getSelection()?.removeAllRanges();
   };
 
   return (

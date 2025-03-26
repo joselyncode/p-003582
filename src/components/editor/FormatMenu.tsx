@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from "react";
 import { 
   Bold, 
@@ -32,6 +33,7 @@ const colorOptions = [
   { name: "Pink", textColor: "text-pink-500", bgColor: "bg-pink-100" },
 ];
 
+// Define the exact color values that correspond to Tailwind classes
 const textColorMap: Record<string, string> = {
   "text-foreground": "inherit",
   "text-gray-500": "#6b7280",
@@ -141,11 +143,13 @@ export function FormatMenu({ position, onClose, onFormatText, hasSelection = tru
     if (type === 'text') {
       const colorValue = textColorMap[colorClass];
       if (colorValue) {
+        console.log("Applying text color:", colorValue); // Debug log
         onFormatText('textColor', colorValue);
       }
     } else if (type === 'background') {
       const bgValue = bgColorMap[colorClass];
       if (bgValue) {
+        console.log("Applying background color:", bgValue); // Debug log
         onFormatText('backgroundColor', bgValue);
       }
     }
