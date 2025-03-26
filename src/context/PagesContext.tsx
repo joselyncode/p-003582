@@ -4,13 +4,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Database } from "@/integrations/supabase/types";
 
-export type PageSection = "favorite" | "workspace" | "notes" | "personal" | "projects";
+export type PageSection = "favorite" | "workspace" | "notes" | "personal" | "projects" | string;
+
 export type Page = {
   id?: string;
   name: string;
   icon: string;
   path: string;
   section: PageSection;
+};
+
+export type CustomSection = {
+  id: string;
+  name: string;
+  pages: Page[];
 };
 
 export type Block = {
@@ -32,9 +39,10 @@ type PagesContextType = {
   workspace: Page[];
   personal: Page[];
   projects: Page[];
+  customSections: CustomSection[];
   isLoading: boolean;
   loading: boolean;
-  createPage: (name: string, section: "workspace" | "personal" | "notes" | "projects") => Promise<string | undefined>;
+  createPage: (name: string, section: PageSection) => Promise<string | undefined>;
   addPage: (page: Page) => Promise<string | undefined>;
   deletePage: (pageId: string) => Promise<boolean>;
   getPageContent: (pageId: string) => Promise<PageContent | null>;
@@ -43,6 +51,8 @@ type PagesContextType = {
   getPageIdByPath: (path: string) => string | undefined;
   updatePageTitle: (pageId: string, newTitle: string) => Promise<boolean>;
   movePageToSection: (pageId: string, newSection: PageSection, shouldNavigate: boolean) => Promise<boolean>;
+  addCustomSection: (name: string) => Promise<string | undefined>;
+  deleteCustomSection: (sectionId: string) => Promise<boolean>;
 };
 
 const PagesContext = createContext<PagesContextType>({
@@ -50,6 +60,7 @@ const PagesContext = createContext<PagesContextType>({
   workspace: [],
   personal: [],
   projects: [],
+  customSections: [],
   isLoading: true,
   loading: true,
   createPage: async () => undefined,
@@ -61,6 +72,8 @@ const PagesContext = createContext<PagesContextType>({
   getPageIdByPath: () => undefined,
   updatePageTitle: async () => false,
   movePageToSection: async () => false,
+  addCustomSection: async () => undefined,
+  deleteCustomSection: async () => false,
 });
 
 export const PagesProvider = ({ children }: { children: ReactNode }) => {
@@ -68,6 +81,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
   const [workspace, setWorkspace] = useState<Page[]>([]);
   const [personal, setPersonal] = useState<Page[]>([]);
   const [projects, setProjects] = useState<Page[]>([]);
+  const [customSections, setCustomSections] = useState<CustomSection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [pagesMap, setPagesMap] = useState<Map<string, string>>(new Map());
@@ -78,12 +92,21 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
       try {
         setIsLoading(true);
         setLoading(true);
-        const { data, error } = await supabase
+        
+        const { data: pagesData, error: pagesError } = await supabase
           .from('pages')
           .select('*');
 
-        if (error) {
-          throw error;
+        if (pagesError) {
+          throw pagesError;
+        }
+
+        const { data: sectionsData, error: sectionsError } = await supabase
+          .from('custom_sections')
+          .select('*');
+
+        if (sectionsError) {
+          throw sectionsError;
         }
 
         const favs: Page[] = [];
@@ -91,9 +114,19 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         const pers: Page[] = [];
         const proj: Page[] = [];
         const pathToIdMap = new Map<string, string>();
+        const customSectionsMap = new Map<string, { name: string, pages: Page[] }>();
 
-        if (data) {
-          data.forEach((page) => {
+        if (sectionsData) {
+          sectionsData.forEach((section) => {
+            customSectionsMap.set(section.id, {
+              name: section.name,
+              pages: []
+            });
+          });
+        }
+
+        if (pagesData) {
+          pagesData.forEach((page) => {
             const pageObj: Page = {
               id: page.id,
               name: page.name,
@@ -110,16 +143,31 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
               pers.push(pageObj);
             } else if (page.section === 'projects') {
               proj.push(pageObj);
+            } else if (customSectionsMap.has(page.section)) {
+              const section = customSectionsMap.get(page.section);
+              if (section) {
+                section.pages.push(pageObj);
+              }
             }
 
             pathToIdMap.set(page.path, page.id);
           });
         }
 
+        const customSectionsArray: CustomSection[] = [];
+        customSectionsMap.forEach((value, key) => {
+          customSectionsArray.push({
+            id: key,
+            name: value.name,
+            pages: value.pages
+          });
+        });
+
         setFavorites(favs);
         setWorkspace(work);
         setPersonal(pers);
         setProjects(proj);
+        setCustomSections(customSectionsArray);
         setPagesMap(pathToIdMap);
       } catch (error) {
         console.error("Error fetching pages:", error);
@@ -137,9 +185,24 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     fetchPages();
   }, [toast]);
 
-  const createPage = async (name: string, section: "workspace" | "personal" | "notes" | "projects"): Promise<string | undefined> => {
+  const createPage = async (name: string, section: PageSection): Promise<string | undefined> => {
     try {
-      const path = `/${section}/${name.toLowerCase().replace(/\s+/g, '-')}`;
+      const isCustomSection = section !== 'workspace' && 
+                             section !== 'personal' && 
+                             section !== 'notes' && 
+                             section !== 'projects' && 
+                             section !== 'favorite';
+      
+      let path;
+      if (isCustomSection) {
+        const sectionObj = customSections.find(s => s.id === section);
+        if (!sectionObj) {
+          throw new Error("Sección no encontrada");
+        }
+        path = `/custom/${sectionObj.name.toLowerCase().replace(/\s+/g, '-')}/${name.toLowerCase().replace(/\s+/g, '-')}`;
+      } else {
+        path = `/${section}/${name.toLowerCase().replace(/\s+/g, '-')}`;
+      }
       
       return await addPage({
         name,
@@ -161,11 +224,6 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
   const addPage = async (page: Page): Promise<string | undefined> => {
     try {
       console.log("Adding page with section:", page.section);
-      
-      if (!page.section || !["favorite", "workspace", "notes", "projects"].includes(page.section)) {
-        console.error("Sección no válida:", page.section);
-        throw new Error("Sección no válida");
-      }
       
       const { data, error } = await supabase
         .from('pages')
@@ -208,28 +266,48 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         section: data.section as PageSection
       };
 
-      switch (newPage.section) {
-        case "favorite":
-          setFavorites(prev => [...prev, newPage]);
-          break;
-        case "workspace":
-        case "notes":
-          setWorkspace(prev => [...prev, newPage]);
-          break;
-        case "personal":
-          setPersonal(prev => [...prev, newPage]);
-          break;
-        case "projects":
-          setProjects(prev => [...prev, newPage]);
-          break;
-        default:
-          console.warn("Sección desconocida:", newPage.section);
+      const isCustomSection = data.section !== 'favorite' && 
+                             data.section !== 'workspace' && 
+                             data.section !== 'notes' && 
+                             data.section !== 'personal' &&
+                             data.section !== 'projects';
+
+      if (isCustomSection) {
+        setCustomSections(prev => {
+          return prev.map(section => {
+            if (section.id === data.section) {
+              return {
+                ...section,
+                pages: [...section.pages, newPage]
+              };
+            }
+            return section;
+          });
+        });
+      } else {
+        switch (newPage.section) {
+          case "favorite":
+            setFavorites(prev => [...prev, newPage]);
+            break;
+          case "workspace":
+          case "notes":
+            setWorkspace(prev => [...prev, newPage]);
+            break;
+          case "personal":
+            setPersonal(prev => [...prev, newPage]);
+            break;
+          case "projects":
+            setProjects(prev => [...prev, newPage]);
+            break;
+          default:
+            console.warn("Sección desconocida:", newPage.section);
+        }
       }
 
       setPagesMap(prev => new Map(prev.set(data.path, data.id)));
 
       toast({
-        description: `Se ha creado la página "${page.name}" en la sección ${page.section}`,
+        description: `Se ha creado la página "${page.name}"`,
       });
 
       return data.id;
@@ -263,20 +341,40 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
 
       if (data) {
-        switch (data.section) {
-          case "favorite":
-            setFavorites(prev => prev.filter(page => page.id !== pageId));
-            break;
-          case "workspace":
-          case "notes":
-            setWorkspace(prev => prev.filter(page => page.id !== pageId));
-            break;
-          case "personal":
-            setPersonal(prev => prev.filter(page => page.id !== pageId));
-            break;
-          case "projects":
-            setProjects(prev => prev.filter(page => page.id !== pageId));
-            break;
+        const isCustomSection = data.section !== 'favorite' && 
+                               data.section !== 'workspace' && 
+                               data.section !== 'notes' && 
+                               data.section !== 'personal' &&
+                               data.section !== 'projects';
+
+        if (isCustomSection) {
+          setCustomSections(prev => {
+            return prev.map(section => {
+              if (section.id === data.section) {
+                return {
+                  ...section,
+                  pages: section.pages.filter(page => page.id !== pageId)
+                };
+              }
+              return section;
+            });
+          });
+        } else {
+          switch (data.section) {
+            case "favorite":
+              setFavorites(prev => prev.filter(page => page.id !== pageId));
+              break;
+            case "workspace":
+            case "notes":
+              setWorkspace(prev => prev.filter(page => page.id !== pageId));
+              break;
+            case "personal":
+              setPersonal(prev => prev.filter(page => page.id !== pageId));
+              break;
+            case "projects":
+              setProjects(prev => prev.filter(page => page.id !== pageId));
+              break;
+          }
         }
 
         setPagesMap(prev => {
@@ -302,6 +400,81 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
       toast({
         title: "Error",
         description: "No se pudo eliminar la página",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const addCustomSection = async (name: string): Promise<string | undefined> => {
+    try {
+      const { data, error } = await supabase
+        .from('custom_sections')
+        .insert({
+          name,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const newSection: CustomSection = {
+          id: data.id,
+          name: data.name,
+          pages: []
+        };
+
+        setCustomSections(prev => [...prev, newSection]);
+        
+        toast({
+          description: `Se ha creado la sección "${name}"`,
+        });
+
+        return data.id;
+      }
+
+      return undefined;
+    } catch (error) {
+      console.error("Error creating custom section:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear la sección",
+        variant: "destructive",
+      });
+      return undefined;
+    }
+  };
+
+  const deleteCustomSection = async (sectionId: string): Promise<boolean> => {
+    try {
+      const sectionPages = customSections.find(s => s.id === sectionId)?.pages || [];
+      
+      for (const page of sectionPages) {
+        if (page.id) {
+          await deletePage(page.id);
+        }
+      }
+
+      const { error } = await supabase
+        .from('custom_sections')
+        .delete()
+        .eq('id', sectionId);
+
+      if (error) throw error;
+
+      setCustomSections(prev => prev.filter(section => section.id !== sectionId));
+      
+      toast({
+        description: "Se ha eliminado la sección",
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Error deleting custom section:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar la sección",
         variant: "destructive",
       });
       return false;
@@ -362,12 +535,16 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
 
       const allPages = [...workspace, ...personal, ...favorites, ...projects];
-      const page = allPages.find(p => p.id === pageId);
+      const customPages = customSections.flatMap(section => section.pages);
+      const page = [...allPages, ...customPages].find(p => p.id === pageId);
       
       if (page) {
         const originalSection = page.section === 'favorite' 
           ? (page.path.includes('/workspace/') ? 'workspace' : 
-             page.path.includes('/notes/') ? 'notes' : 'personal')
+             page.path.includes('/notes/') ? 'notes' : 
+             page.path.includes('/personal/') ? 'personal' :
+             page.path.includes('/projects/') ? 'projects' : 
+             customSections.find(s => page.path.includes(`/custom/${s.name.toLowerCase().replace(/\s+/g, '-')}/`))?.id || 'personal')
           : page.section;
           
         const targetSection = isFavorite ? 'favorite' : originalSection;
@@ -388,7 +565,15 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         const work: Page[] = [];
         const pers: Page[] = [];
         const proj: Page[] = [];
+        const customSectionsMap = new Map<string, { name: string, pages: Page[] }>();
         const pathToIdMap = new Map<string, string>();
+
+        customSections.forEach(section => {
+          customSectionsMap.set(section.id, {
+            name: section.name,
+            pages: []
+          });
+        });
 
         data.forEach((page) => {
           const pageObj: Page = {
@@ -407,15 +592,30 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
             pers.push(pageObj);
           } else if (page.section === 'projects') {
             proj.push(pageObj);
+          } else if (customSectionsMap.has(page.section)) {
+            const section = customSectionsMap.get(page.section);
+            if (section) {
+              section.pages.push(pageObj);
+            }
           }
 
           pathToIdMap.set(page.path, page.id);
+        });
+
+        const customSectionsArray: CustomSection[] = [];
+        customSectionsMap.forEach((value, key) => {
+          customSectionsArray.push({
+            id: key,
+            name: value.name,
+            pages: value.pages
+          });
         });
 
         setFavorites(favs);
         setWorkspace(work);
         setPersonal(pers);
         setProjects(proj);
+        setCustomSections(customSectionsArray);
         setPagesMap(pathToIdMap);
       }
 
@@ -437,7 +637,8 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
   const movePageToSection = async (pageId: string, newSection: PageSection, shouldNavigate: boolean = true): Promise<boolean> => {
     try {
       const allPages = [...workspace, ...personal, ...favorites, ...projects];
-      const existingPage = allPages.find(page => page.id === pageId);
+      const customPages = customSections.flatMap(section => section.pages);
+      const existingPage = [...allPages, ...customPages].find(page => page.id === pageId);
       
       if (!existingPage) {
         toast({
@@ -448,9 +649,20 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
-      const pathParts = existingPage.path.split('/');
-      const pageName = pathParts[pathParts.length - 1];
-      const newPath = `/${newSection}/${pageName}`;
+      let newPath;
+      if (newSection !== 'favorite' && 
+          newSection !== 'workspace' && 
+          newSection !== 'notes' && 
+          newSection !== 'personal' &&
+          newSection !== 'projects') {
+        const sectionObj = customSections.find(s => s.id === newSection);
+        if (!sectionObj) {
+          throw new Error("Sección no encontrada");
+        }
+        newPath = `/custom/${sectionObj.name.toLowerCase().replace(/\s+/g, '-')}/${existingPage.name.toLowerCase().replace(/\s+/g, '-')}`;
+      } else {
+        newPath = `/${newSection}/${existingPage.name.toLowerCase().replace(/\s+/g, '-')}`;
+      }
       
       const { data, error } = await supabase
         .from('pages')
@@ -465,27 +677,53 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       if (data) {
-        const updatedPage = { ...existingPage, section: newSection as PageSection, path: newPath };
+        const updatedPage = { ...existingPage, section: newSection, path: newPath };
         
         setFavorites(prev => prev.filter(page => page.id !== pageId));
         setWorkspace(prev => prev.filter(page => page.id !== pageId));
         setPersonal(prev => prev.filter(page => page.id !== pageId));
         setProjects(prev => prev.filter(page => page.id !== pageId));
+        setCustomSections(prev => 
+          prev.map(section => ({
+            ...section,
+            pages: section.pages.filter(page => page.id !== pageId)
+          }))
+        );
         
-        switch (newSection) {
-          case "favorite":
-            setFavorites(prev => [...prev, updatedPage]);
-            break;
-          case "workspace":
-          case "notes":
-            setWorkspace(prev => [...prev, updatedPage]);
-            break;
-          case "personal":
-            setPersonal(prev => [...prev, updatedPage]);
-            break;
-          case "projects":
-            setProjects(prev => [...prev, updatedPage]);
-            break;
+        const isCustomSection = newSection !== 'favorite' && 
+                               newSection !== 'workspace' && 
+                               newSection !== 'notes' && 
+                               newSection !== 'personal' &&
+                               newSection !== 'projects';
+
+        if (isCustomSection) {
+          setCustomSections(prev => {
+            return prev.map(section => {
+              if (section.id === newSection) {
+                return {
+                  ...section,
+                  pages: [...section.pages, updatedPage]
+                };
+              }
+              return section;
+            });
+          });
+        } else {
+          switch (newSection) {
+            case "favorite":
+              setFavorites(prev => [...prev, updatedPage]);
+              break;
+            case "workspace":
+            case "notes":
+              setWorkspace(prev => [...prev, updatedPage]);
+              break;
+            case "personal":
+              setPersonal(prev => [...prev, updatedPage]);
+              break;
+            case "projects":
+              setProjects(prev => [...prev, updatedPage]);
+              break;
+          }
         }
         
         setPagesMap(prev => {
@@ -521,7 +759,8 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
   const updatePageTitle = async (pageId: string, newTitle: string): Promise<boolean> => {
     try {
       const allPages = [...workspace, ...personal, ...favorites, ...projects];
-      const existingPage = allPages.find(page => page.id === pageId);
+      const customPages = customSections.flatMap(section => section.pages);
+      const existingPage = [...allPages, ...customPages].find(page => page.id === pageId);
       
       if (!existingPage) {
         toast({
@@ -532,9 +771,23 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
-      const pathParts = existingPage.path.split('/');
-      const section = pathParts[1];
-      const newPath = `/${section}/${newTitle.toLowerCase().replace(/\s+/g, '-')}`;
+      let newPath;
+      const isCustomSection = existingPage.section !== 'favorite' && 
+                             existingPage.section !== 'workspace' && 
+                             existingPage.section !== 'notes' && 
+                             existingPage.section !== 'personal' &&
+                             existingPage.section !== 'projects';
+
+      if (isCustomSection) {
+        const sectionObj = customSections.find(s => s.id === existingPage.section);
+        if (!sectionObj) {
+          throw new Error("Sección no encontrada");
+        }
+        newPath = `/custom/${sectionObj.name.toLowerCase().replace(/\s+/g, '-')}/${newTitle.toLowerCase().replace(/\s+/g, '-')}`;
+      } else {
+        const section = existingPage.path.split('/')[1];
+        newPath = `/${section}/${newTitle.toLowerCase().replace(/\s+/g, '-')}`;
+      }
       
       const { data, error } = await supabase
         .from('pages')
@@ -551,20 +804,34 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
       if (data) {
         const updatedPage = { ...existingPage, name: newTitle, path: newPath };
         
-        switch (data.section) {
-          case "favorite":
-            setFavorites(prev => prev.map(page => page.id === pageId ? updatedPage : page));
-            break;
-          case "workspace":
-          case "notes":
-            setWorkspace(prev => prev.map(page => page.id === pageId ? updatedPage : page));
-            break;
-          case "personal":
-            setPersonal(prev => prev.map(page => page.id === pageId ? updatedPage : page));
-            break;
-          case "projects":
-            setProjects(prev => prev.map(page => page.id === pageId ? updatedPage : page));
-            break;
+        if (isCustomSection) {
+          setCustomSections(prev => {
+            return prev.map(section => {
+              if (section.id === existingPage.section) {
+                return {
+                  ...section,
+                  pages: section.pages.map(page => page.id === pageId ? updatedPage : page)
+                };
+              }
+              return section;
+            });
+          });
+        } else {
+          switch (data.section) {
+            case "favorite":
+              setFavorites(prev => prev.map(page => page.id === pageId ? updatedPage : page));
+              break;
+            case "workspace":
+            case "notes":
+              setWorkspace(prev => prev.map(page => page.id === pageId ? updatedPage : page));
+              break;
+            case "personal":
+              setPersonal(prev => prev.map(page => page.id === pageId ? updatedPage : page));
+              break;
+            case "projects":
+              setProjects(prev => prev.map(page => page.id === pageId ? updatedPage : page));
+              break;
+          }
         }
         
         setPagesMap(prev => {
@@ -600,6 +867,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         workspace, 
         personal,
         projects,
+        customSections,
         isLoading,
         loading,
         createPage,
@@ -610,7 +878,9 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         toggleFavorite,
         getPageIdByPath,
         updatePageTitle,
-        movePageToSection
+        movePageToSection,
+        addCustomSection,
+        deleteCustomSection
       }}
     >
       {children}
@@ -619,3 +889,4 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const usePages = () => useContext(PagesContext);
+

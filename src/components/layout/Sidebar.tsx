@@ -5,11 +5,13 @@ import { SearchBar } from "../ui/SearchBar";
 import { SettingsModal } from "./SettingsModal";
 import { NewPageModal } from "./NewPageModal";
 import { DeletePageDialog } from "./DeletePageDialog";
-import { Home, FileText, Star, Users, Settings, Plus, Trash2, User, LayoutDashboard, Folder } from "lucide-react";
+import { Home, FileText, Star, Users, Settings, Plus, Trash2, User, LayoutDashboard, Folder, ChevronDown, ChevronRight } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
 import { useToast } from "@/components/ui/use-toast";
-import { usePages } from "@/context/PagesContext";
+import { usePages, PageSection } from "@/context/PagesContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { NewSectionModal } from "./NewSectionModal";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
 interface SidebarProps {
   userName?: string;
@@ -23,10 +25,22 @@ export function Sidebar({ userAvatar }: SidebarProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pageToDelete, setPageToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [newPageSection, setNewPageSection] = useState<"workspace" | "personal" | "notes" | "projects">("workspace");
+  const [newPageSection, setNewPageSection] = useState<PageSection>("workspace");
+  const [newSectionModalOpen, setNewSectionModalOpen] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const { settings } = useSettings();
   const { toast } = useToast();
-  const { favorites, workspace, personal, projects, loading, createPage, deletePage } = usePages();
+  const { 
+    favorites, 
+    workspace, 
+    personal, 
+    projects, 
+    customSections, 
+    loading, 
+    createPage, 
+    deletePage, 
+    addCustomSection 
+  } = usePages();
 
   // Lista de secciones y páginas fijas
   const defaultFavorites = [
@@ -88,6 +102,25 @@ export function Sidebar({ userAvatar }: SidebarProps) {
     }
   };
 
+  // Función para crear una nueva sección personalizada
+  const handleCreateSection = async (name) => {
+    try {
+      await addCustomSection(name);
+      setNewSectionModalOpen(false);
+      
+      toast({
+        description: `Se ha creado la sección "${name}"`,
+      });
+    } catch (error) {
+      console.error("Error creating section:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear la sección",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Funciones para filtrar los elementos según la búsqueda
   const filterItems = (items) => {
     if (!searchQuery) return items;
@@ -100,6 +133,12 @@ export function Sidebar({ userAvatar }: SidebarProps) {
   const filteredWorkspace = filterItems(workspace);
   const filteredPersonal = filterItems(personal);
   const filteredProjects = filterItems(projects);
+  
+  // Filtrar las secciones personalizadas
+  const filteredCustomSections = customSections.map(section => ({
+    ...section,
+    pages: filterItems(section.pages)
+  }));
 
   // Determinar si una sección debe mostrarse (si hay elementos filtrados)
   const showFavorites = filteredFavorites.length > 0;
@@ -108,9 +147,17 @@ export function Sidebar({ userAvatar }: SidebarProps) {
   const showProjects = true; // Always show Projects section
 
   // Abrir el diálogo para crear una nueva página
-  const openNewPageModal = (section: "workspace" | "personal" | "notes" | "projects") => {
+  const openNewPageModal = (section: PageSection) => {
     setNewPageSection(section);
     setNewPageOpen(true);
+  };
+
+  // Alternar el estado de colapso de una sección
+  const toggleSectionCollapse = (sectionId) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
   };
 
   // Renderizar un elemento de página con opción de eliminar
@@ -166,6 +213,46 @@ export function Sidebar({ userAvatar }: SidebarProps) {
 
   const currentAvatar = settings.userAvatar || "/images/female-avatar.svg";
 
+  // Renderizar una sección colapsable con páginas y botón para agregar nuevas páginas
+  const renderCustomSection = (section) => {
+    const isCollapsed = collapsedSections[section.id] || false;
+    
+    return (
+      <div key={section.id} className="mb-6">
+        <Collapsible
+          open={!isCollapsed}
+          onOpenChange={(open) => toggleSectionCollapse(section.id)}
+        >
+          <div className="flex items-center justify-between px-3 mb-2">
+            <CollapsibleTrigger className="flex items-center text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 focus:outline-none">
+              {isCollapsed ? <ChevronRight className="h-3.5 w-3.5 mr-1" /> : <ChevronDown className="h-3.5 w-3.5 mr-1" />}
+              {section.name}
+            </CollapsibleTrigger>
+            <button
+              onClick={() => openNewPageModal(section.id)}
+              className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+              aria-label={`Agregar página a ${section.name}`}
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <CollapsibleContent>
+            <ul>
+              {section.pages.map((item, index) => 
+                renderPageItem(item, index)
+              )}
+              {section.pages.length === 0 && (
+                <li className="px-3 py-2 text-sm text-gray-500 italic">
+                  No hay páginas en esta sección
+                </li>
+              )}
+            </ul>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+    );
+  };
+
   return (
     <div className="w-64 h-full bg-gray-100 border-r border-gray-200 flex flex-col">
       {/* Logo y búsqueda */}
@@ -186,7 +273,7 @@ export function Sidebar({ userAvatar }: SidebarProps) {
             </h2>
             <ul>
               {filteredFavorites.map((item, index) => 
-                renderPageItem(item, index, item.id != null)
+                renderFavoriteItem(item, index)
               )}
             </ul>
           </div>
@@ -195,81 +282,124 @@ export function Sidebar({ userAvatar }: SidebarProps) {
         {/* Sección Workspace */}
         {showWorkspace && (
           <div className="mb-6">
-            <div className="flex items-center justify-between px-3 mb-2">
-              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Workspace
-              </h2>
-              <button
-                onClick={() => openNewPageModal("workspace")}
-                className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
-                aria-label="Agregar página"
-              >
-                <Plus className="h-3.5 w-3.5" />
-              </button>
-            </div>
-            <ul>
-              {filteredWorkspace.map((item, index) => 
-                renderPageItem(item, index)
-              )}
-              {filteredWorkspace.length === 0 && (
-                <li className="px-3 py-2 text-sm text-gray-500 italic">
-                  No hay páginas en el workspace
-                </li>
-              )}
-            </ul>
+            <Collapsible
+              defaultOpen={true}
+              onOpenChange={(open) => toggleSectionCollapse("workspace")}
+            >
+              <div className="flex items-center justify-between px-3 mb-2">
+                <CollapsibleTrigger className="flex items-center text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 focus:outline-none">
+                  {collapsedSections["workspace"] ? <ChevronRight className="h-3.5 w-3.5 mr-1" /> : <ChevronDown className="h-3.5 w-3.5 mr-1" />}
+                  Workspace
+                </CollapsibleTrigger>
+                <button
+                  onClick={() => openNewPageModal("workspace")}
+                  className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                  aria-label="Agregar página"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <CollapsibleContent>
+                <ul>
+                  {filteredWorkspace.map((item, index) => 
+                    renderPageItem(item, index)
+                  )}
+                  {filteredWorkspace.length === 0 && (
+                    <li className="px-3 py-2 text-sm text-gray-500 italic">
+                      No hay páginas en el workspace
+                    </li>
+                  )}
+                </ul>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         )}
 
         {/* Sección Personal */}
         {showPersonal && (
           <div className="mb-6">
-            <div className="flex items-center justify-between px-3 mb-2">
-              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Personal
-              </h2>
-              <button
-                onClick={() => openNewPageModal("personal")}
-                className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
-                aria-label="Agregar página personal"
-              >
-                <Plus className="h-3.5 w-3.5" />
-              </button>
-            </div>
-            <ul>
-              {filteredPersonal.map((item, index) => 
-                renderPageItem(item, index)
-              )}
-            </ul>
+            <Collapsible
+              defaultOpen={true}
+              onOpenChange={(open) => toggleSectionCollapse("personal")}
+            >
+              <div className="flex items-center justify-between px-3 mb-2">
+                <CollapsibleTrigger className="flex items-center text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 focus:outline-none">
+                  {collapsedSections["personal"] ? <ChevronRight className="h-3.5 w-3.5 mr-1" /> : <ChevronDown className="h-3.5 w-3.5 mr-1" />}
+                  Personal
+                </CollapsibleTrigger>
+                <button
+                  onClick={() => openNewPageModal("personal")}
+                  className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                  aria-label="Agregar página personal"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <CollapsibleContent>
+                <ul>
+                  {filteredPersonal.map((item, index) => 
+                    renderPageItem(item, index)
+                  )}
+                  {filteredPersonal.length === 0 && (
+                    <li className="px-3 py-2 text-sm text-gray-500 italic">
+                      No hay páginas personales
+                    </li>
+                  )}
+                </ul>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         )}
 
-        {/* Nueva Sección Proyectos */}
+        {/* Sección Proyectos */}
         {showProjects && (
           <div className="mb-6">
-            <div className="flex items-center justify-between px-3 mb-2">
-              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Proyectos
-              </h2>
-              <button
-                onClick={() => openNewPageModal("projects")}
-                className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
-                aria-label="Agregar proyecto"
-              >
-                <Plus className="h-3.5 w-3.5" />
-              </button>
-            </div>
-            <ul>
-              {filteredProjects.map((item, index) => 
-                renderPageItem(item, index)
-              )}
-              {filteredProjects.length === 0 && (
-                <li className="px-3 py-2 text-sm text-gray-500 italic">
-                  No hay proyectos
-                </li>
-              )}
-            </ul>
+            <Collapsible
+              defaultOpen={true}
+              onOpenChange={(open) => toggleSectionCollapse("projects")}
+            >
+              <div className="flex items-center justify-between px-3 mb-2">
+                <CollapsibleTrigger className="flex items-center text-xs font-semibold text-gray-500 uppercase tracking-wider hover:text-gray-700 focus:outline-none">
+                  {collapsedSections["projects"] ? <ChevronRight className="h-3.5 w-3.5 mr-1" /> : <ChevronDown className="h-3.5 w-3.5 mr-1" />}
+                  Proyectos
+                </CollapsibleTrigger>
+                <button
+                  onClick={() => openNewPageModal("projects")}
+                  className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                  aria-label="Agregar proyecto"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <CollapsibleContent>
+                <ul>
+                  {filteredProjects.map((item, index) => 
+                    renderPageItem(item, index)
+                  )}
+                  {filteredProjects.length === 0 && (
+                    <li className="px-3 py-2 text-sm text-gray-500 italic">
+                      No hay proyectos
+                    </li>
+                  )}
+                </ul>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         )}
+
+        {/* Secciones personalizadas */}
+        {filteredCustomSections.map(section => renderCustomSection(section))}
+
+        {/* Botón para crear una nueva sección */}
+        <div className="px-3 mb-6">
+          <button
+            onClick={() => setNewSectionModalOpen(true)}
+            className="flex items-center w-full rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-200"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            <span>Crear nueva sección</span>
+          </button>
+        </div>
       </nav>
 
       {/* Perfil de usuario */}
@@ -317,6 +447,13 @@ export function Sidebar({ userAvatar }: SidebarProps) {
         onOpenChange={setNewPageOpen}
         onCreate={handleCreatePage}
         defaultSection={newPageSection}
+      />
+
+      {/* Modal de nueva sección */}
+      <NewSectionModal
+        open={newSectionModalOpen}
+        onOpenChange={setNewSectionModalOpen}
+        onCreate={handleCreateSection}
       />
 
       {/* Diálogo de confirmación para eliminar página */}
