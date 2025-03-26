@@ -178,12 +178,12 @@ export function SortableBlock({
   };
 
   const applyFormatting = (format: string, value?: string) => {
-    console.log(`Applying formatting: ${format}`, value); // Debug log
+    console.log(`Aplicando formato: ${format}`, value); // Log de depuración
     
     const selection = window.getSelection();
     
     if (!selection || selection.isCollapsed || !selection.rangeCount || !contentEditableRef.current) {
-      console.log("No valid selection detected"); // Debug log
+      console.log("No se detectó selección válida"); // Log de depuración
       return;
     }
     
@@ -191,11 +191,11 @@ export function SortableBlock({
     const selectedText = range.toString();
     
     if (!selectedText) {
-      console.log("Selected text is empty"); // Debug log
+      console.log("El texto seleccionado está vacío"); // Log de depuración
       return;
     }
     
-    console.log("Selected text:", selectedText); // Debug log
+    console.log("Texto seleccionado:", selectedText); // Log de depuración
     
     let formattedText = '';
     
@@ -219,42 +219,43 @@ export function SortableBlock({
         break;
       case 'textColor':
         if (value) {
-          console.log(`Creating span with color: ${value}`); // Debug log
-          formattedText = `<span style="color:${value} !important;">${selectedText}</span>`;
+          console.log(`Creando span con color: ${value}`); // Log de depuración
+          formattedText = `<span style="color:${value} !important">${selectedText}</span>`;
         }
         break;
       case 'backgroundColor':
         if (value) {
-          console.log(`Creating span with background-color: ${value}`); // Debug log
-          formattedText = `<span style="background-color:${value} !important;">${selectedText}</span>`;
+          console.log(`Creando span con background-color: ${value}`); // Log de depuración
+          formattedText = `<span style="background-color:${value} !important">${selectedText}</span>`;
         }
         break;
       default:
-        console.log("Unknown format:", format);
+        console.log("Formato desconocido:", format);
         return;
     }
     
     if (!formattedText) {
-      console.log("No formatted text was created"); // Debug log
+      console.log("No se creó texto formateado"); // Log de depuración
       return;
     }
     
-    console.log("Formatted text to insert:", formattedText); // Debug log
+    console.log("Texto formateado a insertar:", formattedText); // Log de depuración
+    
+    range.deleteContents();
     
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = formattedText;
-    const fragment = document.createDocumentFragment();
     
+    const fragment = document.createDocumentFragment();
     while (tempDiv.firstChild) {
       fragment.appendChild(tempDiv.firstChild);
     }
     
-    range.deleteContents();
     range.insertNode(fragment);
     
     if (contentEditableRef.current) {
       const newContent = contentEditableRef.current.innerHTML;
-      console.log("Updated content:", newContent); // Debug log
+      console.log("Contenido actualizado:", newContent); // Log de depuración
       
       requestAnimationFrame(() => {
         if (contentEditableRef.current) {
@@ -265,7 +266,6 @@ export function SortableBlock({
     
     setFormatMenuPosition(null);
     setHasTextSelection(false);
-    
     document.getSelection()?.removeAllRanges();
   };
 

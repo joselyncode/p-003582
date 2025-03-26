@@ -128,12 +128,12 @@ export function FormatMenu({ position, onClose, onFormatText, hasSelection = tru
     if (!hasSelection) return;
     
     if (type === 'text') {
-      console.log("Applying text color from menu:", color.name, color.hexColor); // Debug log
+      console.log("Aplicando color de texto:", color.name, color.hexColor); // Log de depuración
       onFormatText('textColor', color.hexColor);
     } else if (type === 'background') {
       const bgValue = bgColorMap[color.bgColor];
       if (bgValue) {
-        console.log("Applying background color from menu:", color.name, bgValue); // Debug log
+        console.log("Aplicando color de fondo:", color.name, bgValue); // Log de depuración
         onFormatText('backgroundColor', bgValue);
       }
     }
@@ -255,7 +255,10 @@ export function FormatMenu({ position, onClose, onFormatText, hasSelection = tru
                           className="h-7 px-2 justify-start"
                           onClick={() => handleColorSelect('text', color)}
                         >
-                          <div className={`w-4 h-4 mr-2 rounded-full ${color.textColor} flex items-center justify-center`}>
+                          <div 
+                            className={`w-4 h-4 mr-2 rounded-full flex items-center justify-center`}
+                            style={{ color: color.hexColor }}
+                          >
                             <span className="text-xs">A</span>
                           </div>
                           <span className="text-xs">{color.name}</span>
