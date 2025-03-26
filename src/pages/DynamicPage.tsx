@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
@@ -27,11 +26,6 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
   
   useEffect(() => {
     if (!pageId) {
-      toast({
-        title: "Error",
-        description: "No se proporcionó un ID de página",
-        variant: "destructive",
-      });
       navigate('/');
       return;
     }
@@ -50,13 +44,7 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     
     if (!foundPage) {
       setPageNotFound(true);
-      toast({
-        title: "Error",
-        description: `No se encontró la página con el ID ${pageId}`,
-        variant: "destructive",
-      });
-      // Delay the navigation slightly to ensure the toast is visible
-      setTimeout(() => navigate('/'), 1500);
+      setTimeout(() => navigate('/'), 100);
       return;
     }
     
@@ -72,23 +60,17 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
             setBlocks(content.blocks);
             setLastSaved(content.last_edited);
           } else {
-            // If no content is found, create an empty page rather than showing an error
             setBlocks([]);
             setLastSaved(Date.now());
           }
         } catch (error) {
           console.error("Error fetching page content:", error);
-          toast({
-            title: "Error",
-            description: "No se pudo cargar el contenido de la página",
-            variant: "destructive",
-          });
         }
       };
       
       fetchPageContent();
     }
-  }, [section, pageId, workspace, personal, favorites, getPageContent, navigate, toast]);
+  }, [section, pageId, workspace, personal, favorites, getPageContent, navigate]);
   
   const handleBlocksChange = async (newBlocks: Block[]) => {
     setBlocks(newBlocks);
@@ -149,19 +131,8 @@ const DynamicPage = ({ section }: DynamicPageProps) => {
     }
   };
 
-  // If page not found, show a loading state until navigation occurs
   if (pageNotFound) {
-    return (
-      <WorkspaceLayout
-        userName={settings.userName}
-        userAvatar={settings.userAvatar}
-        currentPath={["Error"]}
-      >
-        <div className="max-w-4xl w-full mx-auto px-4 sm:px-6 py-4 flex items-center justify-center h-64">
-          <p className="text-gray-500">Redirigiendo al inicio...</p>
-        </div>
-      </WorkspaceLayout>
-    );
+    return null;
   }
   
   return (

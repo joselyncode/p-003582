@@ -18,7 +18,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ShareModal } from "@/components/editor/ShareModal";
 import { usePages } from "@/context/PagesContext";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 interface HeaderProps {
   currentPath: string[];
