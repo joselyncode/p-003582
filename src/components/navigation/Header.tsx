@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { 
   ChevronLeft,
@@ -66,6 +67,7 @@ export function Header({
     if (pageId && pageId !== 'default-page') {
       setIsLoading(true);
       try {
+        // Pasamos shouldNavigate como false para evitar navegación automática que causa el error
         await toggleFavorite(pageId, !isFavorite, false);
         setIsFavorite(!isFavorite);
         

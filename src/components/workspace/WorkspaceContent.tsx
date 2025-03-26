@@ -58,6 +58,12 @@ export function WorkspaceContent() {
         pagePath: ["Tareas"],
         pageTitle: "Tareas"
       };
+    } else if (path === "/favorite") {
+      return {
+        workspaceName: "Mi Workspace",
+        pagePath: ["Favoritos"],
+        pageTitle: "Favoritos"
+      };
     } else {
       return {
         workspaceName: "Mi Workspace",
