@@ -4,7 +4,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import './tailwind.css'
-import { plugin as LucideVue } from 'lucide-vue-next'
+import { LucideVueNext } from 'lucide-vue-next'
 
 // Create the Vue app
 const app = createApp(App)
@@ -16,7 +16,7 @@ app.use(createPinia())
 app.use(router)
 
 // Use Lucide Vue icons
-app.use(LucideVue)
+app.use(LucideVueNext)
 
 // Mount the app
 app.mount('#vue-app')
