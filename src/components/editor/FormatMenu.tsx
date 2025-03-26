@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { 
   Bold, 
@@ -33,38 +32,28 @@ const colorOptions = [
   { name: "Pink", textColor: "text-pink-500", bgColor: "bg-pink-100" },
 ];
 
-// Define proper types for the Tailwind to CSS mapping
-interface TextColorStyle {
-  color: string;
-}
+const textColorMap: Record<string, string> = {
+  "text-foreground": "inherit",
+  "text-gray-500": "#6b7280",
+  "text-red-500": "#ef4444",
+  "text-orange-500": "#f97316",
+  "text-yellow-500": "#eab308",
+  "text-green-500": "#22c55e",
+  "text-blue-500": "#3b82f6",
+  "text-purple-500": "#a855f7",
+  "text-pink-500": "#ec4899"
+};
 
-interface BgColorStyle {
-  backgroundColor: string;
-}
-
-// Mapping of Tailwind classes to CSS values
-const tailwindToCSS: Record<string, TextColorStyle | BgColorStyle> = {
-  // Text colors
-  "text-foreground": { color: "inherit" },
-  "text-gray-500": { color: "#6b7280" },
-  "text-red-500": { color: "#ef4444" },
-  "text-orange-500": { color: "#f97316" },
-  "text-yellow-500": { color: "#eab308" },
-  "text-green-500": { color: "#22c55e" },
-  "text-blue-500": { color: "#3b82f6" },
-  "text-purple-500": { color: "#a855f7" },
-  "text-pink-500": { color: "#ec4899" },
-  
-  // Background colors
-  "bg-transparent": { backgroundColor: "transparent" },
-  "bg-gray-100": { backgroundColor: "#f3f4f6" },
-  "bg-red-100": { backgroundColor: "#fee2e2" },
-  "bg-orange-100": { backgroundColor: "#ffedd5" },
-  "bg-yellow-100": { backgroundColor: "#fef9c3" },
-  "bg-green-100": { backgroundColor: "#dcfce7" },
-  "bg-blue-100": { backgroundColor: "#dbeafe" },
-  "bg-purple-100": { backgroundColor: "#f3e8ff" },
-  "bg-pink-100": { backgroundColor: "#fce7f3" }
+const bgColorMap: Record<string, string> = {
+  "bg-transparent": "transparent",
+  "bg-gray-100": "#f3f4f6",
+  "bg-red-100": "#fee2e2",
+  "bg-orange-100": "#ffedd5",
+  "bg-yellow-100": "#fef9c3",
+  "bg-green-100": "#dcfce7",
+  "bg-blue-100": "#dbeafe",
+  "bg-purple-100": "#f3e8ff",
+  "bg-pink-100": "#fce7f3"
 };
 
 interface FormatMenuProps {
@@ -97,7 +86,6 @@ export function FormatMenu({ position, onClose, onFormatText, hasSelection = tru
     };
   }, [onClose]);
 
-  // Calculate optimal menu position
   useEffect(() => {
     if (!position) return;
     
@@ -107,13 +95,10 @@ export function FormatMenu({ position, onClose, onFormatText, hasSelection = tru
     const menuWidth = 225; // Approximate width of the menu
     const buffer = 5; // Small buffer space (reduced from 10)
     
-    // Check if there's enough space above
     const direction = position.y - menuHeight - buffer < 0 ? "bottom" : "top";
     
-    // Center horizontally over the selection
     let xPos = position.x - (menuWidth / 2);
     
-    // Keep menu within viewport horizontally
     xPos = Math.max(10, Math.min(xPos, viewportWidth - menuWidth - 10));
     
     setMenuPosition({
@@ -123,14 +108,13 @@ export function FormatMenu({ position, onClose, onFormatText, hasSelection = tru
     });
   }, [position]);
 
-  // Calculate menu style based on position
   const menuStyle = position ? {
     left: `${menuPosition.x}px`,
     top: menuPosition.direction === "top" ? `${menuPosition.y - 40}px` : `${menuPosition.y + 10}px`,
     position: 'absolute',
     zIndex: 100,
     opacity: 0,
-    transform: menuPosition.direction === "top" ? "translateY(5px)" : "translateY(-5px)", // Reduced from 10px to 5px
+    transform: menuPosition.direction === "top" ? "translateY(5px)" : "translateY(-5px)",
     animation: "formatMenuFadeIn 0.15s ease-out forwards",
   } as React.CSSProperties : { display: 'none' };
 
@@ -154,18 +138,15 @@ export function FormatMenu({ position, onClose, onFormatText, hasSelection = tru
   const handleColorSelect = (type: 'text' | 'background', colorClass: string) => {
     if (!hasSelection) return;
     
-    // Apply correct color based on type
     if (type === 'text') {
-      const textStyle = tailwindToCSS[colorClass] as TextColorStyle;
-      if ('color' in textStyle) {
-        const styleString = `color:${textStyle.color};`;
-        onFormatText('textColor', styleString);
+      const colorValue = textColorMap[colorClass];
+      if (colorValue) {
+        onFormatText('textColor', colorValue);
       }
     } else if (type === 'background') {
-      const bgStyle = tailwindToCSS[colorClass] as BgColorStyle;
-      if ('backgroundColor' in bgStyle) {
-        const styleString = `background-color:${bgStyle.backgroundColor};`;
-        onFormatText('backgroundColor', styleString);
+      const bgValue = bgColorMap[colorClass];
+      if (bgValue) {
+        onFormatText('backgroundColor', bgValue);
       }
     }
   };
