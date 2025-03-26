@@ -21,10 +21,10 @@ interface NewPageModalProps {
   hideSection?: boolean;
 }
 
-// Define the form schema with validation
+// Define the form schema with validation for PageSection
 const formSchema = z.object({
   pageName: z.string().min(1, "El nombre de la página es obligatorio"),
-  pageType: z.enum(["favorite", "workspace", "notes", "personal", "projects"]),
+  pageType: z.string(), // Changed from enum to string to allow custom section IDs
 });
 
 export function NewPageModal({ 
