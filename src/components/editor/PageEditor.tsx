@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { SortableBlock } from './blocks/SortableBlock';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,7 +9,6 @@ import { SortableContext, arrayMove,
 import { BlockMenu } from './BlockMenu';
 import { ShareModal } from './ShareModal';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { CommentsPanel } from './CommentsPanel';
 import { Edit } from 'lucide-react';
 import { Block } from '@/context/PagesContext';
@@ -310,7 +308,6 @@ export function PageEditor({
             )}
             <div className="flex gap-2 items-center mt-1 text-xs text-muted-foreground">
               <span>{formatLastSaved()}</span>
-              <Badge variant="outline" className="text-xs">Draft</Badge>
             </div>
           </div>
         </div>
