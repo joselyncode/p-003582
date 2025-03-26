@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { SearchBar } from "../ui/SearchBar";
@@ -161,11 +162,6 @@ export function Sidebar({ userAvatar }: SidebarProps) {
 
   const toggleSidebar = () => {
     // setSidebarCollapsed(!sidebarCollapsed);
-  };
-
-  const openNewPageModal = (section: "workspace" | "personal" | "notes" | "projects") => {
-    setNewPageSection(section);
-    setNewPageOpen(true);
   };
 
   const currentAvatar = settings.userAvatar || "/images/female-avatar.svg";
