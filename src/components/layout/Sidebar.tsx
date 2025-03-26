@@ -5,7 +5,7 @@ import { SearchBar } from "../ui/SearchBar";
 import { SettingsModal } from "./SettingsModal";
 import { NewPageModal } from "./NewPageModal";
 import { DeletePageDialog } from "./DeletePageDialog";
-import { Home, FileText, Star, Users, Settings, Plus, Trash2, User } from "lucide-react";
+import { Home, FileText, Star, Users, Settings, Plus, Trash2, User, LayoutDashboard } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
 import { useToast } from "@/hooks/use-toast";
 import { usePages } from "@/context/PagesContext";
@@ -31,6 +31,7 @@ export function Sidebar({ userAvatar }: SidebarProps) {
   const defaultFavorites = [
     { name: "Inicio", icon: Home, path: "/" },
     { name: "Documentación", icon: FileText, path: "/docs" },
+    { name: "Workspace", icon: LayoutDashboard, path: "/workspace" },
     { name: "Configuración", icon: Settings, path: "/settings" },
   ];
 
@@ -100,7 +101,7 @@ export function Sidebar({ userAvatar }: SidebarProps) {
 
   // Determinar si una sección debe mostrarse (si hay elementos filtrados)
   const showFavorites = filteredFavorites.length > 0;
-  const showWorkspace = filteredWorkspace.length > 0;
+  const showWorkspace = true; // Always show Workspace section
   const showPersonal = filteredPersonal.length > 0;
 
   // Renderizar un elemento de página con opción de eliminar
@@ -178,6 +179,11 @@ export function Sidebar({ userAvatar }: SidebarProps) {
             <ul>
               {filteredWorkspace.map((item, index) => 
                 renderPageItem(item, index)
+              )}
+              {filteredWorkspace.length === 0 && (
+                <li className="px-3 py-2 text-sm text-gray-500 italic">
+                  No hay páginas en el workspace
+                </li>
               )}
             </ul>
           </div>
