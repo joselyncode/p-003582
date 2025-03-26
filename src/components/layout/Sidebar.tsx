@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { SearchBar } from "../ui/SearchBar";
@@ -7,7 +6,7 @@ import { NewPageModal } from "./NewPageModal";
 import { DeletePageDialog } from "./DeletePageDialog";
 import { Home, FileText, Star, Users, Settings, Plus, Trash2, User, LayoutDashboard, Folder } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { usePages } from "@/context/PagesContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
@@ -143,6 +142,33 @@ export function Sidebar({ userAvatar }: SidebarProps) {
       )}
     </li>
   );
+
+  const renderFavoriteItem = (item, index) => (
+    <li key={index} className="group relative">
+      <Link
+        to={item.path}
+        className="flex items-center rounded-md px-3 py-2 text-gray-700 hover:bg-gray-200"
+      >
+        {item.icon && typeof item.icon === 'function' ? (
+          <item.icon className="h-4 w-4 mr-3 text-gray-500" />
+        ) : (
+          <FileText className="h-4 w-4 mr-3 text-gray-500" />
+        )}
+        <span className="truncate">{item.name}</span>
+      </Link>
+    </li>
+  );
+
+  const toggleSidebar = () => {
+    // setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  const openNewPageModal = (section: "workspace" | "personal" | "notes" | "projects") => {
+    setNewPageSection(section);
+    setNewPageOpen(true);
+  };
+
+  const currentAvatar = settings.userAvatar || "/images/female-avatar.svg";
 
   return (
     <div className="w-64 h-full bg-gray-100 border-r border-gray-200 flex flex-col">
