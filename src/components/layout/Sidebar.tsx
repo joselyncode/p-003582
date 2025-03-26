@@ -5,7 +5,7 @@ import { SearchBar } from "../ui/SearchBar";
 import { SettingsModal } from "./SettingsModal";
 import { NewPageModal } from "./NewPageModal";
 import { DeletePageDialog } from "./DeletePageDialog";
-import { Home, FileText, Star, Users, Settings, Plus, Trash2, User, LayoutDashboard } from "lucide-react";
+import { Home, FileText, Star, Users, Settings, Plus, Trash2, User, LayoutDashboard, Folder } from "lucide-react";
 import { useSettings } from "@/hooks/use-settings";
 import { useToast } from "@/hooks/use-toast";
 import { usePages } from "@/context/PagesContext";
@@ -23,9 +23,10 @@ export function Sidebar({ userAvatar }: SidebarProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pageToDelete, setPageToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [newPageSection, setNewPageSection] = useState<"workspace" | "personal" | "notes" | "projects">("workspace");
   const { settings } = useSettings();
   const { toast } = useToast();
-  const { favorites, workspace, personal, loading, createPage, deletePage } = usePages();
+  const { favorites, workspace, personal, projects, loading, createPage, deletePage } = usePages();
 
   // Lista de secciones y páginas fijas
   const defaultFavorites = [
@@ -38,7 +39,7 @@ export function Sidebar({ userAvatar }: SidebarProps) {
   // Función para crear una nueva página
   const handleCreatePage = async (name) => {
     try {
-      const section = "workspace";
+      const section = newPageSection;
       await createPage(name, section);
       setNewPageOpen(false);
       
@@ -98,11 +99,19 @@ export function Sidebar({ userAvatar }: SidebarProps) {
   const filteredFavorites = filterItems([...defaultFavorites, ...favorites]);
   const filteredWorkspace = filterItems(workspace);
   const filteredPersonal = filterItems(personal);
+  const filteredProjects = filterItems(projects);
 
   // Determinar si una sección debe mostrarse (si hay elementos filtrados)
   const showFavorites = filteredFavorites.length > 0;
   const showWorkspace = true; // Always show Workspace section
   const showPersonal = filteredPersonal.length > 0;
+  const showProjects = true; // Always show Projects section
+
+  // Abrir el diálogo para crear una nueva página
+  const openNewPageModal = (section: "workspace" | "personal" | "notes" | "projects") => {
+    setNewPageSection(section);
+    setNewPageOpen(true);
+  };
 
   // Renderizar un elemento de página con opción de eliminar
   const renderPageItem = (item, index, canDelete = true) => (
@@ -169,7 +178,7 @@ export function Sidebar({ userAvatar }: SidebarProps) {
                 Workspace
               </h2>
               <button
-                onClick={() => setNewPageOpen(true)}
+                onClick={() => openNewPageModal("workspace")}
                 className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
                 aria-label="Agregar página"
               >
@@ -197,9 +206,7 @@ export function Sidebar({ userAvatar }: SidebarProps) {
                 Personal
               </h2>
               <button
-                onClick={() => {
-                  setNewPageOpen(true);
-                }}
+                onClick={() => openNewPageModal("personal")}
                 className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
                 aria-label="Agregar página personal"
               >
@@ -209,6 +216,34 @@ export function Sidebar({ userAvatar }: SidebarProps) {
             <ul>
               {filteredPersonal.map((item, index) => 
                 renderPageItem(item, index)
+              )}
+            </ul>
+          </div>
+        )}
+
+        {/* Nueva Sección Proyectos */}
+        {showProjects && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between px-3 mb-2">
+              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Proyectos
+              </h2>
+              <button
+                onClick={() => openNewPageModal("projects")}
+                className="p-1 rounded-md text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                aria-label="Agregar proyecto"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <ul>
+              {filteredProjects.map((item, index) => 
+                renderPageItem(item, index)
+              )}
+              {filteredProjects.length === 0 && (
+                <li className="px-3 py-2 text-sm text-gray-500 italic">
+                  No hay proyectos
+                </li>
               )}
             </ul>
           </div>
@@ -259,7 +294,7 @@ export function Sidebar({ userAvatar }: SidebarProps) {
         open={newPageOpen}
         onOpenChange={setNewPageOpen}
         onCreate={handleCreatePage}
-        defaultSection="workspace"
+        defaultSection={newPageSection}
       />
 
       {/* Diálogo de confirmación para eliminar página */}

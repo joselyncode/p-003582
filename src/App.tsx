@@ -11,6 +11,7 @@ import Docs from "./pages/Docs";
 import Workspace from "./pages/Workspace";
 import Notes from "./pages/Notes";
 import Personal from "./pages/Personal";
+import Projects from "./pages/Projects";
 import Todos from "./pages/Todos";
 import AllPages from "./pages/AllPages";
 import CalendarPage from "./pages/CalendarPage";
@@ -43,6 +44,7 @@ const App = () => {
               <Route path="/workspace" element={<Workspace />} />
               <Route path="/notes" element={<Notes />} />
               <Route path="/personal" element={<Personal />} />
+              <Route path="/projects" element={<Projects />} />
               <Route path="/todos" element={<Todos />} />
               <Route path="/all-pages" element={<AllPages />} />
               <Route path="/calendar" element={<CalendarPage />} />
@@ -50,6 +52,7 @@ const App = () => {
               <Route path="/notes/:pageId" element={<DynamicPage section="notes" />} />
               <Route path="/workspace/:pageId" element={<DynamicPage section="workspace" />} />
               <Route path="/personal/:pageId" element={<DynamicPage section="personal" />} />
+              <Route path="/projects/:pageId" element={<DynamicPage section="projects" />} />
               <Route path="/favorite/:pageId" element={<DynamicPage section="favorite" />} />
               {/* Ruta para páginas compartidas */}
               <Route path="/share/:pageId" element={<SharedPage />} />

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Database } from "@/integrations/supabase/types";
 
-export type PageSection = "favorite" | "workspace" | "notes" | "personal";
+export type PageSection = "favorite" | "workspace" | "notes" | "personal" | "projects";
 export type Page = {
   id?: string;
   name: string;
@@ -31,9 +31,10 @@ type PagesContextType = {
   favorites: Page[];
   workspace: Page[];
   personal: Page[];
+  projects: Page[];
   isLoading: boolean;
   loading: boolean;
-  createPage: (name: string, section: "workspace" | "personal" | "notes") => Promise<string | undefined>;
+  createPage: (name: string, section: "workspace" | "personal" | "notes" | "projects") => Promise<string | undefined>;
   addPage: (page: Page) => Promise<string | undefined>;
   deletePage: (pageId: string) => Promise<boolean>;
   getPageContent: (pageId: string) => Promise<PageContent | null>;
@@ -48,6 +49,7 @@ const PagesContext = createContext<PagesContextType>({
   favorites: [],
   workspace: [],
   personal: [],
+  projects: [],
   isLoading: true,
   loading: true,
   createPage: async () => undefined,
@@ -65,6 +67,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
   const [favorites, setFavorites] = useState<Page[]>([]);
   const [workspace, setWorkspace] = useState<Page[]>([]);
   const [personal, setPersonal] = useState<Page[]>([]);
+  const [projects, setProjects] = useState<Page[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [pagesMap, setPagesMap] = useState<Map<string, string>>(new Map());
@@ -86,6 +89,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         const favs: Page[] = [];
         const work: Page[] = [];
         const pers: Page[] = [];
+        const proj: Page[] = [];
         const pathToIdMap = new Map<string, string>();
 
         if (data) {
@@ -104,6 +108,8 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
               work.push(pageObj);
             } else if (page.section === 'personal') {
               pers.push(pageObj);
+            } else if (page.section === 'projects') {
+              proj.push(pageObj);
             }
 
             pathToIdMap.set(page.path, page.id);
@@ -113,6 +119,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         setFavorites(favs);
         setWorkspace(work);
         setPersonal(pers);
+        setProjects(proj);
         setPagesMap(pathToIdMap);
       } catch (error) {
         console.error("Error fetching pages:", error);
@@ -130,7 +137,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     fetchPages();
   }, [toast]);
 
-  const createPage = async (name: string, section: "workspace" | "personal" | "notes"): Promise<string | undefined> => {
+  const createPage = async (name: string, section: "workspace" | "personal" | "notes" | "projects"): Promise<string | undefined> => {
     try {
       const path = `/${section}/${name.toLowerCase().replace(/\s+/g, '-')}`;
       
@@ -155,7 +162,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log("Adding page with section:", page.section);
       
-      if (!page.section || !["favorite", "workspace", "notes", "personal"].includes(page.section)) {
+      if (!page.section || !["favorite", "workspace", "notes", "projects"].includes(page.section)) {
         console.error("Sección no válida:", page.section);
         throw new Error("Sección no válida");
       }
@@ -212,6 +219,9 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         case "personal":
           setPersonal(prev => [...prev, newPage]);
           break;
+        case "projects":
+          setProjects(prev => [...prev, newPage]);
+          break;
         default:
           console.warn("Sección desconocida:", newPage.section);
       }
@@ -263,6 +273,9 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
             break;
           case "personal":
             setPersonal(prev => prev.filter(page => page.id !== pageId));
+            break;
+          case "projects":
+            setProjects(prev => prev.filter(page => page.id !== pageId));
             break;
         }
 
@@ -348,7 +361,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      const allPages = [...workspace, ...personal, ...favorites];
+      const allPages = [...workspace, ...personal, ...favorites, ...projects];
       const page = allPages.find(p => p.id === pageId);
       
       if (page) {
@@ -374,6 +387,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         const favs: Page[] = [];
         const work: Page[] = [];
         const pers: Page[] = [];
+        const proj: Page[] = [];
         const pathToIdMap = new Map<string, string>();
 
         data.forEach((page) => {
@@ -391,6 +405,8 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
             work.push(pageObj);
           } else if (page.section === 'personal') {
             pers.push(pageObj);
+          } else if (page.section === 'projects') {
+            proj.push(pageObj);
           }
 
           pathToIdMap.set(page.path, page.id);
@@ -399,6 +415,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         setFavorites(favs);
         setWorkspace(work);
         setPersonal(pers);
+        setProjects(proj);
         setPagesMap(pathToIdMap);
       }
 
@@ -419,7 +436,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
 
   const movePageToSection = async (pageId: string, newSection: PageSection, shouldNavigate: boolean = true): Promise<boolean> => {
     try {
-      const allPages = [...workspace, ...personal, ...favorites];
+      const allPages = [...workspace, ...personal, ...favorites, ...projects];
       const existingPage = allPages.find(page => page.id === pageId);
       
       if (!existingPage) {
@@ -453,6 +470,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
         setFavorites(prev => prev.filter(page => page.id !== pageId));
         setWorkspace(prev => prev.filter(page => page.id !== pageId));
         setPersonal(prev => prev.filter(page => page.id !== pageId));
+        setProjects(prev => prev.filter(page => page.id !== pageId));
         
         switch (newSection) {
           case "favorite":
@@ -464,6 +482,9 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
             break;
           case "personal":
             setPersonal(prev => [...prev, updatedPage]);
+            break;
+          case "projects":
+            setProjects(prev => [...prev, updatedPage]);
             break;
         }
         
@@ -499,7 +520,7 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
 
   const updatePageTitle = async (pageId: string, newTitle: string): Promise<boolean> => {
     try {
-      const allPages = [...workspace, ...personal, ...favorites];
+      const allPages = [...workspace, ...personal, ...favorites, ...projects];
       const existingPage = allPages.find(page => page.id === pageId);
       
       if (!existingPage) {
@@ -541,6 +562,9 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
           case "personal":
             setPersonal(prev => prev.map(page => page.id === pageId ? updatedPage : page));
             break;
+          case "projects":
+            setProjects(prev => prev.map(page => page.id === pageId ? updatedPage : page));
+            break;
         }
         
         setPagesMap(prev => {
@@ -574,7 +598,8 @@ export const PagesProvider = ({ children }: { children: ReactNode }) => {
       value={{ 
         favorites, 
         workspace, 
-        personal, 
+        personal,
+        projects,
         isLoading,
         loading,
         createPage,
