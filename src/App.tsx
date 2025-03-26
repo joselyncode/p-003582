@@ -40,7 +40,7 @@ const App = () => {
           <PagesProvider>
             <Routes>
               {/* Redirige la página principal a la aplicación Vue */}
-              <Route path="/" element={<Navigate to="/vue-app" replace />} />
+              <Route path="/" element={<Navigate to="/vue.html" replace />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/docs" element={<Docs />} />
               <Route path="/workspace" element={<Workspace />} />

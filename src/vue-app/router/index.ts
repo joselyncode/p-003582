@@ -14,6 +14,31 @@ const router = createRouter({
       path: '/vue/about',
       name: 'about',
       component: () => import('../views/AboutView.vue')
+    },
+    {
+      path: '/vue/workspace',
+      name: 'workspace',
+      component: () => import('../views/WorkspaceView.vue')
+    },
+    {
+      path: '/vue/notes',
+      name: 'notes',
+      component: () => import('../views/NotesView.vue')
+    },
+    {
+      path: '/vue/personal',
+      name: 'personal',
+      component: () => import('../views/PersonalView.vue')
+    },
+    {
+      path: '/vue/todos',
+      name: 'todos',
+      component: () => import('../views/TodosView.vue')
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/NotFoundView.vue')
     }
   ]
 })
