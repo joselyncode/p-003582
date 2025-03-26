@@ -18,6 +18,7 @@ import CalendarPage from "./pages/CalendarPage";
 import { PagesProvider } from "./context/PagesContext";
 import DynamicPage from "./pages/DynamicPage";
 import SharedPage from "./pages/SharedPage";
+import VueApp from "./pages/VueApp";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -48,6 +49,8 @@ const App = () => {
               <Route path="/todos" element={<Todos />} />
               <Route path="/all-pages" element={<AllPages />} />
               <Route path="/calendar" element={<CalendarPage />} />
+              {/* Vue app route */}
+              <Route path="/vue-app" element={<VueApp />} />
               {/* Rutas dinámicas para páginas creadas por el usuario */}
               <Route path="/notes/:pageId" element={<DynamicPage section="notes" />} />
               <Route path="/workspace/:pageId" element={<DynamicPage section="workspace" />} />
