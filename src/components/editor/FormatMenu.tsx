@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { 
   Bold, 
@@ -22,30 +21,18 @@ import {
 } from "@/components/ui/tooltip";
 
 const colorOptions = [
-  { name: "Default", textColor: "text-foreground", bgColor: "bg-transparent" },
-  { name: "Gray", textColor: "text-gray-500", bgColor: "bg-gray-100" },
-  { name: "Red", textColor: "text-red-500", bgColor: "bg-red-100" },
-  { name: "Orange", textColor: "text-orange-500", bgColor: "bg-orange-100" },
-  { name: "Yellow", textColor: "text-yellow-500", bgColor: "bg-yellow-100" },
-  { name: "Green", textColor: "text-green-500", bgColor: "bg-green-100" },
-  { name: "Blue", textColor: "text-blue-500", bgColor: "bg-blue-100" },
-  { name: "Purple", textColor: "text-purple-500", bgColor: "bg-purple-100" },
-  { name: "Pink", textColor: "text-pink-500", bgColor: "bg-pink-100" },
+  { name: "Default", textColor: "text-foreground", bgColor: "bg-transparent", hexColor: "inherit" },
+  { name: "Gray", textColor: "text-gray-500", bgColor: "bg-gray-100", hexColor: "#6b7280" },
+  { name: "Red", textColor: "text-red-500", bgColor: "bg-red-100", hexColor: "#ef4444" },
+  { name: "Orange", textColor: "text-orange-500", bgColor: "bg-orange-100", hexColor: "#f97316" },
+  { name: "Yellow", textColor: "text-yellow-500", bgColor: "bg-yellow-100", hexColor: "#eab308" },
+  { name: "Green", textColor: "text-green-500", bgColor: "bg-green-100", hexColor: "#22c55e" },
+  { name: "Blue", textColor: "text-blue-500", bgColor: "bg-blue-100", hexColor: "#3b82f6" },
+  { name: "Purple", textColor: "text-purple-500", bgColor: "bg-purple-100", hexColor: "#a855f7" },
+  { name: "Pink", textColor: "text-pink-500", bgColor: "bg-pink-100", hexColor: "#ec4899" },
 ];
 
 // Define the exact color values that correspond to Tailwind classes
-const textColorMap: Record<string, string> = {
-  "text-foreground": "inherit",
-  "text-gray-500": "#6b7280",
-  "text-red-500": "#ef4444",
-  "text-orange-500": "#f97316",
-  "text-yellow-500": "#eab308",
-  "text-green-500": "#22c55e",
-  "text-blue-500": "#3b82f6",
-  "text-purple-500": "#a855f7",
-  "text-pink-500": "#ec4899"
-};
-
 const bgColorMap: Record<string, string> = {
   "bg-transparent": "transparent",
   "bg-gray-100": "#f3f4f6",
@@ -137,19 +124,16 @@ export function FormatMenu({ position, onClose, onFormatText, hasSelection = tru
     }
   };
 
-  const handleColorSelect = (type: 'text' | 'background', colorClass: string) => {
+  const handleColorSelect = (type: 'text' | 'background', color: typeof colorOptions[0]) => {
     if (!hasSelection) return;
     
     if (type === 'text') {
-      const colorValue = textColorMap[colorClass];
-      if (colorValue) {
-        console.log("Applying text color:", colorValue); // Debug log
-        onFormatText('textColor', colorValue);
-      }
+      console.log("Applying text color from menu:", color.name, color.hexColor); // Debug log
+      onFormatText('textColor', color.hexColor);
     } else if (type === 'background') {
-      const bgValue = bgColorMap[colorClass];
+      const bgValue = bgColorMap[color.bgColor];
       if (bgValue) {
-        console.log("Applying background color:", bgValue); // Debug log
+        console.log("Applying background color from menu:", color.name, bgValue); // Debug log
         onFormatText('backgroundColor', bgValue);
       }
     }
@@ -269,7 +253,7 @@ export function FormatMenu({ position, onClose, onFormatText, hasSelection = tru
                           key={`text-${color.name}`}
                           variant="ghost" 
                           className="h-7 px-2 justify-start"
-                          onClick={() => handleColorSelect('text', color.textColor)}
+                          onClick={() => handleColorSelect('text', color)}
                         >
                           <div className={`w-4 h-4 mr-2 rounded-full ${color.textColor} flex items-center justify-center`}>
                             <span className="text-xs">A</span>
@@ -286,7 +270,7 @@ export function FormatMenu({ position, onClose, onFormatText, hasSelection = tru
                           key={`bg-${color.name}`}
                           variant="ghost" 
                           className="h-7 px-2 justify-start"
-                          onClick={() => handleColorSelect('background', color.bgColor)}
+                          onClick={() => handleColorSelect('background', color)}
                         >
                           <div className={`w-4 h-4 mr-2 rounded-full ${color.bgColor} border border-gray-200`}></div>
                           <span className="text-xs">{color.name}</span>
