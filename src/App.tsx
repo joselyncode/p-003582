@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -18,7 +18,6 @@ import CalendarPage from "./pages/CalendarPage";
 import { PagesProvider } from "./context/PagesContext";
 import DynamicPage from "./pages/DynamicPage";
 import SharedPage from "./pages/SharedPage";
-import VueApp from "./pages/VueApp";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -39,8 +38,7 @@ const App = () => {
         <BrowserRouter>
           <PagesProvider>
             <Routes>
-              {/* Redirige la página principal a la aplicación Vue */}
-              <Route path="/" element={<Navigate to="/vue.html" replace />} />
+              <Route path="/" element={<Index />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/docs" element={<Docs />} />
               <Route path="/workspace" element={<Workspace />} />
@@ -50,8 +48,6 @@ const App = () => {
               <Route path="/todos" element={<Todos />} />
               <Route path="/all-pages" element={<AllPages />} />
               <Route path="/calendar" element={<CalendarPage />} />
-              {/* Vue app route */}
-              <Route path="/vue-app" element={<VueApp />} />
               {/* Rutas dinámicas para páginas creadas por el usuario */}
               <Route path="/notes/:pageId" element={<DynamicPage section="notes" />} />
               <Route path="/workspace/:pageId" element={<DynamicPage section="workspace" />} />

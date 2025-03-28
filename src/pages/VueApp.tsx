@@ -1,17 +1,9 @@
 
-import React, { useEffect } from "react";
+import React from "react";
+import { Navigate } from "react-router-dom";
 
 const VueApp = () => {
-  useEffect(() => {
-    // Redirect to Vue HTML page
-    window.location.href = "/vue.html";
-  }, []);
-
-  return (
-    <div className="flex items-center justify-center h-screen">
-      <p>Redirecting to Vue application...</p>
-    </div>
-  );
+  return <Navigate to="/" replace />;
 };
 
 export default VueApp;
